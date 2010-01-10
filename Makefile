@@ -14,6 +14,7 @@ build: _cipher.so
 
 test: build
 	$(PYTHON) cipher.py
+	$(PYTHON) test_cipher.py
 
 clean:
 	- rm *.o

@@ -3,8 +3,8 @@ PYTHON = bin/python
 
 default : test
 
-_cipher.pyx : _cipher.pyxs
-	mako-render _cipher.pyxs > _cipher.pyx
+_cipher.pyx : _cipher.pyx.mako
+	mako-render _cipher.pyx.mako > _cipher.pyx
 
 _cipher.so : _cipher.pyx
 	make -C libtomcrypt-1.16

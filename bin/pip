@@ -1,5 +1,0 @@
-#!/Users/mikeboers/Desktop/pycrypto/bin/python
-# EASY-INSTALL-SCRIPT: 'pip==0.6.1','pip'
-__requires__ = 'pip==0.6.1'
-import pkg_resources
-pkg_resources.run_script('pip==0.6.1', 'pip')

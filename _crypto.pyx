@@ -92,37 +92,18 @@ cdef class Cipher(object):
             raise CryptoError(res)
         
     def encrypt(self, plaintext):
-        cdef unsigned char ciphertext[255]
-        cdef int i
-        cdef long length
-        
-        length = len(plaintext)
-        
-        res = ecb_encrypt(plaintext, ciphertext, length, &self.ecb)
+        ciphertext = '\0' * len(plaintext)
+        res = ecb_encrypt(plaintext, ciphertext, len(plaintext), &self.ecb)
         if res != CRYPT_OK:
             raise CryptoError(res)
+        return ciphertext
         
-        out = []
-        for i in range(len(plaintext)):
-            out.append(chr(ciphertext[i]))
-        return ''.join(out)
-        
-    def decrypt(self, plaintext):
-        cdef unsigned char ciphertext[255]
-        cdef int i
-        cdef long length
-
-        length = len(plaintext)
-
-        res = ecb_decrypt(plaintext, ciphertext, length, &self.ecb)
+    def decrypt(self, ciphertext):
+        plaintext = '\0' * len(ciphertext)
+        res = ecb_decrypt(ciphertext, plaintext, len(ciphertext), &self.ecb)
         if res != CRYPT_OK:
             raise CryptoError(res)
-
-        out = []
-        for i in range(len(plaintext)):
-            out.append(chr(ciphertext[i]))
-
-        return ''.join(out) 
+        return plaintext
         
     
             

@@ -1,0 +1,14 @@
+
+- Have classes build for each of the modes. This way we don't need to dispatch
+  at every call.
+    - First time the difference to see if it even matters.
+    - Decide upon the API for this:
+        - Could pass the cipher to the mode class: cipher = CipherCBC('aes')
+        - Could have a class for each combination: cipher = AES_CBC('key')
+        - Could have a function which picks from one of the above for you:
+            cipher = build(mode='cbc', cipher='aes')
+        - Could have __new__ on Cipher* pick the right class depending on the
+          mode and cipher.
+- OR, IFF we don't have to explicitly cast the symmetric_*, then figure out
+  how to save pointers to functions and pick those in the setup
+        

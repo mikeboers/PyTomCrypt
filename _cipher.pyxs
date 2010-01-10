@@ -7,9 +7,14 @@ ciphers = 'aes rijndael des blowfish'.split()
 
 %>
 
+modes = ${repr(modes)}
+simple_modes = ${repr(simple_modes)}
+ciphers = ${repr(ciphers)}
+
 cdef extern from "tomcrypt.h":
 
 	int CRYPT_OK
+	int CTR_COUNTER_BIG_ENDIAN
 	char * error_to_string(int err)
 	
 	# Generic symmetric key, and for all of the supported modes.
@@ -82,18 +87,34 @@ cdef class Cipher(object):
 	
 	cdef int cipher_i
 	cdef cipher_desc cipher
-	cdef symmetric_ecb ecb
 	
-	def __init__(self, key, cipher='aes'):
+	% for mode in modes:
+	cdef symmetric_${mode} ${mode}
+	% endfor
+	
+	def __init__(self, key, cipher='aes', mode='cbc'):
 		cdef int res
 		
 		self.cipher_i = find_cipher(cipher)
 		if self.cipher_i < 0:
 			raise ValueError('could not find %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_i]
+		self.set_key(key)
+		
+	def set_key(self, key):
+		iv = '\0' * self.block_length
+		# Setup all of the mode states.
 		res = ecb_start(self.cipher_i, key, len(key), 0, &self.ecb)
 		if res != CRYPT_OK:
 			raise CryptoError(res)
+		res = ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.ctr)
+		if res != CRYPT_OK:
+			raise CryptoError(res)
+		% for mode in simple_modes:
+		res = ${mode}_start(self.cipher_i, iv, key, len(key), 0, &self.${mode})
+		if res != CRYPT_OK:
+			raise CryptoError(res)
+		% endfor
 	
 	@property
 	def name(self):
@@ -115,21 +136,33 @@ cdef class Cipher(object):
 	def default_rounds(self):
 		return self.cipher.default_rounds
 	
-	def ecb_encrypt(self, plaintext):
-		cdef int res
-		ciphertext = '\0' * len(plaintext)
-		res = ecb_encrypt(plaintext, ciphertext, len(plaintext), &self.ecb)
+	% for mode in modes:
+	
+	def ${mode}_encrypt(self, plaintext):
+		cdef int res, length
+		cdef unsigned char *pt, *ct
+		length = len(plaintext)
+		ciphertext = '\0' * length
+		pt = plaintext
+		ct = ciphertext
+		res = ${mode}_encrypt(pt, ct, length, &self.${mode})
 		if res != CRYPT_OK:
 			raise CryptoError(res)
 		return ciphertext
 		
-	def ecb_decrypt(self, ciphertext):
-		cdef int res
-		plaintext = '\0' * len(ciphertext)
-		res = ecb_decrypt(ciphertext, plaintext, len(ciphertext), &self.ecb)
+	def ${mode}_decrypt(self, ciphertext):
+		cdef int res, length
+		cdef unsigned char *pt, *ct
+		length = len(ciphertext)
+		plaintext = '\0' * length
+		pt = plaintext
+		ct = ciphertext
+		res = ${mode}_decrypt(ct, pt, length, &self.${mode})
 		if res != CRYPT_OK:
 			raise CryptoError(res)
 		return plaintext
+	
+	% endfor
 		
 	
 

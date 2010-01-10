@@ -92,5 +92,5 @@ if __name__ == '__main__':
 	test_external()
 	
 	print dir()
-	for i in range(aes.min_key_length, aes.max_key_length + 1):
-		print aes.keysize(i)
+	for i in range(AES.min_key_length, AES.max_key_length + 1):
+		print AES.keysize(i)

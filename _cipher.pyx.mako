@@ -1,16 +1,14 @@
 
 <%!
 
-modes = 'ecb cbc ctr cfb ofb'.split()
-iv_modes = 'ctr cbc cfb ofb'.split()
-simple_modes = 'cbc cfb ofb'.split()
+modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb'.split()))
+iv_modes = dict((k, modes[k]) for k in 'ctr cbc cfb ofb'.split())
+simple_modes = dict((k, modes[k]) for k in 'cbc cfb ofb'.split())
 ciphers = 'aes des blowfish'.split()
 
 %>
 
-modes = ${repr(modes)}
-simple_modes = ${repr(simple_modes)}
-ciphers = ${repr(ciphers)}
+
 
 cdef extern from "Python.h":
 
@@ -124,9 +122,17 @@ cdef class CipherDesc(object):
 	def __call__(self, key, iv='', mode='cbc'):
 		return Cipher(key, iv='', cipher=self.name, mode='cbc')
 	
-	
+
+modes = ${repr(modes)}
+simple_modes = ${repr(simple_modes)}
+iv_modes = ${repr(iv_modes)}
+% for k, v in modes.iteritems():
+${k.upper()} = ${repr(v)}
+% endfor
+
+ciphers = ${repr(ciphers)}
 % for name in ciphers:
-${name} = CipherDesc('${name}')
+${name.upper()} = CipherDesc('${name}')
 % endfor
 
 class CryptoError(Exception):

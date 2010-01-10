@@ -1,9 +1,11 @@
 
-# Macros for pulling in functions from the header.
-#define XXX_start(xxx) int xxx##_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_##xxx *xxx)
-#define XXX_encrypt(xxx) int xxx##_encrypt(unsigned char *pt, unsigned char *ct, long len, symmetric_##xxx *xxx)
-#define XXX_decrypt(xxx) int xxx##_decrypt(unsigned char *ct, unsigned char *pt, long len, symmetric_##xxx *xxx)
-#define XXX_done(xxx) int xxx_done(symmetric_##xxx *xxx)
+<%!
+
+modes = 'ecb ctr cbc cfb ofb'.split()
+simple_modes = 'cbc cfb ofb'.split()
+ciphers = 'aes rijndael des blowfish'.split()
+
+%>
 
 cdef extern from "tomcrypt.h":
 
@@ -11,40 +13,37 @@ cdef extern from "tomcrypt.h":
 	char * error_to_string(int err)
 	
 	# Generic symmetric key, and for all of the supported modes.
-	ctypedef struct symmetric_key:
-		pass
-	ctypedef struct symmetric_ecb "symmetric_ECB":
-		pass
-	ctypedef struct symmetric_cbc "symmetric_CBC":
-		pass
-	ctypedef struct symmetric_ctr "symmetric_CTR":
-		pass
-	ctypedef struct symmetric_cfb "symmetric_CFB":
-		pass
-	ctypedef struct symmetric_ofb "symmetric_OFB":
-		pass
+	<%!
+	def symmetric_xxx(name):
+		return """ctypedef struct symmetric_%s "symmetric_%s":
+		pass""" % (name, name.upper())
+	%>
+	% for name in modes:
+	${symmetric_xxx(name)}
+	% endfor
 	
-	# Init functions.
+	<%!
+	# Define some functions for pulling in all the cipher modes.
+	def xxx_start(name):
+		return 'int %(name)s_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_%(name)s *%(name)s)' % locals()
+	def xxx_encrypt(name):
+		return 'int %(name)s_encrypt(unsigned char *pt, unsigned char *ct, long len, symmetric_%(name)s *%(name)s)' % locals()
+	def xxx_decrypt(name):
+		return 'int %(name)s_decrypt(unsigned char *ct, unsigned char *pt, long len, symmetric_%(name)s *%(name)s)' % locals()
+	def xxx_done(name):
+		return 'int %(name)s_done(symmetric_%(name)s *%(name)s)' % locals()
+	%>
+	# Pull in all the cipher functions for all the modes.
 	int ecb_start(int cipher, unsigned char *key, int keylen, int num_rounds, symmetric_ecb *ecb)
-	XXX_encrypt(ecb)
-	XXX_decrypt(ecb)
-	XXX_done(ecb)
 	int ctr_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, int ctr_mode, symmetric_ctr *ctr)
-	XXX_encrypt(ctr)
-	XXX_decrypt(ctr)
-	XXX_done(ctr)
-	XXX_start(cbc)
-	XXX_encrypt(cbc)
-	XXX_decrypt(cbc)
-	XXX_done(cbc)
-	XXX_start(cfb)
-	XXX_encrypt(cfb)
-	XXX_decrypt(cfb)
-	XXX_done(cfb)
-	XXX_start(ofb)
-	XXX_encrypt(ofb)
-	XXX_decrypt(ofb)
-	XXX_done(ofb)
+	% for name in simple_modes:
+	${xxx_start(name)}
+	% endfor
+	% for name in modes:
+	${xxx_encrypt(name)}
+	${xxx_decrypt(name)}
+	${xxx_done(name)}
+	% endfor
 	
 	# Cipher descriptor.
 	cdef struct cipher_desc "ltc_cipher_descriptor":
@@ -53,27 +52,25 @@ cdef extern from "tomcrypt.h":
 		int max_key_length
 		int block_length
 		int default_rounds
-		int setup(char *key, int keylen, int rounds, symmetric_key *skey)
+		# int setup(char *key, int keylen, int rounds, symmetric_key *skey)
 	
 	# The array which contains the descriptors once setup.
 	cipher_desc cipher_descriptors "cipher_descriptor" []
 	
 	# The descriptors themselves.
-	cipher_desc aes_desc
-	cipher_desc des_desc
-	cipher_desc blowfish_desc
-	cipher_desc rijndael_desc
-	
+	% for name in ciphers:
+	cipher_desc ${name}_desc
+	% endfor
+		
 	# Functions for registering and finding the registered ciphers.
 	int register_cipher(cipher_desc *cipher)
 	int find_cipher(char * name)
 
 
-# Register a number of ciphers.
-register_cipher(&aes_desc)
-register_cipher(&des_desc)
-register_cipher(&blowfish_desc)
-register_cipher(&rijndael_desc)
+# Register all of the ciphers.
+% for name in ciphers:
+register_cipher(&${name}_desc)
+% endfor
 
 
 class CryptoError(Exception):
@@ -117,7 +114,7 @@ cdef class Cipher(object):
 	@property
 	def default_rounds(self):
 		return self.cipher.default_rounds
-		
+	
 	def ecb_encrypt(self, plaintext):
 		cdef int res
 		ciphertext = '\0' * len(plaintext)

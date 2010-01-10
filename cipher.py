@@ -20,7 +20,7 @@ if __name__ == '__main__':
 		cipher = Cipher(key, cipher='aes')
 		enc = getattr(cipher, mode + '_encrypt')('0123456789abcdef')
 		try:
-			iv = getattr(cipher, 'get_%s_iv' % mode)()
+			iv = getattr(cipher, mode + '_get_iv')()
 		except AttributeError:
 			iv = ''
 		cipher = Cipher(key, cipher='aes')

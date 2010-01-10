@@ -2,6 +2,7 @@
 <%!
 
 modes = 'ecb ctr cbc cfb ofb'.split()
+iv_modes = 'ctr cbc cfb ofb'.split()
 simple_modes = 'cbc cfb ofb'.split()
 ciphers = 'aes rijndael des blowfish'.split()
 
@@ -37,7 +38,9 @@ cdef extern from "tomcrypt.h":
 	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_${name} *${name})
 	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_${name} *${name})
 	int ${name}_done(symmetric_${name} *${name})
-	int ${name}_getiv(unsigned char *iv, unsigned long len, symmetric_${name} *${name})
+	% endfor
+	% for name in iv_modes:
+	int ${name}_getiv(unsigned char *iv, unsigned long *len, symmetric_${name} *${name})
 	int ${name}_setiv(unsigned char *iv, unsigned long len, symmetric_${name} *${name})
 	% endfor
 	
@@ -83,16 +86,16 @@ cdef class Cipher(object):
 	cdef symmetric_${mode} ${mode}
 	% endfor
 	
-	def __init__(self, key, cipher='aes', mode='cbc'):
+	def __init__(self, key, iv='', cipher='aes', mode='cbc'):
 		cdef int res
 		
 		self.cipher_i = find_cipher(cipher)
 		if self.cipher_i < 0:
 			raise ValueError('could not find %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_i]
-		self.set_key(key)
+		self.start(key, iv)
 		
-	def set_key(self, key, iv=''):
+	def start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
@@ -128,12 +131,28 @@ cdef class Cipher(object):
 	def default_rounds(self):
 		return self.cipher.default_rounds
 	
-	# ===== ENCRYPTION / DECRYPTION FUNCTIONS =====
+	# ===== IV / ENCRYPTION / DECRYPTION FUNCTIONS =====
 	
 	% for mode in modes:
+	
+	% if mode in iv_modes:
+	cpdef get_${mode}_iv(self):
+		cdef int res
+		cdef unsigned long length
+		length = self.cipher.block_length
+		iv = PyString_FromStringAndSize(NULL, length)
+		res = ${mode}_getiv(<unsigned char *>iv, &length, &self.${mode})
+		if res != CRYPT_OK:
+			raise CryptoError(res)
+		return iv
+	
+	cpdef set_${mode}_iv(self, iv):
+		pass
+	% endif
+		
 	% for type in 'encrypt decrypt'.split():
 	
-	def ${mode}_${type}(self, input):
+	cpdef ${mode}_${type}(self, input):
 		"""${type.capitalize()} a string in ${mode.upper()} mode."""
 		cdef int res, length
 		cdef unsigned char *output_pointer

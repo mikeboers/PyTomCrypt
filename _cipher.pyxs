@@ -156,13 +156,11 @@ cdef class Cipher(object):
 	cpdef ${mode}_${type}(self, input):
 		"""${type.capitalize()} a string in ${mode.upper()} mode."""
 		cdef int res, length
-		cdef unsigned char *output_pointer
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		output_pointer = output
-		res = ${mode}_${type}(input, output_pointer, length, &self.${mode})
+		res = ${mode}_${type}(input, <unsigned char*>output, length, &self.${mode})
 		if res != CRYPT_OK:
 			raise CryptoError(res)
 		return output

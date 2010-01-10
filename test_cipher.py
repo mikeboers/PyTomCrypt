@@ -1,6 +1,7 @@
 
 import os
 import time
+from subprocess import Popen, PIPE
 
 from cipher import *
 
@@ -51,19 +52,30 @@ def test_internal():
 
 def test_speed():
 	cipher = Cipher('0123456789abcdef', mode='ecb')
-	start_time = time.time()
+	start_time = time.clock()
 	txt = '0123456789abcdef'
 	for i in xrange(50000):
 		txt = cipher.encrypt(txt)
 	for i in xrange(50000):
 		txt = cipher.decrypt(txt)
 	assert txt == '0123456789abcdef', 'speed test is wrong: %r' % txt
-	print 'Ran in %.2fps' % (10000 * (time.time() - start_time))
+	print 'Ran in %.2fps' % (10000 * (time.clock() - start_time))
+	
 		
-
-
+def test_openssl():
+	for i in xrange(10):
+		for keysize in 128, 192, 256:
+			key = os.urandom(keysize/8)
+			iv  = os.urandom(128/8)
+			pt  = os.urandom(128/8)
+			proc = Popen(('openssl enc -e -aes-%d-ecb -nopad -nosalt -K %s -iv %s' % (keysize, key.encode('hex'), iv.encode('hex'))).split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+			out, err = proc.communicate(pt)
+			assert not err, err
+			cipher = Cipher(key=key, iv=iv, cipher='aes', mode='ecb')
+			ct = cipher.encrypt(pt)
+			assert ct == out, 'openssl: %s != %s' % (ct.encode('hex'), out.encode('hex'))
+			
 def test_external():
-
 	for filename in os.listdir('test_vectors'):
 		if 'CFB1' in filename:
 			continue
@@ -104,6 +116,8 @@ if __name__ == '__main__':
 	test_internal()
 	print 'Running external tests...'
 	test_external()
+	print 'Running against OpenSSL...'
+	test_openssl()
 	print 'Ran in %.2fms' % (1000 * (time.time() - start_time))
 	print 'Running speed test...'
 	test_speed()

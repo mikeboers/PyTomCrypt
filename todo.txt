@@ -12,6 +12,9 @@
           mode and cipher.
 - OR, IFF we don't have to explicitly cast the symmetric_*, then figure out
   how to save pointers to functions and pick those in the setup.
+  
   I have now tried this, and it actually went slightly slower. Ie. 161ms
   instead of 159ms.
+  
+  With the better timer it is at 295ps instead of 300.
         

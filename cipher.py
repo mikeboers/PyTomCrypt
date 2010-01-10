@@ -5,8 +5,8 @@ from _cipher import *
 
 _Cipher = Cipher
 class Cipher(_Cipher):
-	def __init__(self, key, cipher='aes', mode='cbc'):
-		_Cipher.__init__(self, key, cipher, mode)
+	def __init__(self, key, iv='', cipher='aes', mode='cbc'):
+		_Cipher.__init__(self, key, iv, cipher, mode)
 		try:
 			self.encrypt = getattr(self, mode + '_encrypt')
 			self.decrypt = getattr(self, mode + '_decrypt')
@@ -19,6 +19,10 @@ if __name__ == '__main__':
 	for mode in modes:
 		cipher = Cipher(key, cipher='aes')
 		enc = getattr(cipher, mode + '_encrypt')('0123456789abcdef')
+		try:
+			iv = getattr(cipher, 'get_%s_iv' % mode)()
+		except AttributeError:
+			iv = ''
 		cipher = Cipher(key, cipher='aes')
 		dec = getattr(cipher, mode + '_decrypt')(enc)
-		print mode, dec, b64encode(enc)
+		print mode, dec, enc.encode('hex'), iv.encode('hex')

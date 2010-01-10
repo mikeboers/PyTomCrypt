@@ -10,5 +10,7 @@
         - Could have __new__ on Cipher* pick the right class depending on the
           mode and cipher.
 - OR, IFF we don't have to explicitly cast the symmetric_*, then figure out
-  how to save pointers to functions and pick those in the setup
+  how to save pointers to functions and pick those in the setup.
+  I have now tried this, and it actually went slightly slower. Ie. 161ms
+  instead of 159ms.
         

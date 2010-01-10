@@ -1,12 +1,12 @@
 
 from base64 import b64encode
 
-from _crypto import AES
+from _crypto import *
 
 if __name__ == '__main__':
         
-    aes = AES('0123456789abcdef')
-    enc = aes.encrypt('hellothere1234567890')
+    aes = Cipher('0123456789abcdef')
+    enc = aes.encrypt('0123456789abcdef')
     dec = aes.decrypt(enc)
     
     print dec, b64encode(enc)

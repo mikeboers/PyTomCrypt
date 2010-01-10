@@ -95,7 +95,7 @@ cdef class Cipher(object):
 		self.cipher = cipher_descriptors[self.cipher_i]
 		self.start(key, iv)
 		
-	def start(self, key, iv=''):
+	cpdef start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
@@ -135,7 +135,7 @@ cdef class Cipher(object):
 	
 	% for mode in modes:
 	% if mode in iv_modes:
-	cpdef get_${mode}_iv(self):
+	cpdef ${mode}_get_iv(self):
 		cdef int res
 		cdef unsigned long length
 		length = self.cipher.block_length
@@ -145,7 +145,7 @@ cdef class Cipher(object):
 			raise CryptoError(res)
 		return iv
 	
-	cpdef set_${mode}_iv(self, iv):
+	cpdef ${mode}_set_iv(self, iv):
 		cdef int res
 		res = ${mode}_setiv(<unsigned char *>iv, len(iv), &self.${mode})
 		if res != CRYPT_OK:
@@ -165,6 +165,12 @@ cdef class Cipher(object):
 			raise CryptoError(res)
 		return output
 	% endfor
+	
+	cpdef ${mode}_done(self):
+		cdef int res
+		res = ${mode}_done(&self.${mode})
+		if res != CRYPT_OK:
+			raise CryptoError(res)
 	% endfor
 	
 	# ==== END =====

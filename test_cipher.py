@@ -49,6 +49,18 @@ def test_internal():
 		test_pt = cipher.decrypt(ct)
 		assert pt == test_pt, 'internal decrypt: %s != %s' % (pt.encode('hex'), test_pt.encode('hex'))
 
+def test_speed():
+	cipher = Cipher('0123456789abcdef', mode='ecb')
+	start_time = time.time()
+	txt = '0123456789abcdef'
+	for i in xrange(50000):
+		txt = cipher.encrypt(txt)
+	for i in xrange(50000):
+		txt = cipher.decrypt(txt)
+	assert txt == '0123456789abcdef', 'speed test is wrong: %r' % txt
+	print 'Ran in %.2fps' % (10000 * (time.time() - start_time))
+		
+
 
 def test_external():
 
@@ -93,6 +105,8 @@ if __name__ == '__main__':
 	print 'Running external tests...'
 	test_external()
 	print 'Ran in %.2fms' % (1000 * (time.time() - start_time))
+	print 'Running speed test...'
+	test_speed()
 	
 	print dir()
 	for i in range(AES.min_key_length, AES.max_key_length + 1):

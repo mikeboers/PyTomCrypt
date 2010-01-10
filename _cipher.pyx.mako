@@ -4,7 +4,7 @@
 modes = 'ecb cbc ctr cfb ofb'.split()
 iv_modes = 'ctr cbc cfb ofb'.split()
 simple_modes = 'cbc cfb ofb'.split()
-ciphers = 'aes rijndael des blowfish'.split()
+ciphers = 'aes des blowfish'.split()
 
 %>
 

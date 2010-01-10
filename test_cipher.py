@@ -1,5 +1,6 @@
 
 import os
+import time
 
 from cipher import *
 
@@ -84,12 +85,14 @@ def test_external():
 
 
 if __name__ == '__main__':
+	start_time = time.time()
 	print 'Running internal tests...'
 	test()
 	print 'Running cython tests...'
 	test_internal()
 	print 'Running external tests...'
 	test_external()
+	print 'Ran in %.2fms' % (1000 * (time.time() - start_time))
 	
 	print dir()
 	for i in range(AES.min_key_length, AES.max_key_length + 1):

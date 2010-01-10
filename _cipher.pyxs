@@ -59,6 +59,8 @@ cdef extern from "tomcrypt.h":
 	# The descriptors themselves.
 	% for name in ciphers:
 	cipher_desc ${name}_desc
+	int ${name}_keysize(int *keysize)
+	int ${name}_test()
 	% endfor
 		
 	# Functions for registering and finding the registered ciphers.
@@ -72,10 +74,27 @@ register_cipher(&${name}_desc)
 % endfor
 
 
+def test():
+	"""Run the internal tests."""
+	cdef int res
+	% for name in ciphers:
+	res = ${name}_test()
+	if res != CRYPT_OK:
+		raise CryptoError(res)
+	% endfor
+		
+
 class CryptoError(Exception):
 	
 	def __init__(self, err):
 		Exception.__init__(self, error_to_string(err), err)
+
+
+cdef int check_for_error(int res):
+	if res != CRYPT_OK:
+		raise CryptoError(res)
+	return res
+
 
 cdef class Cipher(object):
 	
@@ -86,9 +105,7 @@ cdef class Cipher(object):
 	cdef symmetric_${mode} ${mode}
 	% endfor
 	
-	def __init__(self, key, iv='', cipher='aes', mode='cbc'):
-		cdef int res
-		
+	def __init__(self, key, iv='', cipher='aes', mode='cbc'):		
 		self.cipher_i = find_cipher(cipher)
 		if self.cipher_i < 0:
 			raise ValueError('could not find %r' % cipher)
@@ -99,16 +116,10 @@ cdef class Cipher(object):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
-		res = ecb_start(self.cipher_i, key, len(key), 0, &self.ecb)
-		if res != CRYPT_OK:
-			raise CryptoError(res)
-		res = ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.ctr)
-		if res != CRYPT_OK:
-			raise CryptoError(res)
+		check_for_error(ecb_start(self.cipher_i, key, len(key), 0, &self.ecb))
+		check_for_error(ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.ctr))
 		% for mode in simple_modes:
-		res = ${mode}_start(self.cipher_i, iv, key, len(key), 0, &self.${mode})
-		if res != CRYPT_OK:
-			raise CryptoError(res)
+		check_for_error(${mode}_start(self.cipher_i, iv, key, len(key), 0, &self.${mode}))
 		% endfor
 	
 	@property
@@ -131,46 +142,35 @@ cdef class Cipher(object):
 	def default_rounds(self):
 		return self.cipher.default_rounds
 	
-	# ===== IV / ENCRYPTION / DECRYPTION FUNCTIONS =====
+	# ===== KEYSIZE / IV / ENCRYPTION / DECRYPTION FUNCTIONS =====
 	
 	% for mode in modes:
 	% if mode in iv_modes:
 	cpdef ${mode}_get_iv(self):
-		cdef int res
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
-		res = ${mode}_getiv(<unsigned char *>iv, &length, &self.${mode})
-		if res != CRYPT_OK:
-			raise CryptoError(res)
+		check_for_error(${mode}_getiv(<unsigned char *>iv, &length, &self.${mode}))
 		return iv
 	
 	cpdef ${mode}_set_iv(self, iv):
-		cdef int res
-		res = ${mode}_setiv(<unsigned char *>iv, len(iv), &self.${mode})
-		if res != CRYPT_OK:
-			raise CryptoError(res)
+		check_for_error(${mode}_setiv(<unsigned char *>iv, len(iv), &self.${mode}))
 	% endif	
 	% for type in 'encrypt decrypt'.split():
 	
 	cpdef ${mode}_${type}(self, input):
 		"""${type.capitalize()} a string in ${mode.upper()} mode."""
-		cdef int res, length
+		cdef int length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		res = ${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.${mode})
-		if res != CRYPT_OK:
-			raise CryptoError(res)
+		check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.${mode}))
 		return output
 	% endfor
 	
 	cpdef ${mode}_done(self):
-		cdef int res
-		res = ${mode}_done(&self.${mode})
-		if res != CRYPT_OK:
-			raise CryptoError(res)
+		check_for_error(${mode}_done(&self.${mode}))
 	% endfor
 	
 	# ==== END =====

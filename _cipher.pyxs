@@ -5,9 +5,6 @@ modes = 'ecb ctr cbc cfb ofb'.split()
 simple_modes = 'cbc cfb ofb'.split()
 ciphers = 'aes rijndael des blowfish'.split()
 
-def new_string(length):
-	return 'PyString_FromStringAndSize(NULL, %s)' % length
-
 %>
 
 modes = ${repr(modes)}
@@ -37,9 +34,11 @@ cdef extern from "tomcrypt.h":
 	int ${name}_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_${name} *${name})
 	% endfor
 	% for name in modes:
-	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, long len, symmetric_${name} *${name})
-	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, long len, symmetric_${name} *${name})
+	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_${name} *${name})
+	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_${name} *${name})
 	int ${name}_done(symmetric_${name} *${name})
+	int ${name}_getiv(unsigned char *iv, unsigned long len, symmetric_${name} *${name})
+	int ${name}_setiv(unsigned char *iv, unsigned long len, symmetric_${name} *${name})
 	% endfor
 	
 	# Cipher descriptor.
@@ -94,8 +93,8 @@ cdef class Cipher(object):
 		self.set_key(key)
 		
 	def set_key(self, key, iv=''):
-		# Build a new IV. I don't think we need to worry about this not being
-		# a unique object. I don't think it will get overwritten.
+		# Both the key and the iv are "const" for the start functions, so we
+		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		res = ecb_start(self.cipher_i, key, len(key), 0, &self.ecb)
 		if res != CRYPT_OK:
@@ -129,33 +128,29 @@ cdef class Cipher(object):
 	def default_rounds(self):
 		return self.cipher.default_rounds
 	
-	% for mode in modes:
+	# ===== ENCRYPTION / DECRYPTION FUNCTIONS =====
 	
-	def ${mode}_encrypt(self, plaintext):
+	% for mode in modes:
+	% for type in 'encrypt decrypt'.split():
+	
+	def ${mode}_${type}(self, input):
+		"""${type.capitalize()} a string in ${mode.upper()} mode."""
 		cdef int res, length
-		cdef unsigned char *pt, *ct
-		length = len(plaintext)
-		ciphertext = PyString_FromStringAndSize(NULL, length)
-		pt = plaintext
-		ct = ciphertext
-		res = ${mode}_encrypt(pt, ct, length, &self.${mode})
+		cdef unsigned char *output_pointer
+		length = len(input)
+		# We need to make sure we have a brand new string as it is going to be
+		# modified. The input will not be, so we can use the python one.
+		output = PyString_FromStringAndSize(NULL, length)
+		output_pointer = output
+		res = ${mode}_${type}(input, output_pointer, length, &self.${mode})
 		if res != CRYPT_OK:
 			raise CryptoError(res)
-		return ciphertext
-		
-	def ${mode}_decrypt(self, ciphertext):
-		cdef int res, length
-		cdef unsigned char *pt, *ct
-		length = len(ciphertext)
-		plaintext = PyString_FromStringAndSize(NULL, length)
-		pt = plaintext
-		ct = ciphertext
-		res = ${mode}_decrypt(ct, pt, length, &self.${mode})
-		if res != CRYPT_OK:
-			raise CryptoError(res)
-		return plaintext
+		return output
 	
 	% endfor
+	% endfor
+	
+	# ==== END =====
 		
 	
 

@@ -1,0 +1,7 @@
+/lib
+/bin
+/build
+/pip-log.txt
+
+_crypto.c
+_crypto.so

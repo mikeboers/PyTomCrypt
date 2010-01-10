@@ -6,18 +6,6 @@ import os
 
 from _cipher import *
 
-_Cipher = Cipher
-class Cipher(_Cipher):
-	def __init__(self, key, iv='', cipher='aes', mode='cbc'):
-		_Cipher.__init__(self, key, iv, cipher, mode)
-		try:
-			self.encrypt = getattr(self, mode + '_encrypt')
-			self.decrypt = getattr(self, mode + '_decrypt')
-		except:
-			raise ValueError('no mode %r' % mode)
-
-
-
 
 if __name__ == '__main__':
 		

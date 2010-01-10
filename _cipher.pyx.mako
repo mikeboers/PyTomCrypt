@@ -152,8 +152,12 @@ cdef class Cipher(CipherDesc):
 	% for mode in modes:
 	cdef symmetric_${mode} ${mode}
 	% endfor
+	cdef int mode_i
 	
 	def __init__(self, key, iv='', cipher='aes', mode='cbc'):		
+		if mode not in modes:
+			raise CryptoError('no more %r' % mode)
+		self.mode_i = modes[mode]
 		CipherDesc.__init__(self, cipher)
 		self.start(key, iv)
 		
@@ -216,6 +220,22 @@ cdef class Cipher(CipherDesc):
 	
 	cpdef ${mode}_done(self):
 		check_for_error(${mode}_done(&self.${mode}))
+	% endfor
+	
+	% for type in 'encrypt decrypt'.split():
+	
+	cpdef ${type}(self, input):
+		"""${type.capitalize()} a string in ${mode.upper()} mode."""
+		cdef int length
+		length = len(input)
+		# We need to make sure we have a brand new string as it is going to be
+		# modified. The input will not be, so we can use the python one.
+		output = PyString_FromStringAndSize(NULL, length)
+		% for mode in 'cbc', 'ecb', 'ctr', 'ofb', 'cfb':
+		if self.mode_i == ${modes[mode]}:
+			check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.${mode}))
+			return output
+		% endfor
 	% endfor
 	
 	# ==== END =====

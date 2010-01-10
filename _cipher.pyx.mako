@@ -84,6 +84,11 @@ def test():
 	% endfor
 		
 
+class CipherDesc(object):
+	def __init__(name):
+		pass
+
+
 class CryptoError(Exception):
 	
 	def __init__(self, err):

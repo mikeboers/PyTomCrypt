@@ -85,6 +85,8 @@ def test_external():
 
 if __name__ == '__main__':
 	print 'Running internal tests...'
+	test()
+	print 'Running cython tests...'
 	test_internal()
 	print 'Running external tests...'
 	test_external()

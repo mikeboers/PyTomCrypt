@@ -41,8 +41,10 @@ cdef extern from "tomcrypt.h":
 	int ${name}_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_${name} *${name})
 	% endfor
 	% for name in modes:
-	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_${name} *${name})
-	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_${name} *${name})
+	# Really these take <symmetric_${name} *>, but it doesn't seem to care,
+	# and dispatching is made easier. Maybe takes 0.05% longer.
+	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, void *${name})
+	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, void *${name})
 	int ${name}_done(symmetric_${name} *${name})
 	% endfor
 	% for name in iv_modes:
@@ -160,6 +162,9 @@ cdef class Cipher(CipherDesc):
 	cdef object mode
 	cdef int mode_i
 	
+	cdef int (*encryptor)(unsigned char *, unsigned char *, unsigned long, void *)
+	cdef int (*decryptor)(unsigned char *, unsigned char *, unsigned long, void *)
+	
 	def __init__(self, key, iv='', cipher='aes', mode='cbc'):
 		if mode not in modes:
 			raise CipherError('no more %r' % mode)
@@ -169,6 +174,13 @@ cdef class Cipher(CipherDesc):
 		CipherDesc.__init__(self, cipher)
 		self.symmetric = NULL
 		self.start(key, iv)
+		
+		% for mode, i in mode_items:
+		if self.mode_i == ${i}:
+			self.encryptor = &${mode}_encrypt
+			self.decryptor = &${mode}_decrypt
+			return
+		% endfor
 		
 	cpdef start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
@@ -228,11 +240,13 @@ cdef class Cipher(CipherDesc):
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		% for mode, i in mode_items:
-		if self.mode_i == ${i}:
-			check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, <symmetric_${mode}*>self.symmetric))
-			return output
-		% endfor
+		check_for_error((self.${type}or)(<unsigned char *>input, <unsigned char*>output, length, self.symmetric))
+		return output
+		##% for mode, i in mode_items:
+		##if self.mode_i == ${i}:
+		##	check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, self.symmetric))
+		##	return output
+		##% endfor
 	
 	% endfor
 		

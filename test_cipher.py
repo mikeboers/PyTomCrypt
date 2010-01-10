@@ -63,17 +63,32 @@ def test_speed():
 	
 		
 def test_openssl():
-	for i in xrange(10):
-		for keysize in 128, 192, 256:
-			key = os.urandom(keysize/8)
-			iv  = os.urandom(128/8)
-			pt  = os.urandom(128/8)
-			proc = Popen(('openssl enc -e -aes-%d-ecb -nopad -nosalt -K %s -iv %s' % (keysize, key.encode('hex'), iv.encode('hex'))).split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
-			out, err = proc.communicate(pt)
-			assert not err, err
-			cipher = Cipher(key=key, iv=iv, cipher='aes', mode='ecb')
-			ct = cipher.encrypt(pt)
-			assert ct == out, 'openssl: %s != %s' % (ct.encode('hex'), out.encode('hex'))
+	for cipher_name in 'aes', 'des':
+		cipher_desc = CipherDesc(cipher=cipher_name)
+		keysizes = []
+		for i in range(cipher_desc.min_key_length, cipher_desc.max_key_length + 1):
+			keysizes.append(cipher_desc.keysize(i))
+		keysizes = list(sorted(set(keysizes)))
+		for mode in 'ecb', 'cbc', 'cfb', 'ofb':
+			for keysize in keysizes:
+				keysize *= 8
+				print cipher_name, keysize, mode
+				for i in xrange(0, 10, 4):
+					key = os.urandom(keysize/8)
+					iv  = os.urandom(128/8)
+					pt  = os.urandom(i * 128 / 8)
+					if cipher_name == 'aes':
+						cipher_spec = 'aes-%d-%s' % (keysize, mode)
+					elif cipher_name == 'des':
+						cipher_spec = 'des-%s' % mode
+					elif cipher_name == 'blowfish':
+						cipher_spec = 'bf-%s' % mode
+					proc = Popen(('openssl enc -e -%s -nopad -nosalt -K %s -iv %s' % (cipher_spec, key.encode('hex'), iv.encode('hex'))).split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+					out, err = proc.communicate(pt)
+					assert not err, err
+					cipher = Cipher(key=key, iv=iv, cipher=cipher_name, mode=mode)
+					ct = cipher.encrypt(pt)
+					assert ct == out, 'openssl: %s != %s' % (ct.encode('hex'), out.encode('hex'))
 			
 def test_external():
 	for filename in os.listdir('test_vectors'):
@@ -122,6 +137,3 @@ if __name__ == '__main__':
 	print 'Running speed test...'
 	test_speed()
 	
-	print dir()
-	for i in range(AES.min_key_length, AES.max_key_length + 1):
-		print AES.keysize(i)

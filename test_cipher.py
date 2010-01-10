@@ -42,11 +42,11 @@ def test_internal():
 		pt = ''.join(map(chr, pt))
 		ct = ''.join(map(chr, ct))
 		
-		cipher = Cipher(key=key, cipher='aes')
-		test_ct = cipher.ecb_encrypt(pt)
+		cipher = Cipher(key=key, cipher='aes', mode='ecb')
+		test_ct = cipher.encrypt(pt)
 		assert ct == test_ct, 'internal encrypt: %s != %s' % (ct.encode('hex'), test_ct.encode('hex'))
-		cipher = Cipher(key=key)
-		test_pt = cipher.ecb_decrypt(ct)
+		cipher = Cipher(key=key, cipher='aes', mode='ecb')
+		test_pt = cipher.decrypt(ct)
 		assert pt == test_pt, 'internal decrypt: %s != %s' % (pt.encode('hex'), test_pt.encode('hex'))
 
 

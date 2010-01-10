@@ -9,10 +9,16 @@ ciphers = 'aes des blowfish'.split()
 %>
 
 
+cdef extern from "stdlib.h":
+
+	void * malloc(int size)
+	void free(void * ptr)
+
 
 cdef extern from "Python.h":
 
 	object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+
 
 cdef extern from "tomcrypt.h":
 
@@ -78,7 +84,7 @@ def test():
 	% for name in ciphers:
 	res = ${name}_test()
 	if res != CRYPT_OK:
-		raise CryptoError(res)
+		raise CipherError(res)
 	% endfor
 		
 
@@ -135,7 +141,7 @@ ciphers = ${repr(ciphers)}
 ${name.upper()} = CipherDesc('${name}')
 % endfor
 
-class CryptoError(Exception):
+class CipherError(Exception):
 	
 	def __init__(self, err):
 		Exception.__init__(self, error_to_string(err), err)
@@ -143,33 +149,49 @@ class CryptoError(Exception):
 
 cdef int check_for_error(int res):
 	if res != CRYPT_OK:
-		raise CryptoError(res)
+		raise CipherError(res)
 	return res
 
 
 cdef class Cipher(CipherDesc):
 	
-	% for mode in modes:
-	cdef symmetric_${mode} ${mode}
-	% endfor
+	cdef void *symmetric
+	cdef object mode
 	cdef int mode_i
 	
-	def __init__(self, key, iv='', cipher='aes', mode='cbc'):		
+	def __init__(self, key, iv='', cipher='aes', mode='cbc'):
 		if mode not in modes:
-			raise CryptoError('no more %r' % mode)
-		self.mode_i = modes[mode]
+			raise CipherError('no more %r' % mode)
+		self.mode_i = modes[mode]	
+		self.mode = mode
+		
 		CipherDesc.__init__(self, cipher)
+		self.symmetric = NULL
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
-		check_for_error(ecb_start(self.cipher_i, key, len(key), 0, &self.ecb))
-		check_for_error(ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.ctr))
-		% for mode in simple_modes:
-		check_for_error(${mode}_start(self.cipher_i, iv, key, len(key), 0, &self.${mode}))
+		
+		if self.symmetric != NULL:
+			free(self.symmetric)
+		
+		% for mode, i in modes.items():
+		if self.mode_i == ${i}:
+			self.symmetric = malloc(sizeof(symmetric_${mode}))
+			% if mode == 'ecb':
+			check_for_error(ecb_start(self.cipher_i, key, len(key), 0, <symmetric_${mode}*>self.symmetric))
+			% elif mode == 'ctr':
+			check_for_error(ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>self.symmetric))
+			% else:
+			check_for_error(${mode}_start(self.cipher_i, iv, key, len(key), 0, <symmetric_${mode}*>self.symmetric))
+			% endif
 		% endfor
+	
+	def __dealloc__(self):
+		if self.symmetric != NULL:
+			free(self.symmetric)
 	
 	@property
 	def name(self):
@@ -191,39 +213,33 @@ cdef class Cipher(CipherDesc):
 	def default_rounds(self):
 		return self.cipher.default_rounds
 	
-	# ===== KEYSIZE / IV / ENCRYPTION / DECRYPTION FUNCTIONS =====
-	
-	% for mode in modes:
-	% if mode in iv_modes:
-	cpdef ${mode}_get_iv(self):
+	cpdef get_iv(self):
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
-		check_for_error(${mode}_getiv(<unsigned char *>iv, &length, &self.${mode}))
-		return iv
+		% for mode, i in iv_modes.items():
+		if self.mode_i == ${i}:
+			check_for_error(${mode}_getiv(<unsigned char *>iv, &length, <symmetric_${mode}*>self.symmetric))
+			return iv
+		% endfor
+		raise CipherError('%r mode does not use an IV' % self.mode)
 	
-	cpdef ${mode}_set_iv(self, iv):
-		check_for_error(${mode}_setiv(<unsigned char *>iv, len(iv), &self.${mode}))
-	% endif	
+	cpdef set_iv(self, iv):
+		% for mode, i in iv_modes.items():
+		if self.mode_i == ${i}:
+			check_for_error(${mode}_setiv(<unsigned char *>iv, len(iv), <symmetric_${mode}*>self.symmetric))
+			return
+		% endfor
+		raise CipherError('%r mode does not use an IV' % self.mode)
+
+	cpdef done(self):
+		% for mode, i in modes.items():
+		if self.mode_i == ${i}:
+			check_for_error(${mode}_done(<symmetric_${mode}*>self.symmetric))
+			return
+		% endfor
+	
 	% for type in 'encrypt decrypt'.split():
-	
-	cpdef ${mode}_${type}(self, input):
-		"""${type.capitalize()} a string in ${mode.upper()} mode."""
-		cdef int length
-		length = len(input)
-		# We need to make sure we have a brand new string as it is going to be
-		# modified. The input will not be, so we can use the python one.
-		output = PyString_FromStringAndSize(NULL, length)
-		check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.${mode}))
-		return output
-	% endfor
-	
-	cpdef ${mode}_done(self):
-		check_for_error(${mode}_done(&self.${mode}))
-	% endfor
-	
-	% for type in 'encrypt decrypt'.split():
-	
 	cpdef ${type}(self, input):
 		"""${type.capitalize()} a string in ${mode.upper()} mode."""
 		cdef int length
@@ -233,12 +249,11 @@ cdef class Cipher(CipherDesc):
 		output = PyString_FromStringAndSize(NULL, length)
 		% for mode in 'cbc', 'ecb', 'ctr', 'ofb', 'cfb':
 		if self.mode_i == ${modes[mode]}:
-			check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.${mode}))
+			check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, <symmetric_${mode}*>self.symmetric))
 			return output
 		% endfor
-	% endfor
 	
-	# ==== END =====
+	% endfor
 		
 	
 

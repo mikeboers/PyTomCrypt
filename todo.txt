@@ -2,6 +2,7 @@
 - Have classes build for each of the modes. This way we don't need to dispatch
   at every call.
     - First time the difference to see if it even matters.
+        Takes approx 290 ps per block, instead of 300.
     - Decide upon the API for this:
         - Could pass the cipher to the mode class: cipher = CipherCBC('aes')
         - Could have a class for each combination: cipher = AES_CBC('key')

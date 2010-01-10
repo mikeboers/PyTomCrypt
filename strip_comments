@@ -4,4 +4,7 @@ import sys
 for line in sys.stdin:
     if line.strip().startswith('# '):
         continue
-    print line.rstrip()
+    elif line.strip().startswith('#'):
+        print line.strip()
+    else:
+        print line.rstrip().replace('##', '')

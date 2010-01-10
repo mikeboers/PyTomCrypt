@@ -4,7 +4,7 @@ PYTHON = bin/python
 default : test
 
 _cipher.pyx : _cipher.pyxs
-	cat _cipher.pyxs | ./strip_comments | cpp > _cipher.pyx
+	cat _cipher.pyxs | ./strip_comments | cpp | ./strip_comments > _cipher.pyx
 
 _cipher.so : _cipher.pyx
 	make -C libtomcrypt-1.16

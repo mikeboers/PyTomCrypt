@@ -5,11 +5,18 @@ modes = 'ecb ctr cbc cfb ofb'.split()
 simple_modes = 'cbc cfb ofb'.split()
 ciphers = 'aes rijndael des blowfish'.split()
 
+def new_string(length):
+	return 'PyString_FromStringAndSize(NULL, %s)' % length
+
 %>
 
 modes = ${repr(modes)}
 simple_modes = ${repr(simple_modes)}
 ciphers = ${repr(ciphers)}
+
+cdef extern from "Python.h":
+
+	object PyString_FromStringAndSize(char *s, Py_ssize_t len)
 
 cdef extern from "tomcrypt.h":
 
@@ -18,36 +25,21 @@ cdef extern from "tomcrypt.h":
 	char * error_to_string(int err)
 	
 	# Generic symmetric key, and for all of the supported modes.
-	<%!
-	def symmetric_xxx(name):
-		return """ctypedef struct symmetric_%s "symmetric_%s":
-		pass""" % (name, name.upper())
-	%>
 	% for name in modes:
-	${symmetric_xxx(name)}
+	ctypedef struct symmetric_${name} "symmetric_${name.upper()}":
+		pass
 	% endfor
 	
-	<%!
-	# Define some functions for pulling in all the cipher modes.
-	def xxx_start(name):
-		return 'int %(name)s_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_%(name)s *%(name)s)' % locals()
-	def xxx_encrypt(name):
-		return 'int %(name)s_encrypt(unsigned char *pt, unsigned char *ct, long len, symmetric_%(name)s *%(name)s)' % locals()
-	def xxx_decrypt(name):
-		return 'int %(name)s_decrypt(unsigned char *ct, unsigned char *pt, long len, symmetric_%(name)s *%(name)s)' % locals()
-	def xxx_done(name):
-		return 'int %(name)s_done(symmetric_%(name)s *%(name)s)' % locals()
-	%>
 	# Pull in all the cipher functions for all the modes.
 	int ecb_start(int cipher, unsigned char *key, int keylen, int num_rounds, symmetric_ecb *ecb)
 	int ctr_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, int ctr_mode, symmetric_ctr *ctr)
 	% for name in simple_modes:
-	${xxx_start(name)}
+	int ${name}_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_${name} *${name})
 	% endfor
 	% for name in modes:
-	${xxx_encrypt(name)}
-	${xxx_decrypt(name)}
-	${xxx_done(name)}
+	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, long len, symmetric_${name} *${name})
+	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, long len, symmetric_${name} *${name})
+	int ${name}_done(symmetric_${name} *${name})
 	% endfor
 	
 	# Cipher descriptor.
@@ -101,9 +93,10 @@ cdef class Cipher(object):
 		self.cipher = cipher_descriptors[self.cipher_i]
 		self.set_key(key)
 		
-	def set_key(self, key):
-		iv = '\0' * self.block_length
-		# Setup all of the mode states.
+	def set_key(self, key, iv=''):
+		# Build a new IV. I don't think we need to worry about this not being
+		# a unique object. I don't think it will get overwritten.
+		iv = iv + ('\0' * self.cipher.block_length)
 		res = ecb_start(self.cipher_i, key, len(key), 0, &self.ecb)
 		if res != CRYPT_OK:
 			raise CryptoError(res)
@@ -142,7 +135,7 @@ cdef class Cipher(object):
 		cdef int res, length
 		cdef unsigned char *pt, *ct
 		length = len(plaintext)
-		ciphertext = '\0' * length
+		ciphertext = PyString_FromStringAndSize(NULL, length)
 		pt = plaintext
 		ct = ciphertext
 		res = ${mode}_encrypt(pt, ct, length, &self.${mode})
@@ -154,7 +147,7 @@ cdef class Cipher(object):
 		cdef int res, length
 		cdef unsigned char *pt, *ct
 		length = len(ciphertext)
-		plaintext = '\0' * length
+		plaintext = PyString_FromStringAndSize(NULL, length)
 		pt = plaintext
 		ct = ciphertext
 		res = ${mode}_decrypt(ct, pt, length, &self.${mode})

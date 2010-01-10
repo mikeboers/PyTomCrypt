@@ -1,10 +1,12 @@
 
 PYTHON = bin/python
 
-default: test
+default : test
 
+_cipher.pyx : _cipher.pyxs
+	cat _cipher.pyxs | ./strip_comments | cpp > _cipher.pyx
 
-_cipher.so: _cipher.pyx
+_cipher.so : _cipher.pyx
 	make -C libtomcrypt-1.16
 	$(PYTHON) setup.py build_ext --inplace
 

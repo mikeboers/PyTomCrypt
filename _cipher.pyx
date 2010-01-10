@@ -7,22 +7,27 @@ cdef extern from "tomcrypt.h":
     # Generic symmetric key, and for all of the supported modes.
     ctypedef struct symmetric_key:
         pass
-    ctypedef struct symmetric_ECB:
+    ctypedef struct symmetric_ecb "symmetric_ECB":
         pass
-    ctypedef struct symmetric_CBC:
+    ctypedef struct symmetric_cbc "symmetric_CBC":
         pass
-    ctypedef struct symmetric_CTR:
+    ctypedef struct symmetric_ctr "symmetric_CTR":
         pass
-    ctypedef struct symmetric_CFB:
+    ctypedef struct symmetric_cfb "symmetric_CFB":
         pass
-    ctypedef struct symmetric_OFB:
+    ctypedef struct symmetric_ofb "symmetric_OFB":
         pass
     
-    # Generic ECB encryption functions
-    int ecb_start(int cipher, unsigned char *key, int keylen, int rounds, symmetric_ECB *ecb)
-    int ecb_encrypt(unsigned char *pt, unsigned char *ct, long len, symmetric_ECB *ecb)
-    int ecb_decrypt(unsigned char *ct, unsigned char *pt, long len, symmetric_ECB *ecb)
-    int ecb_done(symmetric_ECB *ecb)
+    # Init functions.
+    int ecb_start(int cipher, unsigned char *key, int keylen, int num_rounds, symmetric_ecb *ecb)
+    int cbc_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_cbc *cbc)
+    int cfb_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_cfb *cfb)
+    int ofb_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_ofb *ofb)
+    int ctr_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, int ctr_mode, symmetric_ctr *ctr)
+    
+    int ecb_encrypt(unsigned char *pt, unsigned char *ct, long len, symmetric_ecb *ecb)
+    int ecb_decrypt(unsigned char *ct, unsigned char *pt, long len, symmetric_ecb *ecb)
+    int ecb_done(symmetric_ecb *ecb)
     
     # Cipher descriptor.
     cdef struct cipher_desc "ltc_cipher_descriptor":
@@ -63,7 +68,7 @@ cdef class Cipher(object):
     
     cdef int cipher_i
     cdef cipher_desc cipher
-    cdef symmetric_ECB ecb
+    cdef symmetric_ecb ecb
     
     def __init__(self, key, cipher='aes'):
         cdef int res

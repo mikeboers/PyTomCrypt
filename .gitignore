@@ -5,3 +5,5 @@
 
 _cipher.c
 _cipher.so
+_cipher.pyx
+_cipher.pyc

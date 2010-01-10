@@ -134,7 +134,6 @@ cdef class Cipher(object):
 	# ===== IV / ENCRYPTION / DECRYPTION FUNCTIONS =====
 	
 	% for mode in modes:
-	
 	% if mode in iv_modes:
 	cpdef get_${mode}_iv(self):
 		cdef int res
@@ -147,9 +146,11 @@ cdef class Cipher(object):
 		return iv
 	
 	cpdef set_${mode}_iv(self, iv):
-		pass
-	% endif
-		
+		cdef int res
+		res = ${mode}_setiv(<unsigned char *>iv, len(iv), &self.${mode})
+		if res != CRYPT_OK:
+			raise CryptoError(res)
+	% endif	
 	% for type in 'encrypt decrypt'.split():
 	
 	cpdef ${mode}_${type}(self, input):
@@ -165,7 +166,6 @@ cdef class Cipher(object):
 		if res != CRYPT_OK:
 			raise CryptoError(res)
 		return output
-	
 	% endfor
 	% endfor
 	

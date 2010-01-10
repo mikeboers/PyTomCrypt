@@ -40,24 +40,19 @@ cdef extern from "tomcrypt.h":
     cipher_desc aes_desc
     cipher_desc des_desc
     cipher_desc blowfish_desc
+    cipher_desc rijndael_desc
     
     # Functions for registering and finding the registered ciphers.
     int register_cipher(cipher_desc *cipher)
     int find_cipher(char * name)
 
 
+# Register a number of ciphers.
 register_cipher(&aes_desc)
 register_cipher(&des_desc)
+register_cipher(&blowfish_desc)
+register_cipher(&rijndael_desc)
 
-# ciphers_indices = {}
-# 
-# cdef int i = 0
-# while True:
-#     if not cipher_descriptors[i].name:
-#         break
-#     ciphers_indices[str(cipher_descriptors[i].name)] = i
-#     i += 1
-# print ciphers_indices
 
 class CryptoError(Exception):
     
@@ -71,34 +66,46 @@ cdef class Cipher(object):
     cdef symmetric_ECB ecb
     
     def __init__(self, key, cipher='aes'):
-        
-        cdef int cipher_i
+        cdef int res
         
         self.cipher_i = find_cipher(cipher)
         if self.cipher_i < 0:
             raise ValueError('could not find %r' % cipher)
         self.cipher = cipher_descriptors[self.cipher_i]
-        print 'name', self.cipher.name
-        print 'min ', self.cipher.min_key_length
-        print 'max ', self.cipher.max_key_length
-        print 'blk ', self.cipher.block_length
-        print 'rnds', self.cipher.default_rounds
-        
-        self.__start(key)
-    
-    def __start(self, key):
         res = ecb_start(self.cipher_i, key, len(key), 0, &self.ecb)
         if res != CRYPT_OK:
             raise CryptoError(res)
+    
+    @property
+    def name(self):
+        return self.cipher.name
+    
+    @property
+    def min_key_length(self):
+        return self.cipher.min_key_length
+    
+    @property
+    def max_key_length(self):
+        return self.cipher.max_key_length
         
-    def encrypt(self, plaintext):
+    @property
+    def block_length(self):
+        return self.cipher.block_length
+    
+    @property
+    def default_rounds(self):
+        return self.cipher.default_rounds
+        
+    def ecb_encrypt(self, plaintext):
+        cdef int res
         ciphertext = '\0' * len(plaintext)
         res = ecb_encrypt(plaintext, ciphertext, len(plaintext), &self.ecb)
         if res != CRYPT_OK:
             raise CryptoError(res)
         return ciphertext
         
-    def decrypt(self, ciphertext):
+    def ecb_decrypt(self, ciphertext):
+        cdef int res
         plaintext = '\0' * len(ciphertext)
         res = ecb_decrypt(ciphertext, plaintext, len(ciphertext), &self.ecb)
         if res != CRYPT_OK:

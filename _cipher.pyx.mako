@@ -51,6 +51,7 @@ cdef extern from "tomcrypt.h":
 		int max_key_length
 		int block_length
 		int default_rounds
+		int keysize(int *keysize)
 		# int setup(char *key, int keylen, int rounds, symmetric_key *skey)
 	
 	# The array which contains the descriptors once setup.
@@ -59,7 +60,6 @@ cdef extern from "tomcrypt.h":
 	# The descriptors themselves.
 	% for name in ciphers:
 	cipher_desc ${name}_desc
-	int ${name}_keysize(int *keysize)
 	int ${name}_test()
 	% endfor
 		
@@ -84,10 +84,50 @@ def test():
 	% endfor
 		
 
-class CipherDesc(object):
-	def __init__(name):
-		pass
+cdef class CipherDesc(object):
+	
+	cdef int cipher_i
+	cdef cipher_desc cipher
+	
+	def __init__(self, cipher):
+		self.cipher_i = find_cipher(cipher)
+		if self.cipher_i < 0:
+			raise ValueError('could not find %r' % cipher)
+		self.cipher = cipher_descriptors[self.cipher_i]
+		
+	@property
+	def name(self):
+		return self.cipher.name
 
+	@property
+	def min_key_length(self):
+		return self.cipher.min_key_length
+
+	@property
+	def max_key_length(self):
+		return self.cipher.max_key_length
+
+	@property
+	def block_length(self):
+		return self.cipher.block_length
+
+	@property
+	def default_rounds(self):
+		return self.cipher.default_rounds
+	
+	def keysize(self, keysize):
+		cdef int out
+		out = keysize
+		check_for_error(self.cipher.keysize(&out))
+		return out
+	
+	def __call__(self, key, iv='', mode='cbc'):
+		return Cipher(key, iv='', cipher=self.name, mode='cbc')
+	
+	
+% for name in ciphers:
+${name} = CipherDesc('${name}')
+% endfor
 
 class CryptoError(Exception):
 	
@@ -101,20 +141,14 @@ cdef int check_for_error(int res):
 	return res
 
 
-cdef class Cipher(object):
-	
-	cdef int cipher_i
-	cdef cipher_desc cipher
+cdef class Cipher(CipherDesc):
 	
 	% for mode in modes:
 	cdef symmetric_${mode} ${mode}
 	% endfor
 	
 	def __init__(self, key, iv='', cipher='aes', mode='cbc'):		
-		self.cipher_i = find_cipher(cipher)
-		if self.cipher_i < 0:
-			raise ValueError('could not find %r' % cipher)
-		self.cipher = cipher_descriptors[self.cipher_i]
+		CipherDesc.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):

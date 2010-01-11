@@ -155,12 +155,12 @@ cdef check_for_error(int res):
 
 cipher_classes = {}
 % for mode in modes:
-cdef class Cipher${mode.upper()}(CipherDesc):
+cdef class ${mode.upper()}Cipher(CipherDesc):
 	
 	cdef symmetric_${mode} symmetric
 		
-	def __init__(self, key, iv='', cipher='aes', mode='ecb'):
-		if mode != ${repr(mode)}:
+	def __init__(self, key, iv='', cipher='aes', mode=None):
+		if mode is not None and mode != ${repr(mode)}:
 			raise CipherError('wrong mode %r' % mode)
 		CipherDesc.__init__(self, cipher)
 		self.start(key, iv)
@@ -206,7 +206,7 @@ cdef class Cipher${mode.upper()}(CipherDesc):
 	
 	% endfor
 		
-cipher_classes[${repr(mode)}] = Cipher${mode.upper()}
+cipher_classes[${repr(mode)}] = ${mode.upper()}Cipher
 % endfor	
 
 def Cipher(key, iv='', cipher='aes', mode='ecb'):

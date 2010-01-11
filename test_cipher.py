@@ -52,14 +52,14 @@ def test_internal():
 
 def test_speed():
 	cipher = Cipher('0123456789abcdef', mode='ecb')
-	start_time = time.clock()
+	start_time = time.time()
 	txt = '0123456789abcdef'
 	for i in xrange(50000):
 		txt = cipher.encrypt(txt)
 	for i in xrange(50000):
 		txt = cipher.decrypt(txt)
 	assert txt == '0123456789abcdef', 'speed test is wrong: %r' % txt
-	print 'Ran in %.2fps' % (10000 * (time.clock() - start_time))
+	print 'Ran in %.2fns' % ((time.time() - start_time) * 1000000000 / 100000)
 	
 		
 def test_openssl():

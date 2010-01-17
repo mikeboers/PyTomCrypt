@@ -3,9 +3,9 @@
 DEBUG = True
 ALL_CIPHERS = False 
 
-modes = tuple('ecb cbc ctr cfb ofb'.split())
-block_modes = set('ecb cbc'.split())
-iv_modes = tuple('ctr cbc cfb ofb'.split())
+modes = tuple('ecb cbc ctr cfb ofb lrw'.split())
+block_modes = set('ecb cbc lrw'.split())
+iv_modes = tuple('ctr cbc cfb ofb lrw'.split())
 simple_modes = tuple('cbc cfb ofb'.split())
 
 if ALL_CIPHERS:
@@ -56,6 +56,7 @@ cdef extern from "tomcrypt.h":
 	% for name in simple_modes:
 	int ${name}_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_${name} *${name})
 	% endfor
+	int lrw_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *tweak, int num_rounds, symmetric_lrw *lrw)
 	% for name in modes:
 	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_${name} *${name})
 	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_${name} *${name})
@@ -196,13 +197,13 @@ cdef class ${mode.upper()}(Descriptor):
 	
 	cdef symmetric_${mode} symmetric
 		
-	def __init__(self, key, iv='', cipher='', mode=None):
+	def __init__(self, key, cipher='', mode=None, **kwargs):
 		if mode is not None and mode != ${repr(mode)}:
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
-		self.start(key, iv)
-		
-	cpdef start(self, key, iv=''):
+		self.start(key, **kwargs)
+	
+	def start(self, key, iv='', **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
@@ -210,12 +211,21 @@ cdef class ${mode.upper()}(Descriptor):
 		check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, &self.symmetric))
 		% elif mode == 'ctr':
 		check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.symmetric))
+	
+		% elif mode == 'lrw':
+		tweak = kwargs.get('tweak')
+		if not isinstance(tweak, basestring) or len(tweak) != 16:
+			raise Error('tweak must be 16 byte string')
+		check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), tweak, 0, &self.symmetric))
+		
 		% else:
 		check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))
+		
 		% endif
-	
+	##
 	% if mode in iv_modes:
 	cpdef get_iv(self):
+		"""Get the current IV of the cipher."""
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
@@ -223,6 +233,15 @@ cdef class ${mode.upper()}(Descriptor):
 		return iv
 	
 	cpdef set_iv(self, iv):	
+		% if mode != 'lrw':
+		"""Set the current IV of the cipher."""
+		% else:
+		"""Update the tweak by seeking.
+		
+		This is NOT a free operation like other "set_iv"s.
+		
+		"""
+		% endif
 		check_for_error(${mode}_setiv(<unsigned char *>iv, len(iv), &self.symmetric))
 	
 	% endif

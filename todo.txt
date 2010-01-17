@@ -35,3 +35,7 @@ Organize this into a standard package layout:
 
 Stop thinking about making the ciphers register when you need them. It takes
 only 83 microseconds to register them all.
+
+Rename the cipher.Descriptor.keysize to key_length, or figure out how to
+normalize the differences.
+

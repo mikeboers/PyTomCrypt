@@ -21,6 +21,8 @@ cdef extern from "tomcrypt.h":
 		pass
 	ctypedef struct symmetric_ofb "symmetric_OFB":
 		pass
+	ctypedef struct symmetric_lrw "symmetric_LRW":
+		pass
 	
 	# Pull in all the cipher functions for all the modes.
 	int ecb_start(int cipher, unsigned char *key, int keylen, int num_rounds, symmetric_ecb *ecb)
@@ -28,6 +30,7 @@ cdef extern from "tomcrypt.h":
 	int cbc_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_cbc *cbc)
 	int cfb_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_cfb *cfb)
 	int ofb_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_ofb *ofb)
+	int lrw_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *tweak, int num_rounds, symmetric_lrw *lrw)
 	int ecb_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_ecb *ecb)
 	int ecb_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_ecb *ecb)
 	int ecb_done(symmetric_ecb *ecb)
@@ -43,6 +46,9 @@ cdef extern from "tomcrypt.h":
 	int ofb_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_ofb *ofb)
 	int ofb_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_ofb *ofb)
 	int ofb_done(symmetric_ofb *ofb)
+	int lrw_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_lrw *lrw)
+	int lrw_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_lrw *lrw)
+	int lrw_done(symmetric_lrw *lrw)
 	int ctr_getiv(unsigned char *iv, unsigned long *len, symmetric_ctr *ctr)
 	int ctr_setiv(unsigned char *iv, unsigned long len, symmetric_ctr *ctr)
 	int cbc_getiv(unsigned char *iv, unsigned long *len, symmetric_cbc *cbc)
@@ -51,6 +57,8 @@ cdef extern from "tomcrypt.h":
 	int cfb_setiv(unsigned char *iv, unsigned long len, symmetric_cfb *cfb)
 	int ofb_getiv(unsigned char *iv, unsigned long *len, symmetric_ofb *ofb)
 	int ofb_setiv(unsigned char *iv, unsigned long len, symmetric_ofb *ofb)
+	int lrw_getiv(unsigned char *iv, unsigned long *len, symmetric_lrw *lrw)
+	int lrw_setiv(unsigned char *iv, unsigned long len, symmetric_lrw *lrw)
 	
 	# Cipher descriptor.
 	cdef struct cipher_desc "ltc_cipher_descriptor":
@@ -192,18 +200,17 @@ cdef class ECB(Descriptor):
 	
 	cdef symmetric_ecb symmetric
 		
-	def __init__(self, key, iv='', cipher='', mode=None):
+	def __init__(self, key, cipher='', mode=None, **kwargs):
 		if mode is not None and mode != 'ecb':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
-		self.start(key, iv)
-		
-	cpdef start(self, key, iv=''):
+		self.start(key, **kwargs)
+	
+	def start(self, key, iv='', **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, &self.symmetric))
-	
 	cpdef done(self):
 		check_for_error(ecb_done(&self.symmetric))
 	
@@ -248,19 +255,20 @@ cdef class CBC(Descriptor):
 	
 	cdef symmetric_cbc symmetric
 		
-	def __init__(self, key, iv='', cipher='', mode=None):
+	def __init__(self, key, cipher='', mode=None, **kwargs):
 		if mode is not None and mode != 'cbc':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
-		self.start(key, iv)
-		
-	cpdef start(self, key, iv=''):
+		self.start(key, **kwargs)
+	
+	def start(self, key, iv='', **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		check_for_error(cbc_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))
-	
+		
 	cpdef get_iv(self):
+		"""Get the current IV of the cipher."""
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
@@ -268,6 +276,7 @@ cdef class CBC(Descriptor):
 		return iv
 	
 	cpdef set_iv(self, iv):	
+		"""Set the current IV of the cipher."""
 		check_for_error(cbc_setiv(<unsigned char *>iv, len(iv), &self.symmetric))
 	
 	cpdef done(self):
@@ -314,19 +323,20 @@ cdef class CTR(Descriptor):
 	
 	cdef symmetric_ctr symmetric
 		
-	def __init__(self, key, iv='', cipher='', mode=None):
+	def __init__(self, key, cipher='', mode=None, **kwargs):
 		if mode is not None and mode != 'ctr':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
-		self.start(key, iv)
-		
-	cpdef start(self, key, iv=''):
+		self.start(key, **kwargs)
+	
+	def start(self, key, iv='', **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.symmetric))
 	
 	cpdef get_iv(self):
+		"""Get the current IV of the cipher."""
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
@@ -334,6 +344,7 @@ cdef class CTR(Descriptor):
 		return iv
 	
 	cpdef set_iv(self, iv):	
+		"""Set the current IV of the cipher."""
 		check_for_error(ctr_setiv(<unsigned char *>iv, len(iv), &self.symmetric))
 	
 	cpdef done(self):
@@ -372,19 +383,20 @@ cdef class CFB(Descriptor):
 	
 	cdef symmetric_cfb symmetric
 		
-	def __init__(self, key, iv='', cipher='', mode=None):
+	def __init__(self, key, cipher='', mode=None, **kwargs):
 		if mode is not None and mode != 'cfb':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
-		self.start(key, iv)
-		
-	cpdef start(self, key, iv=''):
+		self.start(key, **kwargs)
+	
+	def start(self, key, iv='', **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		check_for_error(cfb_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))
-	
+		
 	cpdef get_iv(self):
+		"""Get the current IV of the cipher."""
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
@@ -392,6 +404,7 @@ cdef class CFB(Descriptor):
 		return iv
 	
 	cpdef set_iv(self, iv):	
+		"""Set the current IV of the cipher."""
 		check_for_error(cfb_setiv(<unsigned char *>iv, len(iv), &self.symmetric))
 	
 	cpdef done(self):
@@ -430,19 +443,20 @@ cdef class OFB(Descriptor):
 	
 	cdef symmetric_ofb symmetric
 		
-	def __init__(self, key, iv='', cipher='', mode=None):
+	def __init__(self, key, cipher='', mode=None, **kwargs):
 		if mode is not None and mode != 'ofb':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
-		self.start(key, iv)
-		
-	cpdef start(self, key, iv=''):
+		self.start(key, **kwargs)
+	
+	def start(self, key, iv='', **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		check_for_error(ofb_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))
-	
+		
 	cpdef get_iv(self):
+		"""Get the current IV of the cipher."""
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
@@ -450,6 +464,7 @@ cdef class OFB(Descriptor):
 		return iv
 	
 	cpdef set_iv(self, iv):	
+		"""Set the current IV of the cipher."""
 		check_for_error(ofb_setiv(<unsigned char *>iv, len(iv), &self.symmetric))
 	
 	cpdef done(self):
@@ -484,12 +499,88 @@ cdef class OFB(Descriptor):
 		return output
 	
 
+cdef class LRW(Descriptor):
+	
+	cdef symmetric_lrw symmetric
+		
+	def __init__(self, key, cipher='', mode=None, **kwargs):
+		if mode is not None and mode != 'lrw':
+			raise Error('wrong mode %r' % mode)
+		Descriptor.__init__(self, cipher)
+		self.start(key, **kwargs)
+	
+	def start(self, key, iv='', **kwargs):
+		# Both the key and the iv are "const" for the start functions, so we
+		# don't need to worry about making unique ones.
+		iv = iv + ('\0' * self.cipher.block_length)
+		tweak = kwargs.get('tweak')
+		if not isinstance(tweak, basestring) or len(tweak) != 16:
+			raise Error('tweak must be 16 byte string')
+		check_for_error(lrw_start(self.cipher_idx, iv, key, len(key), tweak, 0, &self.symmetric))
+		
+	cpdef get_iv(self):
+		"""Get the current IV of the cipher."""
+		cdef unsigned long length
+		length = self.cipher.block_length
+		iv = PyString_FromStringAndSize(NULL, length)
+		check_for_error(lrw_getiv(<unsigned char *>iv, &length, &self.symmetric))
+		return iv
+	
+	cpdef set_iv(self, iv):	
+		"""Update the tweak by seeking.
+		
+		This is NOT a free operation like other "set_iv"s.
+		
+		"""
+		check_for_error(lrw_setiv(<unsigned char *>iv, len(iv), &self.symmetric))
+	
+	cpdef done(self):
+		check_for_error(lrw_done(&self.symmetric))
+	
+	cpdef encrypt(self, input):
+		"""Encrypt a string.
+		
+		Input must be a multiple of the block length.
+		
+		"""
+		cdef int res, length
+		length = len(input)
+		# We need to make sure we have a brand new string as it is going to be
+		# modified. The input will not be, so we can use the python one.
+		output = PyString_FromStringAndSize(NULL, length)
+		res = lrw_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
+		if res != CRYPT_OK:
+			if length % self.cipher.block_length:
+				raise Error('input not multiple of block length')
+			raise Error(res)
+		return output
+	
+	cpdef decrypt(self, input):
+		"""Decrypt a string.
+		
+		Input must be a multiple of the block length.
+		
+		"""
+		cdef int res, length
+		length = len(input)
+		# We need to make sure we have a brand new string as it is going to be
+		# modified. The input will not be, so we can use the python one.
+		output = PyString_FromStringAndSize(NULL, length)
+		res = lrw_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
+		if res != CRYPT_OK:
+			if length % self.cipher.block_length:
+				raise Error('input not multiple of block length')
+			raise Error(res)
+		return output
+	
+
 modes = dict(
 	ecb=ECB,
 	cbc=CBC,
 	ctr=CTR,
 	cfb=CFB,
 	ofb=OFB,
+	lrw=LRW,
 )
 
 

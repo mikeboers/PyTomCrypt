@@ -23,6 +23,8 @@ cdef extern from "tomcrypt.h":
 		pass
 	ctypedef struct symmetric_lrw "symmetric_LRW":
 		pass
+	ctypedef struct symmetric_f8 "symmetric_F8":
+		pass
 	
 	# Pull in all the cipher functions for all the modes.
 	int ecb_start(int cipher, unsigned char *key, int keylen, int num_rounds, symmetric_ecb *ecb)
@@ -31,6 +33,7 @@ cdef extern from "tomcrypt.h":
 	int cfb_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_cfb *cfb)
 	int ofb_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_ofb *ofb)
 	int lrw_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *tweak, int num_rounds, symmetric_lrw *lrw)
+	int f8_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *salt_key, int skeylen, int num_rounds, symmetric_f8 *f8)
 	int ecb_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_ecb *ecb)
 	int ecb_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_ecb *ecb)
 	int ecb_done(symmetric_ecb *ecb)
@@ -49,6 +52,9 @@ cdef extern from "tomcrypt.h":
 	int lrw_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_lrw *lrw)
 	int lrw_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_lrw *lrw)
 	int lrw_done(symmetric_lrw *lrw)
+	int f8_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_f8 *f8)
+	int f8_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_f8 *f8)
+	int f8_done(symmetric_f8 *f8)
 	int ctr_getiv(unsigned char *iv, unsigned long *len, symmetric_ctr *ctr)
 	int ctr_setiv(unsigned char *iv, unsigned long len, symmetric_ctr *ctr)
 	int cbc_getiv(unsigned char *iv, unsigned long *len, symmetric_cbc *cbc)
@@ -59,6 +65,8 @@ cdef extern from "tomcrypt.h":
 	int ofb_setiv(unsigned char *iv, unsigned long len, symmetric_ofb *ofb)
 	int lrw_getiv(unsigned char *iv, unsigned long *len, symmetric_lrw *lrw)
 	int lrw_setiv(unsigned char *iv, unsigned long len, symmetric_lrw *lrw)
+	int f8_getiv(unsigned char *iv, unsigned long *len, symmetric_f8 *f8)
+	int f8_setiv(unsigned char *iv, unsigned long len, symmetric_f8 *f8)
 	
 	# Cipher descriptor.
 	cdef struct cipher_desc "ltc_cipher_descriptor":
@@ -211,6 +219,7 @@ cdef class ECB(Descriptor):
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, &self.symmetric))
+		
 	cpdef done(self):
 		check_for_error(ecb_done(&self.symmetric))
 	
@@ -514,7 +523,7 @@ cdef class LRW(Descriptor):
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		tweak = kwargs.get('tweak')
-		if not isinstance(tweak, basestring) or len(tweak) != 16:
+		if len(tweak) != 16:
 			raise Error('tweak must be 16 byte string')
 		check_for_error(lrw_start(self.cipher_idx, iv, key, len(key), tweak, 0, &self.symmetric))
 		
@@ -574,6 +583,67 @@ cdef class LRW(Descriptor):
 		return output
 	
 
+cdef class F8(Descriptor):
+	
+	cdef symmetric_f8 symmetric
+		
+	def __init__(self, key, cipher='', mode=None, **kwargs):
+		if mode is not None and mode != 'f8':
+			raise Error('wrong mode %r' % mode)
+		Descriptor.__init__(self, cipher)
+		self.start(key, **kwargs)
+	
+	def start(self, key, iv='', **kwargs):
+		# Both the key and the iv are "const" for the start functions, so we
+		# don't need to worry about making unique ones.
+		iv = iv + ('\0' * self.cipher.block_length)
+		salt_key = kwargs.get('salt_key', '')
+		check_for_error(f8_start(self.cipher_idx, iv, key, len(key), salt_key, len(salt_key), 0, &self.symmetric))
+		
+	cpdef get_iv(self):
+		"""Get the current IV of the cipher."""
+		cdef unsigned long length
+		length = self.cipher.block_length
+		iv = PyString_FromStringAndSize(NULL, length)
+		check_for_error(f8_getiv(<unsigned char *>iv, &length, &self.symmetric))
+		return iv
+	
+	cpdef set_iv(self, iv):	
+		"""Set the current IV of the cipher."""
+		check_for_error(f8_setiv(<unsigned char *>iv, len(iv), &self.symmetric))
+	
+	cpdef done(self):
+		check_for_error(f8_done(&self.symmetric))
+	
+	cpdef encrypt(self, input):
+		"""Encrypt a string.
+		
+		"""
+		cdef int res, length
+		length = len(input)
+		# We need to make sure we have a brand new string as it is going to be
+		# modified. The input will not be, so we can use the python one.
+		output = PyString_FromStringAndSize(NULL, length)
+		res = f8_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
+		if res != CRYPT_OK:
+			raise Error(res)
+		return output
+	
+	cpdef decrypt(self, input):
+		"""Decrypt a string.
+		
+		"""
+		cdef int res, length
+		length = len(input)
+		# We need to make sure we have a brand new string as it is going to be
+		# modified. The input will not be, so we can use the python one.
+		output = PyString_FromStringAndSize(NULL, length)
+		res = f8_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
+		if res != CRYPT_OK:
+			raise Error(res)
+		return output
+	
+
 modes = dict(
 	ecb=ECB,
 	cbc=CBC,
@@ -581,6 +651,7 @@ modes = dict(
 	cfb=CFB,
 	ofb=OFB,
 	lrw=LRW,
+	f8=F8,
 )
 
 

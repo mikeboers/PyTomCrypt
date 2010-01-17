@@ -3,9 +3,10 @@
 DEBUG = True
 ALL_CIPHERS = False 
 
-modes = tuple('ecb cbc ctr cfb ofb lrw'.split())
+modes = tuple('ecb cbc ctr cfb ofb lrw f8'.split())
 block_modes = set('ecb cbc lrw'.split())
-iv_modes = tuple('ctr cbc cfb ofb lrw'.split())
+iv_modes = tuple('ctr cbc cfb ofb lrw f8'.split())
+
 simple_modes = tuple('cbc cfb ofb'.split())
 
 if ALL_CIPHERS:
@@ -57,6 +58,7 @@ cdef extern from "tomcrypt.h":
 	int ${name}_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_${name} *${name})
 	% endfor
 	int lrw_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *tweak, int num_rounds, symmetric_lrw *lrw)
+	int f8_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *salt_key, int skeylen, int num_rounds, symmetric_f8 *f8)
 	% for name in modes:
 	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_${name} *${name})
 	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_${name} *${name})
@@ -209,14 +211,19 @@ cdef class ${mode.upper()}(Descriptor):
 		iv = iv + ('\0' * self.cipher.block_length)
 		% if mode == 'ecb':
 		check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, &self.symmetric))
+		
 		% elif mode == 'ctr':
 		check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.symmetric))
 	
 		% elif mode == 'lrw':
 		tweak = kwargs.get('tweak')
-		if not isinstance(tweak, basestring) or len(tweak) != 16:
+		if len(tweak) != 16:
 			raise Error('tweak must be 16 byte string')
 		check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), tweak, 0, &self.symmetric))
+		
+		% elif mode == 'f8':
+		salt_key = kwargs.get('salt_key', '')
+		check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), salt_key, len(salt_key), 0, &self.symmetric))
 		
 		% else:
 		check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))

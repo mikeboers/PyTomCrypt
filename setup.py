@@ -3,8 +3,8 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
 ext_modules = [Extension(
-    "_cipher",
-    ["_cipher.pyx"],
+    "cipher",
+    ["cipher.pyx"],
     include_dirs=['./libtomcrypt-1.16/src', './libtomcrypt-1.16/src/headers'],
     # library_dirs=['./libtomcrypt-1.16', './libtomcrypt-1.16/src'],
     # libraries=['./libtomcrypt-1.16/libtomcrypt.a'],
@@ -12,7 +12,7 @@ ext_modules = [Extension(
 )]
 
 setup(
-  name = 'pycrypto',
+  name = 'PyTomCript',
   cmdclass = {'build_ext': build_ext},
   ext_modules = ext_modules,
 )

@@ -64,7 +64,7 @@ def test_speed():
 		
 def test_openssl():
 	for cipher_name in 'aes', 'des':
-		cipher_desc = CipherDesc(cipher=cipher_name)
+		cipher_desc = CipherDescriptor(cipher=cipher_name)
 		keysizes = []
 		for i in range(cipher_desc.min_key_length, cipher_desc.max_key_length + 1):
 			keysizes.append(cipher_desc.keysize(i))

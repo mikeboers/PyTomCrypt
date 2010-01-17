@@ -90,7 +90,6 @@ class CipherError(Exception):
 			Exception.__init__(self, error_to_string(err))
 		else:
 			Exception.__init__(self, err)
-		
 
 
 cdef check_for_error(int res):
@@ -122,7 +121,7 @@ def test():
 		raise CipherError(res)
 		
 
-cdef class CipherDesc(object):
+cdef class CipherDescriptor(object):
 	
 	cdef int cipher_i
 	cdef cipher_desc cipher
@@ -164,19 +163,19 @@ cdef class CipherDesc(object):
 	
 
 try:
-	AES = CipherDesc('aes')
+	AES = CipherDescriptor('aes')
 except CipherError:
 	pass
 try:
-	BLOWFISH = CipherDesc('blowfish')
+	BLOWFISH = CipherDescriptor('blowfish')
 except CipherError:
 	pass
 try:
-	DES = CipherDesc('des')
+	DES = CipherDescriptor('des')
 except CipherError:
 	pass
 try:
-	TWOFISH = CipherDesc('twofish')
+	TWOFISH = CipherDescriptor('twofish')
 except CipherError:
 	pass
 
@@ -185,14 +184,14 @@ except CipherError:
 
 cipher_classes = {}
 
-cdef class ECB(CipherDesc):
+cdef class ECB(CipherDescriptor):
 	
 	cdef symmetric_ecb symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ecb':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDesc.__init__(self, cipher)
+		CipherDescriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
@@ -236,14 +235,14 @@ cdef class ECB(CipherDesc):
 cipher_classes['ecb'] = ECB
 
 
-cdef class CBC(CipherDesc):
+cdef class CBC(CipherDescriptor):
 	
 	cdef symmetric_cbc symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'cbc':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDesc.__init__(self, cipher)
+		CipherDescriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
@@ -297,14 +296,14 @@ cdef class CBC(CipherDesc):
 cipher_classes['cbc'] = CBC
 
 
-cdef class CTR(CipherDesc):
+cdef class CTR(CipherDescriptor):
 	
 	cdef symmetric_ctr symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ctr':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDesc.__init__(self, cipher)
+		CipherDescriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
@@ -358,14 +357,14 @@ cdef class CTR(CipherDesc):
 cipher_classes['ctr'] = CTR
 
 
-cdef class CFB(CipherDesc):
+cdef class CFB(CipherDescriptor):
 	
 	cdef symmetric_cfb symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'cfb':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDesc.__init__(self, cipher)
+		CipherDescriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
@@ -419,14 +418,14 @@ cdef class CFB(CipherDesc):
 cipher_classes['cfb'] = CFB
 
 
-cdef class OFB(CipherDesc):
+cdef class OFB(CipherDescriptor):
 	
 	cdef symmetric_ofb symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ofb':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDesc.__init__(self, cipher)
+		CipherDescriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):

@@ -96,7 +96,6 @@ class CipherError(Exception):
 			Exception.__init__(self, error_to_string(err))
 		else:
 			Exception.__init__(self, err)
-		
 
 
 cdef check_for_error(int res):
@@ -120,7 +119,7 @@ def test():
 	% endfor
 		
 
-cdef class CipherDesc(object):
+cdef class CipherDescriptor(object):
 	
 	cdef int cipher_i
 	cdef cipher_desc cipher
@@ -163,7 +162,7 @@ cdef class CipherDesc(object):
 
 % for name in ciphers:
 try:
-	${name.upper()} = CipherDesc(${repr(name)})
+	${name.upper()} = CipherDescriptor(${repr(name)})
 except CipherError:
 	pass
 % endfor
@@ -174,14 +173,14 @@ except CipherError:
 cipher_classes = {}
 % for mode in modes:
 
-cdef class ${mode.upper()}(CipherDesc):
+cdef class ${mode.upper()}(CipherDescriptor):
 	
 	cdef symmetric_${mode} symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != ${repr(mode)}:
 			raise CipherError('wrong mode %r' % mode)
-		CipherDesc.__init__(self, cipher)
+		CipherDescriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):

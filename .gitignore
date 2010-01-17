@@ -11,5 +11,7 @@
 /pip-log.txt
 
 # Build
-_cipher.so
-_cipher.pyc
+cipher.so
+cipher.pyc
+
+/libtomcrypt*

@@ -1,29 +1,45 @@
-
 <%!
 
-modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb'.split()))
-iv_modes = dict((k, modes[k]) for k in 'ctr cbc cfb ofb'.split())
-simple_modes = dict((k, modes[k]) for k in 'cbc cfb ofb'.split())
-ciphers = 'aes des blowfish'.split()
-
-mode_items = list(sorted(modes.items(), key=lambda x: x[1]))
+modes = tuple('ecb cbc ctr cfb ofb'.split())
+iv_modes = tuple('ctr cbc cfb ofb'.split())
+simple_modes = tuple('cbc cfb ofb'.split())
+if False:
+	ciphers = tuple('''
+		aes
+		anubis
+		blowfish
+		cast5
+		des
+		des3
+		kasumi
+		khazad
+		kseed
+		noekeon
+		rc2
+		rc5
+		rc6
+		saferp
+		twofish
+		xtea'''.strip().split())
+else:
+	ciphers = tuple('''
+		aes
+		blowfish
+		des
+		twofish'''.strip().split())
 
 %>
-
-
-cdef extern from "stdlib.h":
-
-	void * malloc(int size)
-	void free(void * ptr)
+modes = ${repr(modes)}
+simple_modes = ${repr(simple_modes)}
+iv_modes = ${repr(iv_modes)}
+ciphers = ${repr(ciphers)}
 
 
 cdef extern from "Python.h":
-
 	object PyString_FromStringAndSize(char *s, Py_ssize_t len)
 
 
 cdef extern from "tomcrypt.h":
-
 	int CRYPT_OK
 	int CTR_COUNTER_BIG_ENDIAN
 	char * error_to_string(int err)

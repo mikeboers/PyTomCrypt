@@ -86,7 +86,7 @@ cdef extern from "tomcrypt.h":
 	int find_cipher(char * name)
 
 
-class CipherError(Exception):
+class Error(Exception):
 	def __init__(self, err):
 		if isinstance(err, int):
 			Exception.__init__(self, error_to_string(err))
@@ -96,7 +96,7 @@ class CipherError(Exception):
 
 cdef check_for_error(int res):
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 
 
 # Register all of the ciphers.
@@ -111,7 +111,7 @@ def test():
 	% for name in ciphers:
 	res = ${name}_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	% endfor
 		
 
@@ -123,7 +123,7 @@ cdef class Descriptor(object):
 	def __init__(self, cipher):
 		self.cipher_idx = find_cipher(cipher)
 		if self.cipher_idx < 0:
-			raise CipherError('could not find %r' % cipher)
+			raise Error('could not find %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_idx]
 		
 	@property
@@ -161,7 +161,7 @@ ciphers = {}
 
 try:
 	ciphers[${repr(name.upper())}] = ${name.upper()} = Descriptor(${repr(name)})
-except CipherError:
+except Error:
 	pass
 % endfor
 
@@ -173,7 +173,7 @@ cdef class ${mode.upper()}(Descriptor):
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != ${repr(mode)}:
-			raise CipherError('wrong mode %r' % mode)
+			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
@@ -215,8 +215,8 @@ cdef class ${mode.upper()}(Descriptor):
 		res = ${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 	% endfor

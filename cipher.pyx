@@ -104,7 +104,7 @@ cdef extern from "tomcrypt.h":
 	int find_cipher(char * name)
 
 
-class CipherError(Exception):
+class Error(Exception):
 	def __init__(self, err):
 		if isinstance(err, int):
 			Exception.__init__(self, error_to_string(err))
@@ -114,7 +114,7 @@ class CipherError(Exception):
 
 cdef check_for_error(int res):
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 
 
 # Register all of the ciphers.
@@ -141,52 +141,52 @@ def test():
 	cdef int res
 	res = aes_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = anubis_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = blowfish_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = cast5_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = des_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = des3_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = kasumi_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = khazad_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = kseed_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = noekeon_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = rc2_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = rc5_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = rc6_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = saferp_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = twofish_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	res = xtea_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 		
 
 cdef class Descriptor(object):
@@ -197,7 +197,7 @@ cdef class Descriptor(object):
 	def __init__(self, cipher):
 		self.cipher_idx = find_cipher(cipher)
 		if self.cipher_idx < 0:
-			raise CipherError('could not find %r' % cipher)
+			raise Error('could not find %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_idx]
 		
 	@property
@@ -234,82 +234,82 @@ ciphers = {}
 
 try:
 	ciphers['AES'] = AES = Descriptor('aes')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['ANUBIS'] = ANUBIS = Descriptor('anubis')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['BLOWFISH'] = BLOWFISH = Descriptor('blowfish')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['CAST5'] = CAST5 = Descriptor('cast5')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['DES'] = DES = Descriptor('des')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['DES3'] = DES3 = Descriptor('des3')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['KASUMI'] = KASUMI = Descriptor('kasumi')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['KHAZAD'] = KHAZAD = Descriptor('khazad')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['KSEED'] = KSEED = Descriptor('kseed')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['NOEKEON'] = NOEKEON = Descriptor('noekeon')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['RC2'] = RC2 = Descriptor('rc2')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['RC5'] = RC5 = Descriptor('rc5')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['RC6'] = RC6 = Descriptor('rc6')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['SAFERP'] = SAFERP = Descriptor('saferp')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['TWOFISH'] = TWOFISH = Descriptor('twofish')
-except CipherError:
+except Error:
 	pass
 
 try:
 	ciphers['XTEA'] = XTEA = Descriptor('xtea')
-except CipherError:
+except Error:
 	pass
 
 
@@ -319,7 +319,7 @@ cdef class ECB(Descriptor):
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ecb':
-			raise CipherError('wrong mode %r' % mode)
+			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
@@ -342,8 +342,8 @@ cdef class ECB(Descriptor):
 		res = ecb_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 	cpdef decrypt(self, input):
@@ -356,8 +356,8 @@ cdef class ECB(Descriptor):
 		res = ecb_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 
@@ -367,7 +367,7 @@ cdef class CBC(Descriptor):
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'cbc':
-			raise CipherError('wrong mode %r' % mode)
+			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
@@ -400,8 +400,8 @@ cdef class CBC(Descriptor):
 		res = cbc_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 	cpdef decrypt(self, input):
@@ -414,8 +414,8 @@ cdef class CBC(Descriptor):
 		res = cbc_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 
@@ -425,7 +425,7 @@ cdef class CTR(Descriptor):
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ctr':
-			raise CipherError('wrong mode %r' % mode)
+			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
@@ -458,8 +458,8 @@ cdef class CTR(Descriptor):
 		res = ctr_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 	cpdef decrypt(self, input):
@@ -472,8 +472,8 @@ cdef class CTR(Descriptor):
 		res = ctr_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 
@@ -483,7 +483,7 @@ cdef class CFB(Descriptor):
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'cfb':
-			raise CipherError('wrong mode %r' % mode)
+			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
@@ -516,8 +516,8 @@ cdef class CFB(Descriptor):
 		res = cfb_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 	cpdef decrypt(self, input):
@@ -530,8 +530,8 @@ cdef class CFB(Descriptor):
 		res = cfb_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 
@@ -541,7 +541,7 @@ cdef class OFB(Descriptor):
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ofb':
-			raise CipherError('wrong mode %r' % mode)
+			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
@@ -574,8 +574,8 @@ cdef class OFB(Descriptor):
 		res = ofb_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 	cpdef decrypt(self, input):
@@ -588,8 +588,8 @@ cdef class OFB(Descriptor):
 		res = ofb_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
 			if length % self.cipher.block_length:
-				raise CipherError('input not multiple of block length')
-			raise CipherError(res)
+				raise Error('input not multiple of block length')
+			raise Error(res)
 		return output
 	
 

@@ -3,9 +3,7 @@
 /build
 /pip-log.txt
 
-_cipher.c
 _cipher.so
-_cipher.pyx
 _cipher.pyc
 *.pyc
 .DS_Store

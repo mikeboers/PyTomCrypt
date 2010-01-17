@@ -176,7 +176,7 @@ cdef union symmetric_all:
 
 cdef class Cipher(CipherDesc):
 	
-	cdef void *symmetric
+	cdef symmetric_all symmetric
 	cdef object mode
 	cdef int mode_i
 	
@@ -185,9 +185,7 @@ cdef class Cipher(CipherDesc):
 			raise CipherError('no more %r' % mode)
 		self.mode_i = modes[mode]	
 		self.mode = mode
-		
 		CipherDesc.__init__(self, cipher)
-		self.symmetric = NULL
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
@@ -195,24 +193,16 @@ cdef class Cipher(CipherDesc):
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		
-		if self.symmetric != NULL:
-			free(self.symmetric)
-		
 		% for mode, i in mode_items:
 		if self.mode_i == ${i}:
-			self.symmetric = malloc(sizeof(symmetric_${mode}))
 			% if mode == 'ecb':
-			check_for_error(ecb_start(self.cipher_i, key, len(key), 0, <symmetric_${mode}*>self.symmetric))
+			check_for_error(ecb_start(self.cipher_i, key, len(key), 0, <symmetric_${mode}*>&self.symmetric))
 			% elif mode == 'ctr':
-			check_for_error(ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>self.symmetric))
+			check_for_error(ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.symmetric))
 			% else:
-			check_for_error(${mode}_start(self.cipher_i, iv, key, len(key), 0, <symmetric_${mode}*>self.symmetric))
+			check_for_error(${mode}_start(self.cipher_i, iv, key, len(key), 0, <symmetric_${mode}*>&self.symmetric))
 			% endif
 		% endfor
-	
-	def __dealloc__(self):
-		if self.symmetric != NULL:
-			free(self.symmetric)
 	
 	cpdef get_iv(self):
 		cdef unsigned long length
@@ -220,7 +210,7 @@ cdef class Cipher(CipherDesc):
 		iv = PyString_FromStringAndSize(NULL, length)
 		% for mode, i in sorted(iv_modes.items(), key=lambda x:x[1]):
 		if self.mode_i == ${i}:
-			check_for_error(${mode}_getiv(<unsigned char *>iv, &length, <symmetric_${mode}*>self.symmetric))
+			check_for_error(${mode}_getiv(<unsigned char *>iv, &length, <symmetric_${mode}*>&self.symmetric))
 			return iv
 		% endfor
 		raise CipherError('%r mode does not use an IV' % self.mode)
@@ -228,7 +218,7 @@ cdef class Cipher(CipherDesc):
 	cpdef set_iv(self, iv):	
 		% for mode, i in sorted(iv_modes.items(), key=lambda x:x[1]):
 		if self.mode_i == ${i}:
-			check_for_error(${mode}_setiv(<unsigned char *>iv, len(iv), <symmetric_${mode}*>self.symmetric))
+			check_for_error(${mode}_setiv(<unsigned char *>iv, len(iv), <symmetric_${mode}*>&self.symmetric))
 			return
 		% endfor
 		raise CipherError('%r mode does not use an IV' % self.mode)
@@ -236,7 +226,7 @@ cdef class Cipher(CipherDesc):
 	cpdef done(self):
 		% for mode, i in mode_items:
 		if self.mode_i == ${i}:
-			check_for_error(${mode}_done(<symmetric_${mode}*>self.symmetric))
+			check_for_error(${mode}_done(<symmetric_${mode}*>&self.symmetric))
 			return
 		% endfor
 	
@@ -248,11 +238,11 @@ cdef class Cipher(CipherDesc):
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		check_for_error((all_${type}[self.mode_i])(<unsigned char *>input, <unsigned char*>output, length, self.symmetric))
+		check_for_error((all_${type}[self.mode_i])(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric))
 		return output
 		##% for mode, i in mode_items:
 		##if self.mode_i == ${i}:
-		##	check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, self.symmetric))
+		##	check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric))
 		##	return output
 		##% endfor
 	

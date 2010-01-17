@@ -1,12 +1,37 @@
 
 <%!
 
+ALL_CIPHERS = False
+
 modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb'.split()))
 iv_modes = dict((k, modes[k]) for k in 'ctr cbc cfb ofb'.split())
 simple_modes = dict((k, modes[k]) for k in 'cbc cfb ofb'.split())
-ciphers = 'aes des blowfish'.split()
 
 mode_items = list(sorted(modes.items(), key=lambda x: x[1]))
+
+if ALL_CIPHERS:
+	ciphers = tuple('''
+		aes
+		anubis
+		blowfish
+		cast5
+		des
+		des3
+		kasumi
+		khazad
+		kseed
+		noekeon
+		rc2
+		rc5
+		rc6
+		saferp
+		twofish
+		xtea'''.strip().split())
+else:
+	ciphers = tuple('''
+		aes
+		blowfish
+		des'''.strip().split())
 
 %>
 
@@ -76,7 +101,24 @@ cdef extern from "tomcrypt.h":
 	int find_cipher(char * name)
 
 
+
+class Error(Exception):
+	def __init__(self, err):
+		if isinstance(err, int):
+			Exception.__init__(self, error_to_string(err))
+		else:
+			Exception.__init__(self, err)
+
+
+# Wrap EVERY call to tomcryptlib in this function!
+cdef check_for_error(int res):
+	if res != CRYPT_OK:
+		raise Error(res)
+
+
 # Register all of the ciphers.
+# We don't really need to worry about doing this as they are needed as this
+# doesn't take very long at all.
 % for name in ciphers:
 register_cipher(&${name}_desc)
 % endfor
@@ -94,14 +136,14 @@ def test():
 
 cdef class Descriptor(object):
 	
-	cdef int cipher_i
+	cdef int cipher_idx
 	cdef cipher_desc cipher
 	
 	def __init__(self, cipher):
-		self.cipher_i = find_cipher(cipher)
-		if self.cipher_i < 0:
+		self.cipher_idx = find_cipher(cipher)
+		if self.cipher_idx < 0:
 			raise ValueError('could not find %r' % cipher)
-		self.cipher = cipher_descriptors[self.cipher_i]
+		self.cipher = cipher_descriptors[self.cipher_idx]
 		
 	@property
 	def name(self):
@@ -133,30 +175,9 @@ cdef class Descriptor(object):
 		return Cipher(key, iv='', cipher=self.name, mode='cbc')
 	
 
-modes = ${repr(modes)}
-simple_modes = ${repr(simple_modes)}
-iv_modes = ${repr(iv_modes)}
-% for k, v in modes.iteritems():
-${k.upper()} = ${repr(k)}
-% endfor
-
-ciphers = ${repr(ciphers)}
-% for name in ciphers:
-${name.upper()} = Descriptor('${name}')
-% endfor
 
 
-class Error(Exception):
-	def __init__(self, err):
-		if isinstance(err, int):
-			Exception.__init__(self, error_to_string(err))
-		else:
-			Exception.__init__(self, err)
 
-
-cdef check_for_error(int res):
-	if res != CRYPT_OK:
-		raise Error(res)
 
 
 # Define function pointer types for each of the functions that have common
@@ -168,13 +189,12 @@ ctypedef int (*all_getiv_pt)(unsigned char *, unsigned long *, void *)
 ctypedef int (*all_setiv_pt)(unsigned char *, unsigned long  , void *)
 ctypedef int (*all_done_pt)(void *)
 
-# Arrays to hold the function pointers.
+# Setup arrays to hold the function pointers.
 % for name in 'encrypt decrypt getiv setiv done'.split():
 cdef all_${name}_pt all_${name}[${len(modes)}]
 % endfor
 
-# Assign the functions.
-% for mode, i in modes.items():
+% for mode, i in mode_items:
 all_encrypt[${i}] = ${mode}_encrypt
 all_decrypt[${i}] = ${mode}_decrypt
 % if mode in iv_modes:
@@ -185,6 +205,7 @@ all_done[${i}] = ${mode}_done
 % endfor
 
 
+# Define a type to masquarade as ANY of the mode states.
 cdef union symmetric_all:
 	% for mode in modes:
 	symmetric_${mode} ${mode}
@@ -193,19 +214,24 @@ cdef union symmetric_all:
 
 cdef class Cipher(Descriptor):
 	
-	cdef symmetric_all symmetric
+	cdef symmetric_all state
 	cdef object mode
 	cdef int mode_i
 	
-	def __init__(self, key, iv=None, cipher='', mode='ecb'):
-		if mode not in modes:
-			raise Error('no more %r' % mode)
-		self.mode_i = modes[mode]	
-		self.mode = mode
+	def __init__(self, key, iv=None, cipher='', mode='ecb', **kwargs):
+		self.mode = str(mode).lower()
+		## We must keep these indices as magic numbers in the source.
+		self.mode_i = {
+		% for mode, i in mode_items:
+			${repr(mode)}: ${i},
+		% endfor
+		}.get(self.mode, -1)
+		if self.mode_i < 0:
+			raise Error('no mode %r' % mode)
 		Descriptor.__init__(self, cipher)
-		self.start(key, iv)
+		self.start(key, iv, **kwargs)
 		
-	cpdef start(self, key, iv=None):
+	def start(self, key, iv=None, **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		if iv is None:
@@ -216,11 +242,11 @@ cdef class Cipher(Descriptor):
 		% for mode, i in mode_items:
 		if self.mode_i == ${i}:
 			% if mode == 'ecb':
-			check_for_error(ecb_start(self.cipher_i, key, len(key), 0, <symmetric_${mode}*>&self.symmetric))
+			check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
 			% elif mode == 'ctr':
-			check_for_error(ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.symmetric))
+			check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.state))
 			% else:
-			check_for_error(${mode}_start(self.cipher_i, iv, key, len(key), 0, <symmetric_${mode}*>&self.symmetric))
+			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), 0, <symmetric_${mode}*>&self.state))
 			% endif
 		% endfor
 	
@@ -230,16 +256,16 @@ cdef class Cipher(Descriptor):
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
-		check_for_error(all_getiv[self.mode_i](<unsigned char *>iv, &length, &self.symmetric))
+		check_for_error(all_getiv[self.mode_i](<unsigned char *>iv, &length, &self.state))
 		return iv
 	
 	cpdef set_iv(self, iv):	
 		if all_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)
-		check_for_error(all_setiv[self.mode_i](<unsigned char *>iv, len(iv), &self.symmetric))
+		check_for_error(all_setiv[self.mode_i](<unsigned char *>iv, len(iv), &self.state))
 
 	cpdef done(self):
-		check_for_error(all_done[self.mode_i](&self.symmetric))
+		check_for_error(all_done[self.mode_i](&self.state))
 	
 	% for type in 'encrypt decrypt'.split():
 	cpdef ${type}(self, input):
@@ -249,9 +275,22 @@ cdef class Cipher(Descriptor):
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		check_for_error(all_${type}[self.mode_i](<unsigned char *>input, <unsigned char*>output, length, &self.symmetric))
+		check_for_error(all_${type}[self.mode_i](<unsigned char *>input, <unsigned char*>output, length, &self.state))
 		return output
 	
 	% endfor
-		
 
+# This is just so that the API is pretty much the same for all the modules
+# and to hashlib and hmac in the stdlib.
+new = Cipher
+
+# Make some descriptors and informational stuff for convenience
+modes = ${repr(tuple(mode for mode, i in mode_items))}
+simple_modes = ${repr(set(simple_modes))}
+iv_modes = ${repr(set(iv_modes))}
+
+
+% for name in ciphers:
+${name.upper()} = Descriptor('${name}')
+% endfor
+ciphers = (${', '.join(name.upper() for name in ciphers)})

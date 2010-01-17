@@ -1,6 +1,7 @@
 <%!
 
 modes = tuple('ecb cbc ctr cfb ofb'.split())
+block_modes = set('ecb cbc'.split())
 iv_modes = tuple('ctr cbc cfb ofb'.split())
 simple_modes = tuple('cbc cfb ofb'.split())
 if True:
@@ -125,6 +126,11 @@ cdef class Descriptor(object):
 		if self.cipher_idx < 0:
 			raise Error('could not find %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_idx]
+	
+	def __repr__(self):
+		## This is some uglyness just for Mako.
+		return '<' + '%s.%s for %r at 0x%x>' % (self.__class__.__module__,
+			self.__class__.__name__, self.name, id(self))
 		
 	@property
 	def name(self):
@@ -206,7 +212,13 @@ cdef class ${mode.upper()}(Descriptor):
 	
 	% for type in 'encrypt decrypt'.split():
 	cpdef ${type}(self, input):
-		"""${type.capitalize()} a string."""
+		"""${type.capitalize()} a string.
+		
+		% if mode in block_modes:
+		Input must be a multiple of the block length.
+		
+		% endif
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -214,8 +226,10 @@ cdef class ${mode.upper()}(Descriptor):
 		output = PyString_FromStringAndSize(NULL, length)
 		res = ${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
+			% if mode in block_modes:
 			if length % self.cipher.block_length:
 				raise Error('input not multiple of block length')
+			% endif
 			raise Error(res)
 		return output
 	
@@ -229,6 +243,6 @@ modes = dict(
 )
 
 
-def Cipher(key, iv='', cipher='aes', mode='ECB'):
+def Cipher(key, iv='', cipher='aes', mode='ecb'):
 	return modes[mode.lower()](key, iv, cipher, mode)
 

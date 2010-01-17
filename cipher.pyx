@@ -199,6 +199,10 @@ cdef class Descriptor(object):
 		if self.cipher_idx < 0:
 			raise Error('could not find %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_idx]
+	
+	def __repr__(self):
+		return '<' + '%s.%s for %r at 0x%x>' % (self.__class__.__module__,
+			self.__class__.__name__, self.name, id(self))
 		
 	@property
 	def name(self):
@@ -333,7 +337,11 @@ cdef class ECB(Descriptor):
 		check_for_error(ecb_done(&self.symmetric))
 	
 	cpdef encrypt(self, input):
-		"""Encrypt a string."""
+		"""Encrypt a string.
+		
+		Input must be a multiple of the block length.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -347,7 +355,11 @@ cdef class ECB(Descriptor):
 		return output
 	
 	cpdef decrypt(self, input):
-		"""Decrypt a string."""
+		"""Decrypt a string.
+		
+		Input must be a multiple of the block length.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -391,7 +403,11 @@ cdef class CBC(Descriptor):
 		check_for_error(cbc_done(&self.symmetric))
 	
 	cpdef encrypt(self, input):
-		"""Encrypt a string."""
+		"""Encrypt a string.
+		
+		Input must be a multiple of the block length.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -405,7 +421,11 @@ cdef class CBC(Descriptor):
 		return output
 	
 	cpdef decrypt(self, input):
-		"""Decrypt a string."""
+		"""Decrypt a string.
+		
+		Input must be a multiple of the block length.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -449,7 +469,9 @@ cdef class CTR(Descriptor):
 		check_for_error(ctr_done(&self.symmetric))
 	
 	cpdef encrypt(self, input):
-		"""Encrypt a string."""
+		"""Encrypt a string.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -457,13 +479,13 @@ cdef class CTR(Descriptor):
 		output = PyString_FromStringAndSize(NULL, length)
 		res = ctr_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
-			if length % self.cipher.block_length:
-				raise Error('input not multiple of block length')
 			raise Error(res)
 		return output
 	
 	cpdef decrypt(self, input):
-		"""Decrypt a string."""
+		"""Decrypt a string.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -471,8 +493,6 @@ cdef class CTR(Descriptor):
 		output = PyString_FromStringAndSize(NULL, length)
 		res = ctr_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
-			if length % self.cipher.block_length:
-				raise Error('input not multiple of block length')
 			raise Error(res)
 		return output
 	
@@ -507,7 +527,9 @@ cdef class CFB(Descriptor):
 		check_for_error(cfb_done(&self.symmetric))
 	
 	cpdef encrypt(self, input):
-		"""Encrypt a string."""
+		"""Encrypt a string.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -515,13 +537,13 @@ cdef class CFB(Descriptor):
 		output = PyString_FromStringAndSize(NULL, length)
 		res = cfb_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
-			if length % self.cipher.block_length:
-				raise Error('input not multiple of block length')
 			raise Error(res)
 		return output
 	
 	cpdef decrypt(self, input):
-		"""Decrypt a string."""
+		"""Decrypt a string.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -529,8 +551,6 @@ cdef class CFB(Descriptor):
 		output = PyString_FromStringAndSize(NULL, length)
 		res = cfb_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
-			if length % self.cipher.block_length:
-				raise Error('input not multiple of block length')
 			raise Error(res)
 		return output
 	
@@ -565,7 +585,9 @@ cdef class OFB(Descriptor):
 		check_for_error(ofb_done(&self.symmetric))
 	
 	cpdef encrypt(self, input):
-		"""Encrypt a string."""
+		"""Encrypt a string.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -573,13 +595,13 @@ cdef class OFB(Descriptor):
 		output = PyString_FromStringAndSize(NULL, length)
 		res = ofb_encrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
-			if length % self.cipher.block_length:
-				raise Error('input not multiple of block length')
 			raise Error(res)
 		return output
 	
 	cpdef decrypt(self, input):
-		"""Decrypt a string."""
+		"""Decrypt a string.
+		
+		"""
 		cdef int res, length
 		length = len(input)
 		# We need to make sure we have a brand new string as it is going to be
@@ -587,8 +609,6 @@ cdef class OFB(Descriptor):
 		output = PyString_FromStringAndSize(NULL, length)
 		res = ofb_decrypt(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric)
 		if res != CRYPT_OK:
-			if length % self.cipher.block_length:
-				raise Error('input not multiple of block length')
 			raise Error(res)
 		return output
 	
@@ -602,7 +622,7 @@ modes = dict(
 )
 
 
-def Cipher(key, iv='', cipher='aes', mode='ECB'):
+def Cipher(key, iv='', cipher='aes', mode='ecb'):
 	return modes[mode.lower()](key, iv, cipher, mode)
 
 

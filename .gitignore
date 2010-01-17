@@ -1,11 +1,17 @@
-/lib
-/bin
-/build
-/pip-log.txt
-
-_cipher.c
-_cipher.so
-_cipher.pyx
-_cipher.pyc
+# General
 *.pyc
 .DS_Store
+
+# virtualenv
+/.Python
+/bin
+/build
+/include
+/lib
+/pip-log.txt
+
+# Build
+cipher.so
+cipher.pyc
+
+/libtomcrypt*

@@ -1,4 +1,6 @@
 
+from __future__ import division
+
 import os
 import time
 from subprocess import Popen, PIPE
@@ -58,8 +60,8 @@ def test_speed():
 		txt = cipher.encrypt(txt)
 	for i in xrange(50000):
 		txt = cipher.decrypt(txt)
+	print 'Each AES block done in %.2fns' % ((time.time() - start_time) * 10**9 / 10**5)	
 	assert txt == '0123456789abcdef', 'speed test is wrong: %r' % txt
-	print 'Ran in %.2fns' % ((time.time() - start_time) * 1000000000 / 100000)
 	
 		
 def test_openssl():
@@ -74,9 +76,9 @@ def test_openssl():
 				keysize *= 8
 				print cipher_name, keysize, mode
 				for i in xrange(0, 10, 4):
-					key = os.urandom(keysize/8)
-					iv  = os.urandom(128/8)
-					pt  = os.urandom(i * 128 / 8)
+					key = os.urandom(keysize//8)
+					iv  = os.urandom(128//8)
+					pt  = os.urandom(i * 128 // 8)
 					if cipher_name == 'aes':
 						cipher_spec = 'aes-%d-%s' % (keysize, mode)
 					elif cipher_name == 'des':

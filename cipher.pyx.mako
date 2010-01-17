@@ -88,11 +88,11 @@ def test():
 	% for name in ciphers:
 	res = ${name}_test()
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 	% endfor
 		
 
-cdef class CipherDesc(object):
+cdef class Descriptor(object):
 	
 	cdef int cipher_i
 	cdef cipher_desc cipher
@@ -142,18 +142,21 @@ ${k.upper()} = ${repr(k)}
 
 ciphers = ${repr(ciphers)}
 % for name in ciphers:
-${name.upper()} = CipherDesc('${name}')
+${name.upper()} = Descriptor('${name}')
 % endfor
 
-class CipherError(Exception):
-	
+
+class Error(Exception):
 	def __init__(self, err):
-		Exception.__init__(self, error_to_string(err), err)
+		if isinstance(err, int):
+			Exception.__init__(self, error_to_string(err))
+		else:
+			Exception.__init__(self, err)
 
 
 cdef check_for_error(int res):
 	if res != CRYPT_OK:
-		raise CipherError(res)
+		raise Error(res)
 
 
 # Define function pointer types for each of the functions that have common
@@ -188,24 +191,27 @@ cdef union symmetric_all:
 	% endfor
 
 
-cdef class Cipher(CipherDesc):
+cdef class Cipher(Descriptor):
 	
 	cdef symmetric_all symmetric
 	cdef object mode
 	cdef int mode_i
 	
-	def __init__(self, key, iv='', cipher='aes', mode='cbc'):
+	def __init__(self, key, iv=None, cipher='', mode='ecb'):
 		if mode not in modes:
-			raise CipherError('no more %r' % mode)
+			raise Error('no more %r' % mode)
 		self.mode_i = modes[mode]	
 		self.mode = mode
-		CipherDesc.__init__(self, cipher)
+		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
-	cpdef start(self, key, iv=''):
+	cpdef start(self, key, iv=None):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
-		iv = iv + ('\0' * self.cipher.block_length)
+		if iv is None:
+			iv = '\0' * self.cipher.block_length
+		if len(iv) != self.cipher.block_length:
+			raise Error('iv must be %d bytes' % self.cipher.block_length)
 		
 		% for mode, i in mode_items:
 		if self.mode_i == ${i}:
@@ -220,7 +226,7 @@ cdef class Cipher(CipherDesc):
 	
 	cpdef get_iv(self):
 		if all_getiv[self.mode_i] == NULL:
-			raise CipherError('%r mode does not use an IV' % self.mode)
+			raise Error('%r mode does not use an IV' % self.mode)
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
@@ -229,7 +235,7 @@ cdef class Cipher(CipherDesc):
 	
 	cpdef set_iv(self, iv):	
 		if all_getiv[self.mode_i] == NULL:
-			raise CipherError('%r mode does not use an IV' % self.mode)
+			raise Error('%r mode does not use an IV' % self.mode)
 		check_for_error(all_setiv[self.mode_i](<unsigned char *>iv, len(iv), &self.symmetric))
 
 	cpdef done(self):
@@ -245,11 +251,6 @@ cdef class Cipher(CipherDesc):
 		output = PyString_FromStringAndSize(NULL, length)
 		check_for_error(all_${type}[self.mode_i](<unsigned char *>input, <unsigned char*>output, length, &self.symmetric))
 		return output
-		##% for mode, i in mode_items:
-		##if self.mode_i == ${i}:
-		##	check_for_error(${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric))
-		##	return output
-		##% endfor
 	
 	% endfor
 		

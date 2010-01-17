@@ -53,7 +53,7 @@ def test_internal():
 		assert pt == test_pt, 'internal decrypt: %s != %s' % (pt.encode('hex'), test_pt.encode('hex'))
 
 def test_speed():
-	cipher = Cipher('0123456789abcdef', mode='ecb')
+	cipher = Cipher('0123456789abcdef', cipher='aes', mode='ecb')
 	start_time = time.time()
 	txt = '0123456789abcdef'
 	for i in xrange(50000):
@@ -66,7 +66,7 @@ def test_speed():
 		
 def test_openssl():
 	for cipher_name in 'aes', 'des':
-		cipher_desc = CipherDesc(cipher=cipher_name)
+		cipher_desc = Descriptor(cipher=cipher_name)
 		keysizes = []
 		for i in range(cipher_desc.min_key_length, cipher_desc.max_key_length + 1):
 			keysizes.append(cipher_desc.keysize(i))
@@ -77,7 +77,7 @@ def test_openssl():
 				print cipher_name, keysize, mode
 				for i in xrange(0, 10, 4):
 					key = os.urandom(keysize//8)
-					iv  = os.urandom(128//8)
+					iv  = os.urandom(cipher_desc.block_length)
 					pt  = os.urandom(i * 128 // 8)
 					if cipher_name == 'aes':
 						cipher_spec = 'aes-%d-%s' % (keysize, mode)
@@ -114,7 +114,7 @@ def test_external():
 				iv  = data.get('iv', '').decode('hex')
 				pt  = data['plaintext'].decode('hex')
 				ct  = data['ciphertext'].decode('hex')
-				cipher = Cipher(key=key, iv=iv, cipher='aes', mode=mode)
+				cipher = Cipher(key=key, iv=iv or None, cipher='aes', mode=mode)
 				if type == 'encrypt':
 					res = cipher.encrypt(pt)
 					assert res == ct, '%s #%s: %s != %s' % (name, data['count'], res.encode('hex'), data['ciphertext'])

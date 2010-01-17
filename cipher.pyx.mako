@@ -37,7 +37,7 @@ else:
 %>
 
 
-from common cimport *
+include "common.pxi"
 
 
 cdef extern from "tomcrypt.h":
@@ -95,18 +95,6 @@ cdef extern from "tomcrypt.h":
 
 
 
-class Error(Exception):
-	def __init__(self, err):
-		if isinstance(err, int):
-			Exception.__init__(self, error_to_string(err))
-		else:
-			Exception.__init__(self, err)
-
-
-# Wrap EVERY call to tomcryptlib in this function!
-cdef check_for_error(int res):
-	if res != CRYPT_OK:
-		raise Error(res)
 
 
 # Register all of the ciphers.
@@ -121,9 +109,7 @@ def test():
 	"""Run the internal tests."""
 	cdef int res
 	% for name in ciphers:
-	res = ${name}_test()
-	if res != CRYPT_OK:
-		raise Error(res)
+	check_for_error(${name}_test())
 	% endfor
 		
 
@@ -313,7 +299,7 @@ iv_modes = ${repr(set(iv_modes))}
 
 
 % for mode, i in mode_items:
-def ${mode.upper()}(key, *args, **kwargs):
+def ${mode}(key, *args, **kwargs):
 	"""Cipher constructor for ${mode.upper()} mode."""
 	return Cipher(key, *args, mode=${repr(mode)}, **kwargs)
 % endfor
@@ -321,5 +307,5 @@ def ${mode.upper()}(key, *args, **kwargs):
 
 ciphers = ${repr(ciphers)}
 % for name in ciphers:
-${name.upper()} = Descriptor('${name}')
+${name} = Descriptor('${name}')
 % endfor

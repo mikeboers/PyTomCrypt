@@ -3,13 +3,11 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
 ext_modules = [Extension(
-    "cipher",
-    ["cipher.pyx"],
+    name,
+    ["%s.pyx" % name],
     include_dirs=['./libtomcrypt-1.16/src', './libtomcrypt-1.16/src/headers'],
-    # library_dirs=['./libtomcrypt-1.16', './libtomcrypt-1.16/src'],
-    # libraries=['./libtomcrypt-1.16/libtomcrypt.a'],
     extra_objects=['./libtomcrypt-1.16/libtomcrypt.a'],
-)]
+) for name in 'cipher', 'hash']
 
 setup(
   name = 'pycrypto',

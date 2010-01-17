@@ -43,15 +43,15 @@ def test_internal():
 		pt = ''.join(map(chr, pt))
 		ct = ''.join(map(chr, ct))
 		
-		cipher = Cipher(key=key, cipher='aes', mode='ecb')
+		cipher = new(key=key, cipher='aes', mode='ecb')
 		test_ct = cipher.encrypt(pt)
 		assert ct == test_ct, 'internal encrypt: %s != %s' % (ct.encode('hex'), test_ct.encode('hex'))
-		cipher = Cipher(key=key, cipher='aes', mode='ecb')
+		cipher = new(key=key, cipher='aes', mode='ecb')
 		test_pt = cipher.decrypt(ct)
 		assert pt == test_pt, 'internal decrypt: %s != %s' % (pt.encode('hex'), test_pt.encode('hex'))
 
 def test_speed():
-	cipher = Cipher('0123456789abcdef', mode='ecb')
+	cipher = new('0123456789abcdef', mode='ecb')
 	start_time = time.time()
 	txt = '0123456789abcdef'
 	for i in xrange(50000):
@@ -86,7 +86,7 @@ def test_openssl():
 					proc = Popen(('openssl enc -e -%s -nopad -nosalt -K %s -iv %s' % (cipher_spec, key.encode('hex'), iv.encode('hex'))).split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
 					out, err = proc.communicate(pt)
 					assert not err, err
-					cipher = Cipher(key=key, iv=iv, cipher=cipher_name, mode=mode)
+					cipher = new(key=key, iv=iv, cipher=cipher_name, mode=mode)
 					ct = cipher.encrypt(pt)
 					assert ct == out, 'openssl: %s != %s' % (ct.encode('hex'), out.encode('hex'))
 			
@@ -112,7 +112,7 @@ def test_external():
 				iv  = data.get('iv', '').decode('hex')
 				pt  = data['plaintext'].decode('hex')
 				ct  = data['ciphertext'].decode('hex')
-				cipher = Cipher(key=key, iv=iv, cipher='aes', mode=mode)
+				cipher = new(key=key, iv=iv, cipher='aes', mode=mode)
 				if type == 'encrypt':
 					res = cipher.encrypt(pt)
 					assert res == ct, '%s #%s: %s != %s' % (name, data['count'], res.encode('hex'), data['ciphertext'])

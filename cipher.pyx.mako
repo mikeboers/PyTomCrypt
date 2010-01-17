@@ -155,7 +155,7 @@ cdef class Descriptor(object):
 		return out
 	
 	def __call__(self, key, iv='', **kwargs):
-		return Cipher(key, iv='', cipher=self.name, **kwargs)
+		return new(key, iv='', cipher=self.name, **kwargs)
 
 
 # Register all of the ciphers.
@@ -241,6 +241,6 @@ modes = dict(
 )
 
 
-def Cipher(key, iv='', cipher='aes', mode='ecb'):
+def new(key, iv='', cipher='aes', mode='ecb'):
 	return modes[mode.lower()](key, iv, cipher, mode)
 

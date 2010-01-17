@@ -2,7 +2,7 @@
 - Have classes build for each of the modes. This way we don't need to dispatch
   at every call.
     - First time the difference to see if it even matters.
-        Takes approx 290 ps per block, instead of 300.
+        Takes approx 290 ns per block, instead of 300.
     - Decide upon the API for this:
         - Could pass the cipher to the mode class: cipher = CipherCBC('aes')
         - Could have a class for each combination: cipher = AES_CBC('key')
@@ -16,12 +16,9 @@
   I have now tried this, and it actually went slightly slower. Ie. 161ms
   instead of 159ms.
   
-  With the better timer it is at 295ps instead of 300.
+  With the better timer it is at 295ns instead of 300.
 
-Decide on a naming scheme for cipher specs and modes:
-    aes vs AES
-    ECB vs ecb vs ECBCipher
-    Cipher vs cipher vs build_cipher vs setup_cipher (this is a function)
+
 
 Organize this into a standard package layout:
     PyTomCrypt/
@@ -38,4 +35,6 @@ only 83 microseconds to register them all.
 
 Rename the cipher.Descriptor.keysize to key_length, or figure out how to
 normalize the differences.
+
+Add: EAX (page 46), PCB(50), CCM(53), and GCM(56)
 

@@ -104,6 +104,9 @@ cdef extern from "tomcrypt.h":
 	int find_cipher(char * name)
 
 
+import time
+
+
 class Error(Exception):
 	def __init__(self, err):
 		if isinstance(err, int):
@@ -217,6 +220,8 @@ cdef class Descriptor(object):
 		return new(key, iv='', cipher=self.name, **kwargs)
 
 
+start_time = time.time()
+
 # Register all of the ciphers.
 ciphers = {}
 
@@ -316,6 +321,7 @@ try:
 except Error:
 	pass
 
+print 'Registered all ciphers in %.2fus.' % (1000000 * (time.time() - start_time))
 
 cdef class ECB(Descriptor):
 	

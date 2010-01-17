@@ -1,5 +1,7 @@
 <%!
 
+DEBUG = False
+
 modes = tuple('ecb cbc ctr cfb ofb'.split())
 block_modes = set('ecb cbc'.split())
 iv_modes = tuple('ctr cbc cfb ofb'.split())
@@ -87,6 +89,9 @@ cdef extern from "tomcrypt.h":
 	int find_cipher(char * name)
 
 
+import time
+
+
 class Error(Exception):
 	def __init__(self, err):
 		if isinstance(err, int):
@@ -158,6 +163,10 @@ cdef class Descriptor(object):
 		return new(key, iv='', cipher=self.name, **kwargs)
 
 
+% if DEBUG:
+start_time = time.time()
+% endif
+
 # Register all of the ciphers.
 ciphers = {}
 % for name in ciphers:
@@ -169,6 +178,9 @@ except Error:
 	pass
 % endfor
 
+% if DEBUG:
+print 'Registered all ciphers in %.2fus.' % (1000000 * (time.time() - start_time))
+% endif
 
 % for mode in modes:
 cdef class ${mode.upper()}(Descriptor):

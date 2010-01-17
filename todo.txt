@@ -32,4 +32,6 @@ Organize this into a standard package layout:
         libtomcrypt-...
         README.txt
         LICENSE.txt
-        
+
+Stop thinking about making the ciphers register when you need them. It takes
+only 83 microseconds to register them all.

@@ -3,7 +3,7 @@
 
 ALL_CIPHERS = False
 
-modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw'.split()))
+modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8'.split()))
 no_iv_modes = dict((k, modes[k]) for k in 'ecb'.split())
 iv_modes = dict((k, modes[k]) for k in modes if k not in no_iv_modes)
 simple_modes = dict((k, modes[k]) for k in 'cbc cfb ofb'.split())
@@ -67,6 +67,7 @@ cdef extern from "tomcrypt.h":
 	int ${name}_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_${name} *${name})
 	% endfor
 	int lrw_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *tweak, int num_rounds, symmetric_lrw *lrw)
+	int f8_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *salt_key, int skeylen, int num_rounds, symmetric_f8 *f8)
 	% for name in modes:
 	# Really these take <symmetric_${name} *>, but it doesn't seem to care,
 	# and dispatching is made easier. Maybe takes 0.05% longer.
@@ -217,48 +218,64 @@ cdef union symmetric_all:
 cdef class Cipher(Descriptor):
 	
 	cdef symmetric_all state
-	cdef object mode
+	cdef object _mode
 	cdef int mode_i
 	
 	def __init__(self, key, iv=None, cipher='', mode='ecb', **kwargs):
-		self.mode = str(mode).lower()
+		self._mode = str(mode).lower()
 		## We must keep these indices as magic numbers in the source.
 		self.mode_i = {
 		% for mode, i in mode_items:
 			${repr(mode)}: ${i},
 		% endfor
-		}.get(self.mode, -1)
+		}.get(self._mode, -1)
 		if self.mode_i < 0:
 			raise Error('no mode %r' % mode)
 		Descriptor.__init__(self, cipher)
 		self.start(key, iv, **kwargs)
-		
+	
+	@property
+	def mode(self):
+		return self._mode
+	
 	def start(self, key, iv=None, **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
+		
 		if iv is None:
 			iv = '\0' * self.cipher.block_length
-		if len(iv) != self.cipher.block_length:
+		if not isinstance(iv, basestring) or len(iv) != self.cipher.block_length:
 			raise Error('iv must be %d bytes' % self.cipher.block_length)
 		
 		% for mode, i in mode_items:
 		${'el' if i else ''}if self.mode_i == ${i}:
 			% if mode == 'ecb':
 			check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
+			
 			% elif mode == 'ctr':
 			check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.state))
+			
 			% elif mode in simple_modes:
 			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), 0, <symmetric_${mode}*>&self.state))
+			
 			% elif mode == 'lrw':
 			tweak = kwargs.get('tweak')
 			if not isinstance(tweak, basestring) or len(tweak) != 16:
 				raise Error('tweak must be 16 byte string')
 			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), tweak, 0, <symmetric_${mode}*>&self.state))
+			
+			% elif mode == 'f8':
+			salt_key = kwargs.get('salt_key')
+			if not isinstance(salt_key, basestring):
+				raise Error('salt_key must be a string')
+			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), salt_key, len(salt_key), 0, <symmetric_${mode}*>&self.state))
+			
 			% else:
 			raise Error('no start for mode %r' % ${repr(mode)})
+			
 			% endif
 		% endfor
-	
+	##
 	cpdef get_iv(self):
 		if all_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)

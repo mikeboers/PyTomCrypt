@@ -1,19 +1,18 @@
 
 PYTHON = bin/python
 
-default : test
+default : build
 
-_cipher.pyx : _cipher.pyx.mako
-	mako-render _cipher.pyx.mako > _cipher.pyx
+cipher.pyx : cipher.pyx.mako
+	mako-render cipher.pyx.mako > cipher.pyx
 
-_cipher.so : _cipher.pyx
+cipher.so : cipher.pyx
 	make -C libtomcrypt-1.16
 	$(PYTHON) setup.py build_ext --inplace
 
-build: _cipher.so
+build: cipher.so
 
 test: build
-	$(PYTHON) cipher.py
 	$(PYTHON) test_cipher.py
 
 clean:

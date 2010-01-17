@@ -3,8 +3,9 @@
 
 ALL_CIPHERS = False
 
-modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb'.split()))
-iv_modes = dict((k, modes[k]) for k in 'ctr cbc cfb ofb'.split())
+modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw'.split()))
+no_iv_modes = dict((k, modes[k]) for k in 'ecb'.split())
+iv_modes = dict((k, modes[k]) for k in modes if k not in no_iv_modes)
 simple_modes = dict((k, modes[k]) for k in 'cbc cfb ofb'.split())
 
 mode_items = list(sorted(modes.items(), key=lambda x: x[1]))
@@ -65,6 +66,7 @@ cdef extern from "tomcrypt.h":
 	% for name in simple_modes:
 	int ${name}_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_${name} *${name})
 	% endfor
+	int lrw_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *tweak, int num_rounds, symmetric_lrw *lrw)
 	% for name in modes:
 	# Really these take <symmetric_${name} *>, but it doesn't seem to care,
 	# and dispatching is made easier. Maybe takes 0.05% longer.
@@ -240,13 +242,20 @@ cdef class Cipher(Descriptor):
 			raise Error('iv must be %d bytes' % self.cipher.block_length)
 		
 		% for mode, i in mode_items:
-		if self.mode_i == ${i}:
+		${'el' if i else ''}if self.mode_i == ${i}:
 			% if mode == 'ecb':
 			check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
 			% elif mode == 'ctr':
 			check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.state))
-			% else:
+			% elif mode in simple_modes:
 			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), 0, <symmetric_${mode}*>&self.state))
+			% elif mode == 'lrw':
+			tweak = kwargs.get('tweak')
+			if not isinstance(tweak, basestring) or len(tweak) != 16:
+				raise Error('tweak must be 16 byte string')
+			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), tweak, 0, <symmetric_${mode}*>&self.state))
+			% else:
+			raise Error('no start for mode %r' % ${repr(mode)})
 			% endif
 		% endfor
 	

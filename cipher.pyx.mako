@@ -165,8 +165,8 @@ cdef class Descriptor(object):
 		check_for_error(self.cipher.keysize(&out))
 		return out
 	
-	def __call__(self, key, iv='', **kwargs):
-		return new(key, iv='', cipher=self.cipher.name, **kwargs)
+	def __call__(self, key, **kwargs):
+		return new(key, cipher=self.cipher.name, **kwargs)
 
 
 % if DEBUG:
@@ -262,6 +262,6 @@ modes = dict(
 )
 
 
-def new(key, iv='', cipher='', mode='ecb'):
-	return modes[mode.lower()](key, iv, cipher, mode)
+def new(key, **kwargs):
+	return modes[kwargs.get('mode', 'ecb').lower()](key, **kwargs)
 

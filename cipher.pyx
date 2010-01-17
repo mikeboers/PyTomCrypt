@@ -55,6 +55,7 @@ cdef extern from "tomcrypt.h":
 	# Cipher descriptor.
 	cdef struct cipher_desc "ltc_cipher_descriptor":
 		char * name
+		unsigned char id "ID"
 		int min_key_length
 		int max_key_length
 		int block_length
@@ -68,36 +69,10 @@ cdef extern from "tomcrypt.h":
 	# The descriptors themselves.
 	cipher_desc aes_desc
 	int aes_test()
-	cipher_desc anubis_desc
-	int anubis_test()
 	cipher_desc blowfish_desc
 	int blowfish_test()
-	cipher_desc cast5_desc
-	int cast5_test()
 	cipher_desc des_desc
 	int des_test()
-	cipher_desc des3_desc
-	int des3_test()
-	cipher_desc kasumi_desc
-	int kasumi_test()
-	cipher_desc khazad_desc
-	int khazad_test()
-	cipher_desc kseed_desc
-	int kseed_test()
-	cipher_desc noekeon_desc
-	int noekeon_test()
-	cipher_desc rc2_desc
-	int rc2_test()
-	cipher_desc rc5_desc
-	int rc5_test()
-	cipher_desc rc6_desc
-	int rc6_test()
-	cipher_desc saferp_desc
-	int saferp_test()
-	cipher_desc twofish_desc
-	int twofish_test()
-	cipher_desc xtea_desc
-	int xtea_test()
 		
 	# Functions for registering and finding the registered ciphers.
 	int register_cipher(cipher_desc *cipher)
@@ -128,49 +103,10 @@ def test():
 	res = aes_test()
 	if res != CRYPT_OK:
 		raise Error(res)
-	res = anubis_test()
-	if res != CRYPT_OK:
-		raise Error(res)
 	res = blowfish_test()
 	if res != CRYPT_OK:
 		raise Error(res)
-	res = cast5_test()
-	if res != CRYPT_OK:
-		raise Error(res)
 	res = des_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = des3_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = kasumi_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = khazad_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = kseed_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = noekeon_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = rc2_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = rc5_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = rc6_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = saferp_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = twofish_test()
-	if res != CRYPT_OK:
-		raise Error(res)
-	res = xtea_test()
 	if res != CRYPT_OK:
 		raise Error(res)
 		
@@ -183,13 +119,17 @@ cdef class Descriptor(object):
 	def __init__(self, cipher):
 		self.cipher_idx = find_cipher(cipher)
 		if self.cipher_idx < 0:
-			raise Error('could not find %r' % cipher)
+			raise Error('could not find cipher %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_idx]
 	
 	def __repr__(self):
-		return '<%s.%s for %r at 0x%x>' % (self.__class__.__module__,
-			self.__class__.__name__, self.name, id(self))
-		
+		return '<%s.%s with %r(%d) at 0x%x>' % (self.__class__.__module__,
+			self.__class__.__name__, self.cipher.name, self.cipher_idx, id(self))
+	
+	@property
+	def id(self):
+		return self.cipher_idx
+	
 	@property
 	def name(self):
 		return self.cipher.name
@@ -217,7 +157,7 @@ cdef class Descriptor(object):
 		return out
 	
 	def __call__(self, key, iv='', **kwargs):
-		return new(key, iv='', cipher=self.name, **kwargs)
+		return new(key, iv='', cipher=self.cipher.name, **kwargs)
 
 
 start_time = time.time()
@@ -227,98 +167,23 @@ ciphers = {}
 
 register_cipher(&aes_desc)
 try:
-	ciphers['AES'] = AES = Descriptor('aes')
+	ciphers['aes'] = aes = Descriptor('aes')
 except Error:
-	pass
-
-register_cipher(&anubis_desc)
-try:
-	ciphers['ANUBIS'] = ANUBIS = Descriptor('anubis')
-except Error:
+	print 'Could not register', 'aes'
 	pass
 
 register_cipher(&blowfish_desc)
 try:
-	ciphers['BLOWFISH'] = BLOWFISH = Descriptor('blowfish')
+	ciphers['blowfish'] = blowfish = Descriptor('blowfish')
 except Error:
-	pass
-
-register_cipher(&cast5_desc)
-try:
-	ciphers['CAST5'] = CAST5 = Descriptor('cast5')
-except Error:
+	print 'Could not register', 'blowfish'
 	pass
 
 register_cipher(&des_desc)
 try:
-	ciphers['DES'] = DES = Descriptor('des')
+	ciphers['des'] = des = Descriptor('des')
 except Error:
-	pass
-
-register_cipher(&des3_desc)
-try:
-	ciphers['DES3'] = DES3 = Descriptor('des3')
-except Error:
-	pass
-
-register_cipher(&kasumi_desc)
-try:
-	ciphers['KASUMI'] = KASUMI = Descriptor('kasumi')
-except Error:
-	pass
-
-register_cipher(&khazad_desc)
-try:
-	ciphers['KHAZAD'] = KHAZAD = Descriptor('khazad')
-except Error:
-	pass
-
-register_cipher(&kseed_desc)
-try:
-	ciphers['KSEED'] = KSEED = Descriptor('kseed')
-except Error:
-	pass
-
-register_cipher(&noekeon_desc)
-try:
-	ciphers['NOEKEON'] = NOEKEON = Descriptor('noekeon')
-except Error:
-	pass
-
-register_cipher(&rc2_desc)
-try:
-	ciphers['RC2'] = RC2 = Descriptor('rc2')
-except Error:
-	pass
-
-register_cipher(&rc5_desc)
-try:
-	ciphers['RC5'] = RC5 = Descriptor('rc5')
-except Error:
-	pass
-
-register_cipher(&rc6_desc)
-try:
-	ciphers['RC6'] = RC6 = Descriptor('rc6')
-except Error:
-	pass
-
-register_cipher(&saferp_desc)
-try:
-	ciphers['SAFERP'] = SAFERP = Descriptor('saferp')
-except Error:
-	pass
-
-register_cipher(&twofish_desc)
-try:
-	ciphers['TWOFISH'] = TWOFISH = Descriptor('twofish')
-except Error:
-	pass
-
-register_cipher(&xtea_desc)
-try:
-	ciphers['XTEA'] = XTEA = Descriptor('xtea')
-except Error:
+	print 'Could not register', 'des'
 	pass
 
 print 'Registered all ciphers in %.2fus.' % (1000000 * (time.time() - start_time))
@@ -628,7 +493,7 @@ modes = dict(
 )
 
 
-def new(key, iv='', cipher='aes', mode='ecb'):
+def new(key, iv='', cipher='', mode='ecb'):
 	return modes[mode.lower()](key, iv, cipher, mode)
 
 

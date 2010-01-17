@@ -51,7 +51,7 @@ def test_internal():
 		assert pt == test_pt, 'internal decrypt: %s != %s' % (pt.encode('hex'), test_pt.encode('hex'))
 
 def test_speed():
-	cipher = new('0123456789abcdef', mode='ecb')
+	cipher = new('0123456789abcdef', cipher='aes', mode='ecb')
 	start_time = time.time()
 	txt = '0123456789abcdef'
 	for i in xrange(50000):

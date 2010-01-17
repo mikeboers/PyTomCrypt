@@ -1,12 +1,14 @@
 <%!
 
-DEBUG = False
+DEBUG = True
+ALL_CIPHERS = False 
 
 modes = tuple('ecb cbc ctr cfb ofb'.split())
 block_modes = set('ecb cbc'.split())
 iv_modes = tuple('ctr cbc cfb ofb'.split())
 simple_modes = tuple('cbc cfb ofb'.split())
-if True:
+
+if ALL_CIPHERS:
 	ciphers = tuple('''
 		aes
 		anubis
@@ -28,8 +30,7 @@ else:
 	ciphers = tuple('''
 		aes
 		blowfish
-		des
-		twofish'''.strip().split())
+		des'''.strip().split())
 
 %>
 
@@ -68,6 +69,7 @@ cdef extern from "tomcrypt.h":
 	# Cipher descriptor.
 	cdef struct cipher_desc "ltc_cipher_descriptor":
 		char * name
+		unsigned char id "ID"
 		int min_key_length
 		int max_key_length
 		int block_length
@@ -125,14 +127,18 @@ cdef class Descriptor(object):
 	def __init__(self, cipher):
 		self.cipher_idx = find_cipher(cipher)
 		if self.cipher_idx < 0:
-			raise Error('could not find %r' % cipher)
+			raise Error('could not find cipher %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_idx]
 	
 	def __repr__(self):
 		## This is some uglyness just so Mako doesn't freak out at the <%.
-		return ${repr('<%s.%s for %r at 0x%x>')} % (self.__class__.__module__,
-			self.__class__.__name__, self.name, id(self))
-		
+		return ${repr('<%s.%s with %r(%d) at 0x%x>')} % (self.__class__.__module__,
+			self.__class__.__name__, self.cipher.name, self.cipher_idx, id(self))
+	
+	@property
+	def id(self):
+		return self.cipher_idx
+	
 	@property
 	def name(self):
 		return self.cipher.name
@@ -160,7 +166,7 @@ cdef class Descriptor(object):
 		return out
 	
 	def __call__(self, key, iv='', **kwargs):
-		return new(key, iv='', cipher=self.name, **kwargs)
+		return new(key, iv='', cipher=self.cipher.name, **kwargs)
 
 
 % if DEBUG:
@@ -173,8 +179,11 @@ ciphers = {}
 
 register_cipher(&${name}_desc)
 try:
-	ciphers[${repr(name.upper())}] = ${name.upper()} = Descriptor(${repr(name)})
+	ciphers[${repr(name)}] = ${name} = Descriptor(${repr(name)})
 except Error:
+	% if DEBUG:
+	print 'Could not register', ${repr(name)}
+	% endif
 	pass
 % endfor
 
@@ -253,6 +262,6 @@ modes = dict(
 )
 
 
-def new(key, iv='', cipher='aes', mode='ecb'):
+def new(key, iv='', cipher='', mode='ecb'):
 	return modes[mode.lower()](key, iv, cipher, mode)
 

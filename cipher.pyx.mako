@@ -164,8 +164,8 @@ cdef class Descriptor(object):
 		check_for_error(self.cipher.keysize(&out))
 		return out
 	
-	def __call__(self, key, **kwargs):
-		return Cipher(key, cipher=self.name, **kwargs)
+	def __call__(self, key, *args, **kwargs):
+		return Cipher(key, *args, cipher=self.name, **kwargs)
 	
 
 
@@ -308,6 +308,7 @@ new = Cipher
 # Make some descriptors and informational stuff for convenience
 modes = ${repr(tuple(mode for mode, i in mode_items))}
 simple_modes = ${repr(set(simple_modes))}
+no_iv_modes = ${repr(set(no_iv_modes))}
 iv_modes = ${repr(set(iv_modes))}
 
 
@@ -318,7 +319,7 @@ def ${mode.upper()}(key, *args, **kwargs):
 % endfor
 
 
+ciphers = ${repr(ciphers)}
 % for name in ciphers:
 ${name.upper()} = Descriptor('${name}')
 % endfor
-ciphers = (${', '.join(name.upper() for name in ciphers)})

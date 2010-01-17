@@ -1,20 +1,36 @@
 
-- Have classes build for each of the modes. This way we don't need to dispatch
-  at every call.
-    - First time the difference to see if it even matters.
-        Takes approx 290 ps per block, instead of 300.
-    - Decide upon the API for this:
-        - Could pass the cipher to the mode class: cipher = CipherCBC('aes')
-        - Could have a class for each combination: cipher = AES_CBC('key')
-        - Could have a function which picks from one of the above for you:
-            cipher = build(mode='cbc', cipher='aes')
-        - Could have __new__ on Cipher* pick the right class depending on the
-          mode and cipher.
-- OR, IFF we don't have to explicitly cast the symmetric_*, then figure out
-  how to save pointers to functions and pick those in the setup.
-  
-  I have now tried this, and it actually went slightly slower. Ie. 161ms
-  instead of 159ms.
-  
-  With the better timer it is at 295ps instead of 300.
-        
+How to dispatch to the differing methods for each mode:
+    1. Dispatch to the different methods in Python.
+        - Takes about 300 ns per block.
+    2. Build a class for each of the modes. The dispatching is done before it
+       even compiles.
+        - Takes about 292-294 ns per block.
+    3. Save pointers to the en/decrypt functions in the Cipher class.
+        - This relies upon the compiler automatically casting from void* to
+          whatever it should be (symetric_XXX*)
+        - Takes about 295 ns per block.
+    4. Build array of pointer functions and store the index into that array in
+       the class. No more malloc!
+        - Still relies upon the compiler doing the right thing with void*
+        - Takes about 292-293 per block.
+
+
+
+Organize this into a standard package layout:
+    PyTomCrypt/
+        tomcrypt/
+            __init__.py
+            <everything here>
+        setup.py
+        libtomcrypt-...
+        README.txt
+        LICENSE.txt
+
+Stop thinking about making the ciphers register when you need them. It takes
+only 83 microseconds to register them all.
+
+Rename the cipher.Descriptor.keysize to key_length, or figure out how to
+normalize the differences.
+
+Add: EAX (page 46), PCB(50), CCM(53), and GCM(56)
+

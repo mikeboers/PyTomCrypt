@@ -100,10 +100,6 @@ cdef check_for_error(int res):
 		raise Error(res)
 
 
-# Register all of the ciphers.
-% for name in ciphers:
-register_cipher(&${name}_desc)
-% endfor
 
 
 def test():
@@ -128,8 +124,8 @@ cdef class Descriptor(object):
 		self.cipher = cipher_descriptors[self.cipher_idx]
 	
 	def __repr__(self):
-		## This is some uglyness just for Mako.
-		return '<' + '%s.%s for %r at 0x%x>' % (self.__class__.__module__,
+		## This is some uglyness just so Mako doesn't freak out at the <%.
+		return ${repr('<%s.%s for %r at 0x%x>')} % (self.__class__.__module__,
 			self.__class__.__name__, self.name, id(self))
 		
 	@property
@@ -158,13 +154,15 @@ cdef class Descriptor(object):
 		check_for_error(self.cipher.keysize(&out))
 		return out
 	
-	def __call__(self, key, iv='', mode='cbc'):
-		return Cipher(key, iv='', cipher=self.name, mode='cbc')
-	
+	def __call__(self, key, iv='', **kwargs):
+		return Cipher(key, iv='', cipher=self.name, **kwargs)
 
+
+# Register all of the ciphers.
 ciphers = {}
 % for name in ciphers:
 
+register_cipher(&${name}_desc)
 try:
 	ciphers[${repr(name.upper())}] = ${name.upper()} = Descriptor(${repr(name)})
 except Error:

@@ -117,23 +117,6 @@ cdef check_for_error(int res):
 		raise Error(res)
 
 
-# Register all of the ciphers.
-register_cipher(&aes_desc)
-register_cipher(&anubis_desc)
-register_cipher(&blowfish_desc)
-register_cipher(&cast5_desc)
-register_cipher(&des_desc)
-register_cipher(&des3_desc)
-register_cipher(&kasumi_desc)
-register_cipher(&khazad_desc)
-register_cipher(&kseed_desc)
-register_cipher(&noekeon_desc)
-register_cipher(&rc2_desc)
-register_cipher(&rc5_desc)
-register_cipher(&rc6_desc)
-register_cipher(&saferp_desc)
-register_cipher(&twofish_desc)
-register_cipher(&xtea_desc)
 
 
 def test():
@@ -201,7 +184,7 @@ cdef class Descriptor(object):
 		self.cipher = cipher_descriptors[self.cipher_idx]
 	
 	def __repr__(self):
-		return '<' + '%s.%s for %r at 0x%x>' % (self.__class__.__module__,
+		return '<%s.%s for %r at 0x%x>' % (self.__class__.__module__,
 			self.__class__.__name__, self.name, id(self))
 		
 	@property
@@ -230,87 +213,104 @@ cdef class Descriptor(object):
 		check_for_error(self.cipher.keysize(&out))
 		return out
 	
-	def __call__(self, key, iv='', mode='cbc'):
-		return Cipher(key, iv='', cipher=self.name, mode='cbc')
-	
+	def __call__(self, key, iv='', **kwargs):
+		return Cipher(key, iv='', cipher=self.name, **kwargs)
 
+
+# Register all of the ciphers.
 ciphers = {}
 
+register_cipher(&aes_desc)
 try:
 	ciphers['AES'] = AES = Descriptor('aes')
 except Error:
 	pass
 
+register_cipher(&anubis_desc)
 try:
 	ciphers['ANUBIS'] = ANUBIS = Descriptor('anubis')
 except Error:
 	pass
 
+register_cipher(&blowfish_desc)
 try:
 	ciphers['BLOWFISH'] = BLOWFISH = Descriptor('blowfish')
 except Error:
 	pass
 
+register_cipher(&cast5_desc)
 try:
 	ciphers['CAST5'] = CAST5 = Descriptor('cast5')
 except Error:
 	pass
 
+register_cipher(&des_desc)
 try:
 	ciphers['DES'] = DES = Descriptor('des')
 except Error:
 	pass
 
+register_cipher(&des3_desc)
 try:
 	ciphers['DES3'] = DES3 = Descriptor('des3')
 except Error:
 	pass
 
+register_cipher(&kasumi_desc)
 try:
 	ciphers['KASUMI'] = KASUMI = Descriptor('kasumi')
 except Error:
 	pass
 
+register_cipher(&khazad_desc)
 try:
 	ciphers['KHAZAD'] = KHAZAD = Descriptor('khazad')
 except Error:
 	pass
 
+register_cipher(&kseed_desc)
 try:
 	ciphers['KSEED'] = KSEED = Descriptor('kseed')
 except Error:
 	pass
 
+register_cipher(&noekeon_desc)
 try:
 	ciphers['NOEKEON'] = NOEKEON = Descriptor('noekeon')
 except Error:
 	pass
 
+register_cipher(&rc2_desc)
 try:
 	ciphers['RC2'] = RC2 = Descriptor('rc2')
 except Error:
 	pass
 
+register_cipher(&rc5_desc)
 try:
 	ciphers['RC5'] = RC5 = Descriptor('rc5')
 except Error:
 	pass
 
+register_cipher(&rc6_desc)
 try:
 	ciphers['RC6'] = RC6 = Descriptor('rc6')
 except Error:
 	pass
 
+register_cipher(&saferp_desc)
 try:
 	ciphers['SAFERP'] = SAFERP = Descriptor('saferp')
 except Error:
 	pass
 
+register_cipher(&twofish_desc)
 try:
 	ciphers['TWOFISH'] = TWOFISH = Descriptor('twofish')
 except Error:
 	pass
 
+register_cipher(&xtea_desc)
 try:
 	ciphers['XTEA'] = XTEA = Descriptor('xtea')
 except Error:

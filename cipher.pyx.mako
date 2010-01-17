@@ -164,8 +164,8 @@ cdef class Descriptor(object):
 		check_for_error(self.cipher.keysize(&out))
 		return out
 	
-	def __call__(self, key, iv='', mode='cbc'):
-		return Cipher(key, iv='', cipher=self.name, mode='cbc')
+	def __call__(self, key, **kwargs):
+		return Cipher(key, cipher=self.name, **kwargs)
 	
 
 
@@ -211,7 +211,7 @@ cdef class Cipher(Descriptor):
 	cdef object _mode
 	cdef int mode_i
 	
-	def __init__(self, key, iv=None, cipher='', mode='ecb', **kwargs):
+	def __init__(self, key, iv=None, cipher='aes', mode='ecb', **kwargs):
 		self._mode = str(mode).lower()
 		## We must keep these indices as magic numbers in the source.
 		self.mode_i = {
@@ -223,6 +223,11 @@ cdef class Cipher(Descriptor):
 			raise Error('no mode %r' % mode)
 		Descriptor.__init__(self, cipher)
 		self.start(key, iv, **kwargs)
+	
+	def __repr__(self):
+		return ${repr('<%s.%s with %s in %s mode at 0x%x>')} % (
+			self.__class__.__module__, self.__class__.__name__, self.name,
+			self.mode, id(self))
 	
 	@property
 	def mode(self):
@@ -304,6 +309,13 @@ new = Cipher
 modes = ${repr(tuple(mode for mode, i in mode_items))}
 simple_modes = ${repr(set(simple_modes))}
 iv_modes = ${repr(set(iv_modes))}
+
+
+% for mode, i in mode_items:
+def ${mode.upper()}(key, *args, **kwargs):
+	"""Cipher constructor for ${mode.upper()} mode."""
+	return Cipher(key, *args, mode=${repr(mode)}, **kwargs)
+% endfor
 
 
 % for name in ciphers:

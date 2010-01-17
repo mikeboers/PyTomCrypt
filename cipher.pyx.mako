@@ -45,11 +45,11 @@ cdef extern from "tomcrypt.h":
 	# and dispatching is made easier. Maybe takes 0.05% longer.
 	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, void *${name})
 	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, void *${name})
-	int ${name}_done(symmetric_${name} *${name})
+	int ${name}_done(void *${name})
 	% endfor
 	% for name in iv_modes:
-	int ${name}_getiv(unsigned char *iv, unsigned long *len, symmetric_${name} *${name})
-	int ${name}_setiv(unsigned char *iv, unsigned long len, symmetric_${name} *${name})
+	int ${name}_getiv(unsigned char *iv, unsigned long *len, void *${name})
+	int ${name}_setiv(unsigned char *iv, unsigned long len, void *${name})
 	% endfor
 	
 	# Cipher descriptor.
@@ -156,16 +156,29 @@ cdef check_for_error(int res):
 		raise CipherError(res)
 
 
+# Define function pointer types for each of the functions that have common
+# signatures.
 ctypedef int (*all_crypt_pt)(unsigned char *, unsigned char *, unsigned long, void *)
-ctypedef int all_done_pt(void *)
-ctypedef int all_getiv_pt(unsigned char *, unsigned long *, void *)
-ctypedef int all_setiv_pt(unsigned char *, unsigned long  , void *)
+ctypedef all_crypt_pt all_encrypt_pt
+ctypedef all_crypt_pt all_decrypt_pt
+ctypedef int (*all_getiv_pt)(unsigned char *, unsigned long *, void *)
+ctypedef int (*all_setiv_pt)(unsigned char *, unsigned long  , void *)
+ctypedef int (*all_done_pt)(void *)
 
-cdef all_crypt_pt all_encrypt[${len(modes)}]
-cdef all_crypt_pt all_decrypt[${len(modes)}]
+# Arrays to hold the function pointers.
+% for name in 'encrypt decrypt getiv setiv done'.split():
+cdef all_${name}_pt all_${name}[${len(modes)}]
+% endfor
+
+# Assign the functions.
 % for mode, i in modes.items():
 all_encrypt[${i}] = ${mode}_encrypt
 all_decrypt[${i}] = ${mode}_decrypt
+% if mode in iv_modes:
+all_getiv[${i}] = ${mode}_getiv
+all_setiv[${i}] = ${mode}_setiv
+% endif
+all_done[${i}] = ${mode}_done
 % endfor
 
 
@@ -173,6 +186,7 @@ cdef union symmetric_all:
 	% for mode in modes:
 	symmetric_${mode} ${mode}
 	% endfor
+
 
 cdef class Cipher(CipherDesc):
 	
@@ -205,30 +219,21 @@ cdef class Cipher(CipherDesc):
 		% endfor
 	
 	cpdef get_iv(self):
+		if all_getiv[self.mode_i] == NULL:
+			raise CipherError('%r mode does not use an IV' % self.mode)
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
-		% for mode, i in sorted(iv_modes.items(), key=lambda x:x[1]):
-		if self.mode_i == ${i}:
-			check_for_error(${mode}_getiv(<unsigned char *>iv, &length, <symmetric_${mode}*>&self.symmetric))
-			return iv
-		% endfor
-		raise CipherError('%r mode does not use an IV' % self.mode)
+		check_for_error(all_getiv[self.mode_i](<unsigned char *>iv, &length, &self.symmetric))
+		return iv
 	
 	cpdef set_iv(self, iv):	
-		% for mode, i in sorted(iv_modes.items(), key=lambda x:x[1]):
-		if self.mode_i == ${i}:
-			check_for_error(${mode}_setiv(<unsigned char *>iv, len(iv), <symmetric_${mode}*>&self.symmetric))
-			return
-		% endfor
-		raise CipherError('%r mode does not use an IV' % self.mode)
+		if all_getiv[self.mode_i] == NULL:
+			raise CipherError('%r mode does not use an IV' % self.mode)
+		check_for_error(all_setiv[self.mode_i](<unsigned char *>iv, len(iv), &self.symmetric))
 
 	cpdef done(self):
-		% for mode, i in mode_items:
-		if self.mode_i == ${i}:
-			check_for_error(${mode}_done(<symmetric_${mode}*>&self.symmetric))
-			return
-		% endfor
+		check_for_error(all_done[self.mode_i](&self.symmetric))
 	
 	% for type in 'encrypt decrypt'.split():
 	cpdef ${type}(self, input):
@@ -238,7 +243,7 @@ cdef class Cipher(CipherDesc):
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		check_for_error((all_${type}[self.mode_i])(<unsigned char *>input, <unsigned char*>output, length, &self.symmetric))
+		check_for_error(all_${type}[self.mode_i](<unsigned char *>input, <unsigned char*>output, length, &self.symmetric))
 		return output
 		##% for mode, i in mode_items:
 		##if self.mode_i == ${i}:

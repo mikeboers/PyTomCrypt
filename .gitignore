@@ -7,3 +7,4 @@ _cipher.so
 _cipher.pyc
 *.pyc
 .DS_Store
+.Python

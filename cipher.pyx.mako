@@ -265,13 +265,13 @@ cdef class Cipher(Descriptor):
 		cdef unsigned long length
 		length = self.cipher.block_length
 		iv = PyString_FromStringAndSize(NULL, length)
-		check_for_error(all_getiv[self.mode_i](<unsigned char *>iv, &length, &self.state))
+		check_for_error(all_getiv[self.mode_i](iv, &length, &self.state))
 		return iv
 	
 	cpdef set_iv(self, iv):	
 		if all_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)
-		check_for_error(all_setiv[self.mode_i](<unsigned char *>iv, len(iv), &self.state))
+		check_for_error(all_setiv[self.mode_i](iv, len(iv), &self.state))
 
 	cpdef done(self):
 		check_for_error(all_done[self.mode_i](&self.state))
@@ -284,7 +284,7 @@ cdef class Cipher(Descriptor):
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		check_for_error(all_${type}[self.mode_i](<unsigned char *>input, <unsigned char*>output, length, &self.state))
+		check_for_error(all_${type}[self.mode_i](input, output, length, &self.state))
 		return output
 	
 	% endfor

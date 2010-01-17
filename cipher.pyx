@@ -321,7 +321,7 @@ cdef class ECB(Descriptor):
 	
 	cdef symmetric_ecb symmetric
 		
-	def __init__(self, key, iv='', cipher='aes', mode=None):
+	def __init__(self, key, iv='', cipher='', mode=None):
 		if mode is not None and mode != 'ecb':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
@@ -377,7 +377,7 @@ cdef class CBC(Descriptor):
 	
 	cdef symmetric_cbc symmetric
 		
-	def __init__(self, key, iv='', cipher='aes', mode=None):
+	def __init__(self, key, iv='', cipher='', mode=None):
 		if mode is not None and mode != 'cbc':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
@@ -443,7 +443,7 @@ cdef class CTR(Descriptor):
 	
 	cdef symmetric_ctr symmetric
 		
-	def __init__(self, key, iv='', cipher='aes', mode=None):
+	def __init__(self, key, iv='', cipher='', mode=None):
 		if mode is not None and mode != 'ctr':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
@@ -501,7 +501,7 @@ cdef class CFB(Descriptor):
 	
 	cdef symmetric_cfb symmetric
 		
-	def __init__(self, key, iv='', cipher='aes', mode=None):
+	def __init__(self, key, iv='', cipher='', mode=None):
 		if mode is not None and mode != 'cfb':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)
@@ -559,7 +559,7 @@ cdef class OFB(Descriptor):
 	
 	cdef symmetric_ofb symmetric
 		
-	def __init__(self, key, iv='', cipher='aes', mode=None):
+	def __init__(self, key, iv='', cipher='', mode=None):
 		if mode is not None and mode != 'ofb':
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)

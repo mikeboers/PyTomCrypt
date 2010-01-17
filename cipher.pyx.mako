@@ -175,7 +175,7 @@ cdef class ${mode.upper()}(Descriptor):
 	
 	cdef symmetric_${mode} symmetric
 		
-	def __init__(self, key, iv='', cipher='aes', mode=None):
+	def __init__(self, key, iv='', cipher='', mode=None):
 		if mode is not None and mode != ${repr(mode)}:
 			raise Error('wrong mode %r' % mode)
 		Descriptor.__init__(self, cipher)

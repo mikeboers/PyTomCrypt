@@ -37,22 +37,12 @@ else:
 %>
 
 
-cdef extern from "stdlib.h":
-
-	void * malloc(int size)
-	void free(void * ptr)
-
-
-cdef extern from "Python.h":
-
-	object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+from common cimport *
 
 
 cdef extern from "tomcrypt.h":
 
-	int CRYPT_OK
 	int CTR_COUNTER_BIG_ENDIAN
-	char * error_to_string(int err)
 	
 	# Generic symmetric key, and for all of the supported modes.
 	% for name in modes:

@@ -1,8 +1,4 @@
 
-modes = ('ecb', 'cbc', 'ctr', 'cfb', 'ofb')
-simple_modes = ('cbc', 'cfb', 'ofb')
-iv_modes = ('ctr', 'cbc', 'cfb', 'ofb')
-ciphers = ('aes', 'blowfish', 'des', 'twofish')
 
 
 cdef extern from "Python.h":
@@ -72,12 +68,36 @@ cdef extern from "tomcrypt.h":
 	# The descriptors themselves.
 	cipher_desc aes_desc
 	int aes_test()
+	cipher_desc anubis_desc
+	int anubis_test()
 	cipher_desc blowfish_desc
 	int blowfish_test()
+	cipher_desc cast5_desc
+	int cast5_test()
 	cipher_desc des_desc
 	int des_test()
+	cipher_desc des3_desc
+	int des3_test()
+	cipher_desc kasumi_desc
+	int kasumi_test()
+	cipher_desc khazad_desc
+	int khazad_test()
+	cipher_desc kseed_desc
+	int kseed_test()
+	cipher_desc noekeon_desc
+	int noekeon_test()
+	cipher_desc rc2_desc
+	int rc2_test()
+	cipher_desc rc5_desc
+	int rc5_test()
+	cipher_desc rc6_desc
+	int rc6_test()
+	cipher_desc saferp_desc
+	int saferp_test()
 	cipher_desc twofish_desc
 	int twofish_test()
+	cipher_desc xtea_desc
+	int xtea_test()
 		
 	# Functions for registering and finding the registered ciphers.
 	int register_cipher(cipher_desc *cipher)
@@ -99,9 +119,21 @@ cdef check_for_error(int res):
 
 # Register all of the ciphers.
 register_cipher(&aes_desc)
+register_cipher(&anubis_desc)
 register_cipher(&blowfish_desc)
+register_cipher(&cast5_desc)
 register_cipher(&des_desc)
+register_cipher(&des3_desc)
+register_cipher(&kasumi_desc)
+register_cipher(&khazad_desc)
+register_cipher(&kseed_desc)
+register_cipher(&noekeon_desc)
+register_cipher(&rc2_desc)
+register_cipher(&rc5_desc)
+register_cipher(&rc6_desc)
+register_cipher(&saferp_desc)
 register_cipher(&twofish_desc)
+register_cipher(&xtea_desc)
 
 
 def test():
@@ -110,27 +142,63 @@ def test():
 	res = aes_test()
 	if res != CRYPT_OK:
 		raise CipherError(res)
+	res = anubis_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
 	res = blowfish_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = cast5_test()
 	if res != CRYPT_OK:
 		raise CipherError(res)
 	res = des_test()
 	if res != CRYPT_OK:
 		raise CipherError(res)
+	res = des3_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = kasumi_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = khazad_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = kseed_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = noekeon_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = rc2_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = rc5_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = rc6_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = saferp_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
 	res = twofish_test()
+	if res != CRYPT_OK:
+		raise CipherError(res)
+	res = xtea_test()
 	if res != CRYPT_OK:
 		raise CipherError(res)
 		
 
-cdef class CipherDescriptor(object):
+cdef class Descriptor(object):
 	
-	cdef int cipher_i
+	cdef int cipher_idx
 	cdef cipher_desc cipher
 	
 	def __init__(self, cipher):
-		self.cipher_i = find_cipher(cipher)
-		if self.cipher_i < 0:
+		self.cipher_idx = find_cipher(cipher)
+		if self.cipher_idx < 0:
 			raise CipherError('could not find %r' % cipher)
-		self.cipher = cipher_descriptors[self.cipher_i]
+		self.cipher = cipher_descriptors[self.cipher_idx]
 		
 	@property
 	def name(self):
@@ -162,43 +230,104 @@ cdef class CipherDescriptor(object):
 		return Cipher(key, iv='', cipher=self.name, mode='cbc')
 	
 
+ciphers = {}
+
 try:
-	AES = CipherDescriptor('aes')
-except CipherError:
-	pass
-try:
-	BLOWFISH = CipherDescriptor('blowfish')
-except CipherError:
-	pass
-try:
-	DES = CipherDescriptor('des')
-except CipherError:
-	pass
-try:
-	TWOFISH = CipherDescriptor('twofish')
+	ciphers['AES'] = AES = Descriptor('aes')
 except CipherError:
 	pass
 
+try:
+	ciphers['ANUBIS'] = ANUBIS = Descriptor('anubis')
+except CipherError:
+	pass
+
+try:
+	ciphers['BLOWFISH'] = BLOWFISH = Descriptor('blowfish')
+except CipherError:
+	pass
+
+try:
+	ciphers['CAST5'] = CAST5 = Descriptor('cast5')
+except CipherError:
+	pass
+
+try:
+	ciphers['DES'] = DES = Descriptor('des')
+except CipherError:
+	pass
+
+try:
+	ciphers['DES3'] = DES3 = Descriptor('des3')
+except CipherError:
+	pass
+
+try:
+	ciphers['KASUMI'] = KASUMI = Descriptor('kasumi')
+except CipherError:
+	pass
+
+try:
+	ciphers['KHAZAD'] = KHAZAD = Descriptor('khazad')
+except CipherError:
+	pass
+
+try:
+	ciphers['KSEED'] = KSEED = Descriptor('kseed')
+except CipherError:
+	pass
+
+try:
+	ciphers['NOEKEON'] = NOEKEON = Descriptor('noekeon')
+except CipherError:
+	pass
+
+try:
+	ciphers['RC2'] = RC2 = Descriptor('rc2')
+except CipherError:
+	pass
+
+try:
+	ciphers['RC5'] = RC5 = Descriptor('rc5')
+except CipherError:
+	pass
+
+try:
+	ciphers['RC6'] = RC6 = Descriptor('rc6')
+except CipherError:
+	pass
+
+try:
+	ciphers['SAFERP'] = SAFERP = Descriptor('saferp')
+except CipherError:
+	pass
+
+try:
+	ciphers['TWOFISH'] = TWOFISH = Descriptor('twofish')
+except CipherError:
+	pass
+
+try:
+	ciphers['XTEA'] = XTEA = Descriptor('xtea')
+except CipherError:
+	pass
 
 
-
-cipher_classes = {}
-
-cdef class ECB(CipherDescriptor):
+cdef class ECB(Descriptor):
 	
 	cdef symmetric_ecb symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ecb':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDescriptor.__init__(self, cipher)
+		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
-		check_for_error(ecb_start(self.cipher_i, key, len(key), 0, &self.symmetric))
+		check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, &self.symmetric))
 	
 	cpdef done(self):
 		check_for_error(ecb_done(&self.symmetric))
@@ -231,25 +360,22 @@ cdef class ECB(CipherDescriptor):
 			raise CipherError(res)
 		return output
 	
-	
-cipher_classes['ecb'] = ECB
 
-
-cdef class CBC(CipherDescriptor):
+cdef class CBC(Descriptor):
 	
 	cdef symmetric_cbc symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'cbc':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDescriptor.__init__(self, cipher)
+		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
-		check_for_error(cbc_start(self.cipher_i, iv, key, len(key), 0, &self.symmetric))
+		check_for_error(cbc_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))
 	
 	cpdef get_iv(self):
 		cdef unsigned long length
@@ -292,25 +418,22 @@ cdef class CBC(CipherDescriptor):
 			raise CipherError(res)
 		return output
 	
-	
-cipher_classes['cbc'] = CBC
 
-
-cdef class CTR(CipherDescriptor):
+cdef class CTR(Descriptor):
 	
 	cdef symmetric_ctr symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ctr':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDescriptor.__init__(self, cipher)
+		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
-		check_for_error(ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.symmetric))
+		check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.symmetric))
 	
 	cpdef get_iv(self):
 		cdef unsigned long length
@@ -353,25 +476,22 @@ cdef class CTR(CipherDescriptor):
 			raise CipherError(res)
 		return output
 	
-	
-cipher_classes['ctr'] = CTR
 
-
-cdef class CFB(CipherDescriptor):
+cdef class CFB(Descriptor):
 	
 	cdef symmetric_cfb symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'cfb':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDescriptor.__init__(self, cipher)
+		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
-		check_for_error(cfb_start(self.cipher_i, iv, key, len(key), 0, &self.symmetric))
+		check_for_error(cfb_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))
 	
 	cpdef get_iv(self):
 		cdef unsigned long length
@@ -414,25 +534,22 @@ cdef class CFB(CipherDescriptor):
 			raise CipherError(res)
 		return output
 	
-	
-cipher_classes['cfb'] = CFB
 
-
-cdef class OFB(CipherDescriptor):
+cdef class OFB(Descriptor):
 	
 	cdef symmetric_ofb symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != 'ofb':
 			raise CipherError('wrong mode %r' % mode)
-		CipherDescriptor.__init__(self, cipher)
+		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
-		check_for_error(ofb_start(self.cipher_i, iv, key, len(key), 0, &self.symmetric))
+		check_for_error(ofb_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))
 	
 	cpdef get_iv(self):
 		cdef unsigned long length
@@ -475,10 +592,17 @@ cdef class OFB(CipherDescriptor):
 			raise CipherError(res)
 		return output
 	
-	
-cipher_classes['ofb'] = OFB
+
+modes = dict(
+	ecb=ECB,
+	cbc=CBC,
+	ctr=CTR,
+	cfb=CFB,
+	ofb=OFB,
+)
 
 
-def Cipher(key, iv='', cipher='aes', mode='ecb'):
-	return cipher_classes[mode](key, iv, cipher, mode)
+def Cipher(key, iv='', cipher='aes', mode='ECB'):
+	return modes[mode.lower()](key, iv, cipher, mode)
+
 

@@ -3,7 +3,7 @@
 modes = tuple('ecb cbc ctr cfb ofb'.split())
 iv_modes = tuple('ctr cbc cfb ofb'.split())
 simple_modes = tuple('cbc cfb ofb'.split())
-if False:
+if True:
 	ciphers = tuple('''
 		aes
 		anubis
@@ -29,10 +29,6 @@ else:
 		twofish'''.strip().split())
 
 %>
-modes = ${repr(modes)}
-simple_modes = ${repr(simple_modes)}
-iv_modes = ${repr(iv_modes)}
-ciphers = ${repr(ciphers)}
 
 
 cdef extern from "Python.h":
@@ -119,16 +115,16 @@ def test():
 	% endfor
 		
 
-cdef class CipherDescriptor(object):
+cdef class Descriptor(object):
 	
-	cdef int cipher_i
+	cdef int cipher_idx
 	cdef cipher_desc cipher
 	
 	def __init__(self, cipher):
-		self.cipher_i = find_cipher(cipher)
-		if self.cipher_i < 0:
+		self.cipher_idx = find_cipher(cipher)
+		if self.cipher_idx < 0:
 			raise CipherError('could not find %r' % cipher)
-		self.cipher = cipher_descriptors[self.cipher_i]
+		self.cipher = cipher_descriptors[self.cipher_idx]
 		
 	@property
 	def name(self):
@@ -160,27 +156,25 @@ cdef class CipherDescriptor(object):
 		return Cipher(key, iv='', cipher=self.name, mode='cbc')
 	
 
+ciphers = {}
 % for name in ciphers:
+
 try:
-	${name.upper()} = CipherDescriptor(${repr(name)})
+	ciphers[${repr(name.upper())}] = ${name.upper()} = Descriptor(${repr(name)})
 except CipherError:
 	pass
 % endfor
 
 
-
-
-cipher_classes = {}
 % for mode in modes:
-
-cdef class ${mode.upper()}(CipherDescriptor):
+cdef class ${mode.upper()}(Descriptor):
 	
 	cdef symmetric_${mode} symmetric
 		
 	def __init__(self, key, iv='', cipher='aes', mode=None):
 		if mode is not None and mode != ${repr(mode)}:
 			raise CipherError('wrong mode %r' % mode)
-		CipherDescriptor.__init__(self, cipher)
+		Descriptor.__init__(self, cipher)
 		self.start(key, iv)
 		
 	cpdef start(self, key, iv=''):
@@ -188,11 +182,11 @@ cdef class ${mode.upper()}(CipherDescriptor):
 		# don't need to worry about making unique ones.
 		iv = iv + ('\0' * self.cipher.block_length)
 		% if mode == 'ecb':
-		check_for_error(ecb_start(self.cipher_i, key, len(key), 0, &self.symmetric))
+		check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, &self.symmetric))
 		% elif mode == 'ctr':
-		check_for_error(ctr_start(self.cipher_i, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.symmetric))
+		check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, &self.symmetric))
 		% else:
-		check_for_error(${mode}_start(self.cipher_i, iv, key, len(key), 0, &self.symmetric))
+		check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), 0, &self.symmetric))
 		% endif
 	
 	% if mode in iv_modes:
@@ -226,10 +220,15 @@ cdef class ${mode.upper()}(CipherDescriptor):
 		return output
 	
 	% endfor
-	
-cipher_classes[${repr(mode)}] = ${mode.upper()}
 
-% endfor	
+% endfor
+modes = dict(
+% for mode in modes:
+	${mode}=${mode.upper()},
+% endfor
+)
 
-def Cipher(key, iv='', cipher='aes', mode='ecb'):
-	return cipher_classes[mode](key, iv, cipher, mode)
+
+def Cipher(key, iv='', cipher='aes', mode='ECB'):
+	return modes[mode.lower()](key, iv, cipher, mode)
+

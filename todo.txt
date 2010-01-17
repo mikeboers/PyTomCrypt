@@ -17,4 +17,19 @@
   instead of 159ms.
   
   With the better timer it is at 295ps instead of 300.
+
+Decide on a naming scheme for cipher specs and modes:
+    aes vs AES
+    ECB vs ecb vs ECBCipher
+    Cipher vs cipher vs build_cipher vs setup_cipher (this is a function)
+
+Organize this into a standard package layout:
+    PyTomCrypt/
+        tomcrypt/
+            __init__.py
+            <everything here>
+        setup.py
+        libtomcrypt-...
+        README.txt
+        LICENSE.txt
         

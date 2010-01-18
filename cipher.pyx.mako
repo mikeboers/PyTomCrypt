@@ -113,26 +113,30 @@ def test():
 
 cdef class Descriptor(object):
 	
-	cdef int cipher_idx
-	cdef cipher_desc cipher
+	cdef int idx
+	cdef cipher_desc desc
 	
 	def __init__(self, cipher):
-		self.cipher_idx = find_cipher(cipher)
-		if self.cipher_idx < 0:
+		self.idx = find_cipher(cipher)
+		if self.idx < 0:
 			raise ValueError('could not find %r' % cipher)
-		self.cipher = cipher_descriptors[self.cipher_idx]
+		self.desc = cipher_descriptors[self.idx]
+	
+	@property
+	def _idx(self):
+		return self.idx
 	
 	% for name in 'name min_key_size max_key_size block_size default_rounds'.split():
 	@property
 	def ${name}(self):
-		return self.cipher.${name}
+		return self.desc.${name}
 	
 	% endfor
 	##
 	def key_size(self, key_size):
 		cdef int out
 		out = key_size
-		check_for_error(self.cipher.key_size(&out))
+		check_for_error(self.desc.key_size(&out))
 		return out
 	
 	def __call__(self, key, *args, **kwargs):
@@ -220,32 +224,32 @@ cdef class Cipher(Descriptor):
 		# don't need to worry about making unique ones.
 		
 		if iv is None:
-			iv = '\0' * self.cipher.block_size
-		if not isinstance(iv, basestring) or len(iv) != self.cipher.block_size:
-			raise Error('iv must be %d bytes' % self.cipher.block_size)
+			iv = '\0' * self.desc.block_size
+		if not isinstance(iv, basestring) or len(iv) != self.desc.block_size:
+			raise Error('iv must be %d bytes' % self.desc.block_size)
 		
 		% for mode, i in mode_items:
 		${'el' if i else ''}if self.mode_i == ${i}:
 			% if mode == 'ecb':
-			check_for_error(ecb_start(self.cipher_idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
+			check_for_error(ecb_start(self.idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
 			
 			% elif mode == 'ctr':
-			check_for_error(ctr_start(self.cipher_idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.state))
+			check_for_error(ctr_start(self.idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.state))
 			
 			% elif mode in simple_modes:
-			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), 0, <symmetric_${mode}*>&self.state))
+			check_for_error(${mode}_start(self.idx, iv, key, len(key), 0, <symmetric_${mode}*>&self.state))
 			
 			% elif mode == 'lrw':
 			tweak = kwargs.get('tweak')
 			if not isinstance(tweak, basestring) or len(tweak) != 16:
 				raise Error('tweak must be 16 byte string')
-			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), tweak, 0, <symmetric_${mode}*>&self.state))
+			check_for_error(${mode}_start(self.idx, iv, key, len(key), tweak, 0, <symmetric_${mode}*>&self.state))
 			
 			% elif mode == 'f8':
 			salt_key = kwargs.get('salt_key')
 			if not isinstance(salt_key, basestring):
 				raise Error('salt_key must be a string')
-			check_for_error(${mode}_start(self.cipher_idx, iv, key, len(key), salt_key, len(salt_key), 0, <symmetric_${mode}*>&self.state))
+			check_for_error(${mode}_start(self.idx, iv, key, len(key), salt_key, len(salt_key), 0, <symmetric_${mode}*>&self.state))
 			
 			% else:
 			raise Error('no start for mode %r' % ${repr(mode)})
@@ -257,7 +261,7 @@ cdef class Cipher(Descriptor):
 		if all_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)
 		cdef unsigned long length
-		length = self.cipher.block_size
+		length = self.desc.block_size
 		iv = PyString_FromStringAndSize(NULL, length)
 		check_for_error(all_getiv[self.mode_i](iv, &length, &self.state))
 		return iv

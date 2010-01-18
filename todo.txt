@@ -29,17 +29,16 @@ Organize this into a standard package layout:
 Stop thinking about making the ciphers register when you need them. It takes
 only 83 microseconds to register them all.
 
-Rename the cipher.Descriptor.keysize to key_length, or figure out how to
-normalize the differences.
+
 
 Add: EAX (page 46), PCB(50), CCM(53), and GCM(56)
 
-Adapt the naming conventions of the cipher module to match python, not C
-	block_size
-	key_size
-	ect
+
 
 Purge the git history using a index-filter:
     Remove libtomcrypt, lib, include, .Python, bin, build, *.c, *.so, the .pyx
     files after a .mako file exists, .pyx when a .pyx exists
 
+implement CHC hashing:
+	a CHCHash class will need to call chc_register before every update
+	

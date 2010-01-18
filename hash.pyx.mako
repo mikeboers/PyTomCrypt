@@ -87,7 +87,11 @@ cdef class Descriptor(object):
 		if self.idx < 0:
 			raise ValueError('could not find hash %r' % name)
 		self.desc = hash_descriptors[self.idx]
-		
+	
+	@property
+	def _idx(self):
+		return self.idx
+
 	% for name in 'name', 'digest_size', 'block_size':
 	@property
 	def ${name}(self):

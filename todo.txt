@@ -34,3 +34,8 @@ normalize the differences.
 
 Add: EAX (page 46), PCB(50), CCM(53), and GCM(56)
 
+
+Purge the git history using a index-filter:
+    Remove libtomcrypt, lib, include, .Python, bin, build, *.c, *.so, the .pyx
+    files after a .mako file exists, .pyx when a .pyx exists
+

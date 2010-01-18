@@ -44,7 +44,7 @@ cdef extern from "tomcrypt.h":
 
 	int CTR_COUNTER_BIG_ENDIAN
 	
-	# Generic symmetric key, and for all of the supported modes.
+	# Symmetric state for all the modes.
 	% for name in modes:
 	ctypedef struct symmetric_${name} "symmetric_${name.upper()}":
 		pass
@@ -59,15 +59,13 @@ cdef extern from "tomcrypt.h":
 	int lrw_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *tweak, int num_rounds, symmetric_lrw *lrw)
 	int f8_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *salt_key, int skeylen, int num_rounds, symmetric_f8 *f8)
 	% for name in modes:
-	# Really these take <symmetric_${name} *>, but it doesn't seem to care,
-	# and dispatching is made easier. Maybe takes 0.05% longer.
-	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, void *${name})
-	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, void *${name})
+	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_${name} *${name})
+	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_${name} *${name})
 	int ${name}_done(void *${name})
 	% endfor
 	% for name in iv_modes:
-	int ${name}_getiv(unsigned char *iv, unsigned long *len, void *${name})
-	int ${name}_setiv(unsigned char *iv, unsigned long len, void *${name})
+	int ${name}_getiv(unsigned char *iv, unsigned long *len, symmetric_${name} *${name})
+	int ${name}_setiv(unsigned char *iv, unsigned long len, symmetric_${name} *${name})
 	% endfor
 	
 	# Cipher descriptor.
@@ -160,7 +158,7 @@ cdef class Descriptor(object):
 
 
 # Define function pointer types for each of the functions that have common
-# signatures.
+# signatures, except they take a null pointer to the symmetric state.
 ctypedef int (*all_crypt_pt)(unsigned char *, unsigned char *, unsigned long, void *)
 ctypedef all_crypt_pt all_encrypt_pt
 ctypedef all_crypt_pt all_decrypt_pt
@@ -168,19 +166,30 @@ ctypedef int (*all_getiv_pt)(unsigned char *, unsigned long *, void *)
 ctypedef int (*all_setiv_pt)(unsigned char *, unsigned long  , void *)
 ctypedef int (*all_done_pt)(void *)
 
-# Setup arrays to hold the function pointers.
+# Setup arrays to hold the all the function pointers.
 % for name in 'encrypt decrypt getiv setiv done'.split():
 cdef all_${name}_pt all_${name}[${len(modes)}]
 % endfor
 
+# Define a inline wrapper function for each that properly casts the symmetric
+# state to the right type. Then set these wrappers into the arrays.
 % for mode, i in mode_items:
-all_encrypt[${i}] = ${mode}_encrypt
-all_decrypt[${i}] = ${mode}_decrypt
+% for type in 'encrypt', 'decrypt':
+cdef inline int null_${mode}_${type}(unsigned char *input, unsigned char *out, unsigned long length, void *state):
+	return ${mode}_${type}(input, out, length, <symmetric_${mode}*>state)
+all_${type}[${i}] = null_${mode}_${type}
+% endfor
 % if mode in iv_modes:
-all_getiv[${i}] = ${mode}_getiv
-all_setiv[${i}] = ${mode}_setiv
+cdef inline int null_${mode}_getiv(unsigned char *output, unsigned long *outlen, void *state):
+	return ${mode}_getiv(output, outlen, <symmetric_${mode}*>state)
+cdef inline int null_${mode}_setiv(unsigned char *input, unsigned long inlen, void *state):
+	return ${mode}_setiv(input, inlen, <symmetric_${mode}*>state)
+all_getiv[${i}] = null_${mode}_getiv
+all_setiv[${i}] = null_${mode}_setiv
 % endif
-all_done[${i}] = ${mode}_done
+cdef inline int null_${mode}_done(void *state):
+	return ${mode}_done(<symmetric_${mode}*>state)
+all_done[${i}] = null_${mode}_done
 % endfor
 
 

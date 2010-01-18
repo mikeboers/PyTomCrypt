@@ -5,9 +5,9 @@ from Cython.Distutils import build_ext
 ext_modules = [Extension(
     name,
     ["%s.pyx" % name],
-    include_dirs=['./libtomcrypt-1.16/src', './libtomcrypt-1.16/src/headers'],
+    include_dirs=['./libtomcrypt-1.16/src/headers'],
     extra_objects=['./libtomcrypt-1.16/libtomcrypt.a'],
-) for name in 'cipher', 'hash']
+) for name in 'cipher', 'hash', 'hmac']
 
 setup(
   name = 'pycrypto',

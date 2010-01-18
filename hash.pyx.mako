@@ -83,12 +83,14 @@ cdef class Hash(object):
 	cdef hash_desc desc
 	cdef hash_state state
 	
-	def __init__(self, name):
+	def __init__(self, name, *args):
 		self.idx = find_hash(name)
 		if self.idx < 0:
 			raise ValueError('could not find hash %r' % name)
 		self.desc = hash_descriptors[self.idx]
 		self.init()
+		for arg in args:
+			self.update(arg)
 	
 	% for name in 'name', 'digest_size', 'block_size':
 	@property
@@ -122,6 +124,12 @@ cdef class Hash(object):
 	
 	cpdef hexdigest(self):
 		return self.digest().encode('hex')
+	
+	cpdef copy(self):
+		# This is rather ineligant. Could find a way to do this more directly.
+		cdef Hash copy = self.__class__(self.desc.name)
+		memcpy(&copy.state, &self.state, sizeof(hash_state))
+		return copy
 	
 	
 # To match the hashlib API.	

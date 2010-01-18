@@ -10,13 +10,24 @@ from hash import *
 
 
 def test_hashlib():
-	x = Hash('md5')
-	y = hashlib.new('md5')
-	for i in xrange(100):
-		s = os.urandom(i)
-		x.update(s)
-		y.update(s)
+	for name in hashes:
+		print name, 
+		x = Hash(name)
+		try:
+			y = hashlib.new(name)
+		except ValueError:
+			print 'is unknown to hashlib'
+			continue
+		print
+		for i in xrange(100):
+			s = os.urandom(i)
+			x.update(s)
+			y.update(s)
+			assert x.digest() == y.digest()
+		x2 = x.copy()
+		x2.update('something else')
 		assert x.digest() == y.digest()
+		assert x2.digest() != y.digest()
 	
 if __name__ == '__main__':
 	start_time = time.time()

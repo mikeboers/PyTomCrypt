@@ -72,6 +72,8 @@ cdef extern from "tomcrypt.h":
 	% if DO_HMAC:
 	int hmac_test()
 	int hmac_init(hmac_state *, int, unsigned char *, unsigned long)
+	int hmac_process(hmac_state *, unsigned char *, unsigned long)
+	int hmac_done(hmac_state *, unsigned char *, unsigned long *)
 	% endif
 
 
@@ -154,29 +156,42 @@ cdef class ${class_name}(Descriptor):
 		hmac_init(&self.state, self.idx, key, len(key))
 	% endif
 	
-	# cpdef update(self, input):
-	# 	check_for_error(self.desc.process(&self.state, input, len(input)))
-	# 
-	# cpdef done(self):
-	# 	out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
-	# 	check_for_error(self.desc.done(&self.state, out))
-	# 	return out
-	# 
-	# cpdef digest(self):
-	# 	cdef hash_state state
-	# 	memcpy(&state, &self.state, sizeof(hash_state))
-	# 	out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
-	# 	check_for_error(self.desc.done(&state, out))
-	# 	return out
-	# 
-	# cpdef hexdigest(self):
-	# 	return self.digest().encode('hex')
-	# 
-	# cpdef copy(self):
-	# 	# This is rather ineligant. Could find a way to do this more directly.
-	# 	cdef Hash copy = self.__class__(self.desc.name)
-	# 	memcpy(&copy.state, &self.state, sizeof(hash_state))
-	# 	return copy
+	<% func_prefix = 'self.desc.' if DO_HASH else 'hmac_' %>
+	cpdef update(self, input):
+		check_for_error(${func_prefix}process(&self.state, input, len(input)))
+	
+	cpdef done(self):
+		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
+		% if DO_HASH:
+		check_for_error(${func_prefix}done(&self.state, out))
+		return out
+		% else:
+		cdef unsigned long outlen
+		check_for_error(${func_prefix}done(&self.state, out, &outlen))
+		return out[:outlen]
+		% endif
+	
+	cpdef digest(self):
+		cdef ${type}_state state
+		memcpy(&state, &self.state, sizeof(hash_state))
+		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
+		% if DO_HASH:
+		check_for_error(${func_prefix}done(&state, out))
+		return out
+		% else:
+		cdef unsigned long outlen
+		check_for_error(${func_prefix}done(&state, out, &outlen))
+		return out[:outlen]
+		% endif
+	
+	cpdef hexdigest(self):
+		return self.digest().encode('hex')
+	
+	cpdef copy(self):
+		# This is rather ineligant. Could find a way to do this more directly.
+		cdef ${class_name} copy = self.__class__(self.desc.name)
+		memcpy(&copy.state, &self.state, sizeof(${type}_state))
+		return copy
 	
 	
 # To match the hashlib API.	

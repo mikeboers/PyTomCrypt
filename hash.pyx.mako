@@ -160,18 +160,25 @@ cdef class ${class_name}(Descriptor):
 	cpdef update(self, input):
 		check_for_error(${func_prefix}process(&self.state, input, len(input)))
 	
-	cpdef done(self):
-		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
-		% if DO_HASH:
-		check_for_error(${func_prefix}done(&self.state, out))
-		return out
-		% else:
-		cdef unsigned long outlen
-		check_for_error(${func_prefix}done(&self.state, out, &outlen))
-		return out[:outlen]
-		% endif
+	# cpdef done(self):
+	# 	out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
+	# 	% if DO_HASH:
+	# 	check_for_error(${func_prefix}done(&self.state, out))
+	# 	return out
+	# 	% else:
+	# 	cdef unsigned long outlen
+	# 	check_for_error(${func_prefix}done(&self.state, out, &outlen))
+	# 	return out[:outlen]
+	# 	% endif
 	
+	% if DO_HASH:
 	cpdef digest(self):
+	% else:
+	cpdef digest(self, length=None):
+		if length is None:
+			length = self.desc.digest_size
+		cdef unsigned long c_len = length
+	% endif
 		cdef ${type}_state state
 		memcpy(&state, &self.state, sizeof(hash_state))
 		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
@@ -179,13 +186,12 @@ cdef class ${class_name}(Descriptor):
 		check_for_error(${func_prefix}done(&state, out))
 		return out
 		% else:
-		cdef unsigned long outlen
-		check_for_error(${func_prefix}done(&state, out, &outlen))
-		return out[:outlen]
+		check_for_error(${func_prefix}done(&state, out, &c_len))
+		return out[:c_len]
 		% endif
 	
-	cpdef hexdigest(self):
-		return self.digest().encode('hex')
+	def hexdigest(self, *args):
+		return self.digest(*args).encode('hex')
 	
 	cpdef copy(self):
 		# This is rather ineligant. Could find a way to do this more directly.

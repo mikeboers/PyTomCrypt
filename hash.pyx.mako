@@ -29,7 +29,9 @@ include "common.pxi"
 
 cdef extern from "tomcrypt.h":
 	
-	cdef struct hash_state:
+	# cdef struct hash_state:
+	#	char dummy[1]
+	cdef union hash_state "Hash_state":
 		char dummy[1]
 	
 	# Cipher descriptor.
@@ -79,13 +81,24 @@ cdef class Hash(object):
 	
 	cdef int hash_idx
 	cdef hash_desc hash
-	# cdef hash_state md
+	cdef hash_state md
+	cdef object _name
 	
 	def __init__(self, hash):
 		self.hash_idx = find_hash(hash)
 		if self.hash_idx < 0:
 			raise ValueError('could not find %r' % hash)
+		self._name = str(hash).lower()
 		self.hash = hash_descriptors[self.hash_idx]
+	
+	@property
+	def name(self):
+		return self._name
+	
+	def __repr__(self):
+		return ${repr('<%s.%s with %s at 0x%x>')} % (
+			self.__class__.__module__, self.__class__.__name__, self.name,
+			id(self))
 
 
 

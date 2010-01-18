@@ -77,30 +77,45 @@ def test():
 	% endfor
 
 
-cdef class Hash(object):
-	
+cdef class Descriptor(object):
+
 	cdef int idx
 	cdef hash_desc desc
-	cdef hash_state state
 	
-	def __init__(self, name, *args):
+	def __init__(self, name):
 		self.idx = find_hash(name)
 		if self.idx < 0:
 			raise ValueError('could not find hash %r' % name)
 		self.desc = hash_descriptors[self.idx]
-		self.init()
-		for arg in args:
-			self.update(arg)
-	
+		
 	% for name in 'name', 'digest_size', 'block_size':
 	@property
 	def ${name}(self):
 		return self.desc.${name}
-	
+
 	% endfor
 	##
+	
 	def __repr__(self):
-		return ${repr('<%s.%s with %s at 0x%x>')} % (
+		return ${repr('<%s.%s of %s>')} % (
+			self.__class__.__module__, self.__class__.__name__, self.desc.name)
+	
+	def __call__(self, *args):
+		return Hash(self.desc.name, *args)
+
+			
+cdef class Hash(Descriptor):
+	
+	cdef hash_state state
+	
+	def __init__(self, name, *args):
+		Descriptor.__init__(self, name)
+		self.init()
+		for arg in args:
+			self.update(arg)
+	
+	def __repr__(self):
+		return ${repr('<%s.%s of %s at 0x%x>')} % (
 			self.__class__.__module__, self.__class__.__name__, self.name,
 			id(self))
 	
@@ -137,9 +152,7 @@ new = Hash
 
 hashes = ${repr(hashes)}	
 % for hash in hashes:
-def ${hash}():
-	"""Hash constructor for ${hash.upper()}."""
-	return Hash(${repr(hash)})
+${hash} = Descriptor(${repr(hash)})
 % endfor
 
 

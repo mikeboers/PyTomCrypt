@@ -68,8 +68,8 @@ def test_openssl():
 	for cipher_name in 'aes', 'des':
 		cipher_desc = Descriptor(cipher=cipher_name)
 		keysizes = []
-		for i in range(cipher_desc.min_key_length, cipher_desc.max_key_length + 1):
-			keysizes.append(cipher_desc.keysize(i))
+		for i in range(cipher_desc.min_key_size, cipher_desc.max_key_size + 1):
+			keysizes.append(cipher_desc.key_size(i))
 		keysizes = list(sorted(set(keysizes)))
 		for mode in 'ecb', 'cbc', 'cfb', 'ofb':
 			for keysize in keysizes:
@@ -77,7 +77,7 @@ def test_openssl():
 				print cipher_name, keysize, mode
 				for i in xrange(0, 10, 4):
 					key = os.urandom(keysize//8)
-					iv  = os.urandom(cipher_desc.block_length)
+					iv  = os.urandom(cipher_desc.block_size)
 					pt  = os.urandom(i * 128 // 8)
 					if cipher_name == 'aes':
 						cipher_spec = 'aes-%d-%s' % (keysize, mode)

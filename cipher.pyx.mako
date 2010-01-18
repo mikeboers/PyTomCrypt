@@ -71,11 +71,11 @@ cdef extern from "tomcrypt.h":
 	# Cipher descriptor.
 	cdef struct cipher_desc "ltc_cipher_descriptor":
 		char * name
-		int min_key_length
-		int max_key_length
-		int block_length
+		int min_key_size "min_key_length"
+		int max_key_size "max_key_length"
+		int block_size "block_length"
 		int default_rounds
-		int keysize(int *keysize)
+		int key_size "keysize" (int *key_size)
 		# int setup(char *key, int keylen, int rounds, symmetric_key *skey)
 	
 	# The array which contains the descriptors once setup.
@@ -121,31 +121,18 @@ cdef class Descriptor(object):
 		if self.cipher_idx < 0:
 			raise ValueError('could not find %r' % cipher)
 		self.cipher = cipher_descriptors[self.cipher_idx]
-		
-	@property
-	def name(self):
-		return self.cipher.name
-
-	@property
-	def min_key_length(self):
-		return self.cipher.min_key_length
-
-	@property
-	def max_key_length(self):
-		return self.cipher.max_key_length
-
-	@property
-	def block_length(self):
-		return self.cipher.block_length
-
-	@property
-	def default_rounds(self):
-		return self.cipher.default_rounds
 	
-	def keysize(self, keysize):
+	% for name in 'name min_key_size max_key_size block_size default_rounds'.split():
+	@property
+	def ${name}(self):
+		return self.cipher.${name}
+	
+	% endfor
+	##
+	def key_size(self, key_size):
 		cdef int out
-		out = keysize
-		check_for_error(self.cipher.keysize(&out))
+		out = key_size
+		check_for_error(self.cipher.key_size(&out))
 		return out
 	
 	def __call__(self, key, *args, **kwargs):
@@ -233,9 +220,9 @@ cdef class Cipher(Descriptor):
 		# don't need to worry about making unique ones.
 		
 		if iv is None:
-			iv = '\0' * self.cipher.block_length
-		if not isinstance(iv, basestring) or len(iv) != self.cipher.block_length:
-			raise Error('iv must be %d bytes' % self.cipher.block_length)
+			iv = '\0' * self.cipher.block_size
+		if not isinstance(iv, basestring) or len(iv) != self.cipher.block_size:
+			raise Error('iv must be %d bytes' % self.cipher.block_size)
 		
 		% for mode, i in mode_items:
 		${'el' if i else ''}if self.mode_i == ${i}:
@@ -270,7 +257,7 @@ cdef class Cipher(Descriptor):
 		if all_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)
 		cdef unsigned long length
-		length = self.cipher.block_length
+		length = self.cipher.block_size
 		iv = PyString_FromStringAndSize(NULL, length)
 		check_for_error(all_getiv[self.mode_i](iv, &length, &self.state))
 		return iv

@@ -135,7 +135,7 @@ if __name__ == '__main__':
 	test_external()
 	print 'Running against OpenSSL...'
 	test_openssl()
-	print 'Ran in %.2fms' % (1000 * (time.time() - start_time))
 	print 'Running speed test...'
 	test_speed()
+	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))
 	

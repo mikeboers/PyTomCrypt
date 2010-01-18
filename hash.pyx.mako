@@ -9,8 +9,8 @@ md4
 md5
 rmd128
 rmd160
-rmd160
-rmd160
+rmd256
+rmd320
 sha1
 sha224
 sha256
@@ -37,8 +37,8 @@ cdef extern from "tomcrypt.h":
 	# Cipher descriptor.
 	cdef struct hash_desc "ltc_hash_descriptor":
 		char * name
-		unsigned long hashsize
-		unsigned long blocksize
+		unsigned long digest_size "hashsize"
+		unsigned long block_size "blocksize"
 		void init(hash_state *md)
 		int process(hash_state *md, unsigned char *input, unsigned long inputlen)
 		int done(hash_state *md, unsigned char *out)
@@ -79,27 +79,60 @@ def test():
 
 cdef class Hash(object):
 	
-	cdef int hash_idx
-	cdef hash_desc hash
-	cdef hash_state md
-	cdef object _name
+	cdef int idx
+	cdef hash_desc desc
+	cdef hash_state state
 	
-	def __init__(self, hash):
-		self.hash_idx = find_hash(hash)
-		if self.hash_idx < 0:
-			raise ValueError('could not find %r' % hash)
-		self._name = str(hash).lower()
-		self.hash = hash_descriptors[self.hash_idx]
+	def __init__(self, name):
+		self.idx = find_hash(name)
+		if self.idx < 0:
+			raise ValueError('could not find hash %r' % name)
+		self.desc = hash_descriptors[self.idx]
+		self.init()
 	
+	% for name in 'name', 'digest_size', 'block_size':
 	@property
-	def name(self):
-		return self._name
+	def ${name}(self):
+		return self.desc.${name}
 	
+	% endfor
+	##
 	def __repr__(self):
 		return ${repr('<%s.%s with %s at 0x%x>')} % (
 			self.__class__.__module__, self.__class__.__name__, self.name,
 			id(self))
+	
+	cpdef init(self):
+		self.desc.init(&self.state)
+	
+	cpdef update(self, input):
+		check_for_error(self.desc.process(&self.state, input, len(input)))
+	
+	cpdef done(self):
+		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
+		check_for_error(self.desc.done(&self.state, out))
+		return out
+	
+	cpdef digest(self):
+		cdef hash_state state
+		memcpy(&state, &self.state, sizeof(hash_state))
+		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
+		check_for_error(self.desc.done(&state, out))
+		return out
+	
+	cpdef hexdigest(self):
+		return self.digest().encode('hex')
+	
+	
+# To match the hashlib API.	
+new = Hash
 
+hashes = ${repr(hashes)}	
+% for hash in hashes:
+def ${hash}():
+	"""Hash constructor for ${hash.upper()}."""
+	return Hash(${repr(hash)})
+% endfor
 
 
 

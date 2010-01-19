@@ -12,5 +12,10 @@
 
 # Build
 /*.so
+/*.c
+/*.pyx
+/tomcrypt/*.so
+/tomcrypt/*.c
+/tomcrypt/*.pyx
 
 /libtomcrypt*

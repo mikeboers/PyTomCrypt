@@ -2,11 +2,13 @@
 from __future__ import division
 
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 import time
 from subprocess import Popen, PIPE
 
-from cipher import *
-
+from tomcrypt.cipher import *
 
 internal_tests = (
     ( 16,

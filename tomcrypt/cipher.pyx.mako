@@ -1,7 +1,6 @@
-
 <%!
 
-ALL_CIPHERS = False
+ALL_CIPHERS = True
 
 modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8'.split()))
 no_iv_modes = dict((k, modes[k]) for k in 'ecb'.split())
@@ -311,7 +310,12 @@ def ${mode}(key, *args, **kwargs):
 % endfor
 
 
-ciphers = ${repr(ciphers)}
+ciphers = []
 % for name in ciphers:
-${name} = Descriptor('${name}')
-% endfor
+try:
+	${name} = Descriptor('${name}')
+	ciphers.append(${repr(name)})
+except ValueError:
+	pass
+% endfor	
+ciphers = tuple(ciphers)

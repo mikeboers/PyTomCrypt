@@ -1,4 +1,3 @@
-
 <%!
 
 import os
@@ -7,7 +6,6 @@ DO_HASH = not DO_HMAC
 class_name = 'Hash' if DO_HASH else 'HMAC'
 type = class_name.lower()
 
-ALL_CIPHERS = False
 
 hashes = '''
 md2
@@ -162,20 +160,12 @@ cdef class ${class_name}(Descriptor):
 		hmac_init(&self.state, self.idx, key, len(key))
 	% endif
 	
-	<% func_prefix = 'self.desc.' if DO_HASH else 'hmac_' %>
+	<%
+	func_prefix = 'self.desc.' if DO_HASH else 'hmac_'
+	%>
+	##
 	cpdef update(self, input):
 		check_for_error(${func_prefix}process(&self.state, input, len(input)))
-	
-	# cpdef done(self):
-	# 	out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
-	# 	% if DO_HASH:
-	# 	check_for_error(${func_prefix}done(&self.state, out))
-	# 	return out
-	# 	% else:
-	# 	cdef unsigned long outlen
-	# 	check_for_error(${func_prefix}done(&self.state, out, &outlen))
-	# 	return out[:outlen]
-	# 	% endif
 	
 	% if DO_HASH:
 	cpdef digest(self):
@@ -200,19 +190,23 @@ cdef class ${class_name}(Descriptor):
 		return self.digest(*args).encode('hex')
 	
 	cpdef copy(self):
-		# This is rather ineligant. Could find a way to do this more directly.
 		cdef ${class_name} copy = self.__class__(self.desc.name)
 		memcpy(&copy.state, &self.state, sizeof(${type}_state))
 		return copy
 	
 	
-# To match the hashlib API.	
+# To match the hashlib/hmac API.	
 new = ${class_name}
 
-hashes = ${repr(hashes)}	
+hashes = []
 % for hash in hashes:
-${hash} = Descriptor(${repr(hash)})
+try:
+	${hash} = Descriptor(${repr(hash)})
+	hashes.append(${repr(hash)})
+except ValueError:
+	pass
 % endfor
+hashes = tuple(hashes)
 
 
 

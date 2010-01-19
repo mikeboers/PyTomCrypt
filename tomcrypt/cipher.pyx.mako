@@ -98,8 +98,9 @@ cdef extern from "tomcrypt.h":
 # Register all of the ciphers.
 # We don't really need to worry about doing this as they are needed as this
 # doesn't take very long at all.
+cdef int max_cipher_idx = -1
 % for name in ciphers:
-register_cipher(&${name}_desc)
+max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 % endfor
 
 
@@ -117,13 +118,18 @@ cdef class Descriptor(object):
 	cdef cipher_desc desc
 	
 	def __init__(self, cipher):
-		self.idx = find_cipher(cipher)
-		if self.idx < 0:
+		if isinstance(cipher, int):
+			self.idx = cipher
+		elif hasattr(cipher, 'cipher_idx'):
+			self.idx = cipher.cipher_idx
+		else:
+			self.idx = find_cipher(cipher)
+		if self.idx < 0 or self.idx > max_cipher_idx:
 			raise ValueError('could not find %r' % cipher)
 		self.desc = cipher_descriptors[self.idx]
 	
 	@property
-	def _idx(self):
+	def cipher_idx(self):
 		return self.idx
 	
 	% for name in 'name min_key_size max_key_size block_size default_rounds'.split():

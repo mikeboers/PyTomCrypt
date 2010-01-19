@@ -77,8 +77,9 @@ cdef extern from "tomcrypt.h":
 	% endif
 
 
+cdef int max_hash_idx = -1
 % for name in hashes:
-register_hash(&${name}_desc)
+max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
 % endfor
 
 % if DO_HASH:
@@ -99,14 +100,19 @@ cdef class Descriptor(object):
 	cdef int idx
 	cdef hash_desc desc
 	
-	def __init__(self, name):
-		self.idx = find_hash(name)
-		if self.idx < 0:
-			raise ValueError('could not find hash %r' % name)
+	def __init__(self, hash):
+		if isinstance(hash, int):
+			self.idx = hash
+		elif hasattr(hash, 'hash_idx'):
+			self.idx = hash.hash_idx
+		else:
+			self.idx = find_hash(hash)
+		if self.idx < 0 or self.idx > max_hash_idx:
+			raise ValueError('could not find hash %r' % hash)
 		self.desc = hash_descriptors[self.idx]
 	
 	@property
-	def _idx(self):
+	def hash_idx(self):
 		return self.idx
 
 	% for name in 'name', 'digest_size', 'block_size':

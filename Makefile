@@ -1,25 +1,25 @@
 
 PYTHON = bin/python
 MAKO = bin/mako-render
+LIBTOMCRYPT = libtomcrypt-1.16
+
 
 default : build
 
-tomcrypt/hash.pyx : tomcrypt/hash.pyx.mako
+tomcrypt/% : tomcrypt/%.mako
 	$(MAKO) $< > $@
 	
 tomcrypt/hmac.pyx : tomcrypt/hash.pyx.mako
 	env PyTomCrypt_do_hmac=1 $(MAKO) $< > $@
-
-tomcrypt/cipher.pyx : tomcrypt/cipher.pyx.mako
-	$(MAKO) $< > $@
 	
-libtomcrypt :
+libtomcrypt : $(LIBTOMCRYPT)/libtomcrypt.a
+$(LIBTOMCRYPT)/libtomcrypt.a : 
 	make -C libtomcrypt-1.16
 
-tomcrypt/hmac.so tomcrypt/hash.so tomcrypt/cipher.so : tomcrypt/hmac.pyx tomcrypt/hash.pyx tomcrypt/cipher.pyx tomcrypt/common.pxi libtomcrypt
+tomcrypt/hmac.so tomcrypt/hash.so tomcrypt/cipher.so : tomcrypt/hmac.pyx tomcrypt/hash.pyx tomcrypt/cipher.pyx tomcrypt/common.pxi
 	$(PYTHON) setup.py build_ext --inplace
 
-build: tomcrypt/cipher.so tomcrypt/hash.so tomcrypt/hmac.so
+build: libtomcrypt tomcrypt/cipher.so tomcrypt/hash.so tomcrypt/hmac.so
 
 test: build
 	$(PYTHON) tests/test_cipher.py

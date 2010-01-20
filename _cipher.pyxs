@@ -1,7 +1,7 @@
 
 <%!
 
-modes = 'ecb ctr cbc cfb ofb'.split()
+modes = 'ecb cbc ctr cfb ofb'.split()
 iv_modes = 'ctr cbc cfb ofb'.split()
 simple_modes = 'cbc cfb ofb'.split()
 ciphers = 'aes rijndael des blowfish'.split()
@@ -160,7 +160,7 @@ cdef class Cipher(object):
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		res = ${mode}_${type}(input, <unsigned char*>output, length, &self.${mode})
+		res = ${mode}_${type}(<unsigned char *>input, <unsigned char*>output, length, &self.${mode})
 		if res != CRYPT_OK:
 			raise CryptoError(res)
 		return output

@@ -1,5 +1,8 @@
 
+
+
 from base64 import b64encode
+import os
 
 from _cipher import *
 
@@ -13,12 +16,15 @@ class Cipher(_Cipher):
 		except:
 			raise ValueError('no mode %r' % mode)
 
+
+
+
 if __name__ == '__main__':
 		
 	key = '0123456789abcdef'
 	for mode in modes:
 		cipher = Cipher(key, cipher='aes')
-		enc = getattr(cipher, mode + '_encrypt')('0123456789abcdef')
+		enc = getattr(cipher, mode + '_encrypt')(key)
 		try:
 			iv = getattr(cipher, mode + '_get_iv')()
 		except AttributeError:

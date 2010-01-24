@@ -1,7 +1,7 @@
 
 
-from common cimport *
-from common import Error
+from tomcrypt.common cimport *
+from tomcrypt.common import Error
 
 # Register all of the ciphers.
 # We don't really need to worry about doing this as they are needed as this

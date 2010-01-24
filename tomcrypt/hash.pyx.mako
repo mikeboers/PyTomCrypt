@@ -1,13 +1,12 @@
 
 
-from common cimport *
+from tomcrypt.common cimport *
 from tomcrypt.common import Error
 
 
 % if hash_do_hash:
 def test():
 	"""Run the internal tests."""
-	cdef int res
 	% for name in hash_names:
 	check_for_error(${name}_desc.test())
 	% endfor

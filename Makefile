@@ -18,7 +18,7 @@ build: makesub
 test: build
 	$(PYTHON) tests/test_cipher.py
 	$(PYTHON) tests/test_hash.py
-	$(SUBMAKE) test
+	$(PYTHON) tests/test_mac.py
 
 clean:
 	- rm *.o

@@ -35,13 +35,13 @@ else:
 
 
 import os
-DO_HMAC = 'PyTomCrypt_do_hmac' in os.environ
-DO_HASH = not DO_HMAC
-class_name = 'Hash' if DO_HASH else 'HMAC'
-type = class_name.lower()
+hash_do_hmac = 'PyTomCrypt_do_hmac' in os.environ
+hash_do_hash = not hash_do_hmac
+hash_class_name = 'Hash' if hash_do_hash else 'HMAC'
+hash_type = hash_class_name.lower()
 
 
-hashes = '''
+hash_names = '''
 md2
 md4
 md5

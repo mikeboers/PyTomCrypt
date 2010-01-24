@@ -31,7 +31,7 @@ cdef extern from "tomcrypt.h":
 	##% endfor
 	
 	# The descriptors themselves.
-	% for name in hashes:
+	% for name in hash_names:
 	hash_desc ${name}_desc
 	% endfor
 		
@@ -39,7 +39,7 @@ cdef extern from "tomcrypt.h":
 	int register_hash(hash_desc *hash)
 	int find_hash(char * name)
 	
-	% if DO_HMAC:
+	% if hash_do_hmac:
 	int hmac_test()
 	int hmac_init(hmac_state *, int, unsigned char *, unsigned long)
 	int hmac_process(hmac_state *, unsigned char *, unsigned long)
@@ -48,15 +48,15 @@ cdef extern from "tomcrypt.h":
 
 
 cdef int max_hash_idx = -1
-% for name in hashes:
+% for name in hash_names:
 max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
 % endfor
 
-% if DO_HASH:
+% if hash_do_hash:
 def test():
 	"""Run the internal tests."""
 	cdef int res
-	% for name in hashes:
+	% for name in hash_names:
 	check_for_error(${name}_desc.test())
 	% endfor
 % else:
@@ -98,20 +98,20 @@ cdef class Descriptor(object):
 			self.__class__.__module__, self.__class__.__name__, self.desc.name)
 	
 	def __call__(self, *args):
-		return ${class_name}(self.desc.name, *args)
+		return ${hash_class_name}(self.desc.name, *args)
 
 			
-cdef class ${class_name}(Descriptor):
+cdef class ${hash_class_name}(Descriptor):
 	
-	cdef ${type}_state state
+	cdef ${hash_type}_state state
 	
-	% if DO_HASH:
+	% if hash_do_hash:
 	def __init__(self, hash, *args):
 	% else:
 	def __init__(self, hash, key, *args):
 	% endif
 		Descriptor.__init__(self, hash)
-		% if DO_HASH:
+		% if hash_do_hash:
 		self.init()
 		% else:
 		self.init(key)
@@ -124,7 +124,7 @@ cdef class ${class_name}(Descriptor):
 			self.__class__.__module__, self.__class__.__name__, self.name,
 			id(self))
 	
-	% if DO_HASH:
+	% if hash_do_hash:
 	cpdef init(self):
 		self.desc.init(&self.state)
 	% else:
@@ -133,13 +133,13 @@ cdef class ${class_name}(Descriptor):
 	% endif
 	
 	<%
-	func_prefix = 'self.desc.' if DO_HASH else 'hmac_'
+	func_prefix = 'self.desc.' if hash_do_hash else 'hmac_'
 	%>
 	##
 	cpdef update(self, input):
 		check_for_error(${func_prefix}process(&self.state, input, len(input)))
 	
-	% if DO_HASH:
+	% if hash_do_hash:
 	cpdef digest(self):
 	% else:
 	cpdef digest(self, length=None):
@@ -147,10 +147,10 @@ cdef class ${class_name}(Descriptor):
 			length = self.desc.digest_size
 		cdef unsigned long c_len = length
 	% endif
-		cdef ${type}_state state
+		cdef ${hash_type}_state state
 		memcpy(&state, &self.state, sizeof(hash_state))
 		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
-		% if DO_HASH:
+		% if hash_do_hash:
 		check_for_error(${func_prefix}done(&state, out))
 		return out
 		% else:
@@ -162,16 +162,16 @@ cdef class ${class_name}(Descriptor):
 		return self.digest(*args).encode('hex')
 	
 	cpdef copy(self):
-		cdef ${class_name} copy = self.__class__(self.desc.name)
-		memcpy(&copy.state, &self.state, sizeof(${type}_state))
+		cdef ${hash_class_name} copy = self.__class__(self.desc.name)
+		memcpy(&copy.state, &self.state, sizeof(${hash_type}_state))
 		return copy
 	
 	
 # To match the hashlib/hmac API.	
-new = ${class_name}
+new = ${hash_class_name}
 
 hashes = []
-% for hash in hashes:
+% for hash in hash_names:
 try:
 	${hash} = Descriptor(${repr(hash)})
 	hashes.append(${repr(hash)})

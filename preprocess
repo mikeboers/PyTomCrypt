@@ -1,25 +1,33 @@
 #!bin/python
 
-import sys
-import os
+from ast import literal_eval
 from optparse import OptionParser
+import os
+import sys
 
-from mako.template import Template
-from mako.lookup import TemplateLookup
 from mako.exceptions import text_error_template
+from mako.lookup import TemplateLookup
+from mako.template import Template
 
-
-def get_meta():
-	from tomcrypt import meta
-	return meta.__dict__.copy()
+from tomcrypt import meta
 	
 	
 if __name__ == '__main__':
 
-
 	parser = OptionParser("usage: %prog [FILENAME]")
-
+	parser.add_option('-D', action='append', dest='defs')
+	
 	opts, args = parser.parse_args(sys.argv[1:])
+	
+	defs = {}
+	for x in opts.defs or []:
+		k, v = (x.split('=', 1) + ['True'])[:2]
+		try:
+			v = literal_eval(v)
+		except SyntaxError:
+			pass
+		defs[k] = v
+	
 	if len(args) not in (0, 1):
 		parser.error("wrong number of arguments") # Will exit
 
@@ -30,11 +38,14 @@ if __name__ == '__main__':
 		if not os.path.isfile(filename):
 			raise SystemExit("error: can't find %s" % filename)
 		fo = open(filename)
-
+	
+	context = meta.__dict__.copy()
+	context.update(defs)
+	
 	data = fo.read()
 	try:
 		lookup = TemplateLookup(["."])
-		print Template(data, lookup=lookup).render(**get_meta())
+		print Template(data, lookup=lookup).render(**context)
 	except:
 		sys.stderr.write(text_error_template().render())
 		exit(1)

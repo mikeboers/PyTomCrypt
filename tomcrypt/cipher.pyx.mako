@@ -20,25 +20,27 @@ def test():
 	% endfor
 		
 
+def get_idx(input):	
+	idx = -1
+	if isinstance(input, int):
+		idx = input
+	elif hasattr(input, 'idx'):
+		idx = input.idx
+	else:
+		idx = find_cipher(input)
+	if idx < 0 or idx > max_cipher_idx:
+		raise ValueError('could not find cipher %r' % input)
+	return idx
+
+	
 cdef class Descriptor(object):
 	
-	cdef int idx
+	cdef readonly int idx
 	cdef cipher_desc desc
 	
 	def __init__(self, cipher):
-		if isinstance(cipher, int):
-			self.idx = cipher
-		elif hasattr(cipher, 'cipher_idx'):
-			self.idx = cipher.cipher_idx
-		else:
-			self.idx = find_cipher(cipher)
-		if self.idx < 0 or self.idx > max_cipher_idx:
-			raise ValueError('could not find %r' % cipher)
+		self.idx = get_idx(cipher)
 		self.desc = cipher_descriptors[self.idx]
-	
-	@property
-	def cipher_idx(self):
-		return self.idx
 	
 	% for name in cipher_properties:
 	@property

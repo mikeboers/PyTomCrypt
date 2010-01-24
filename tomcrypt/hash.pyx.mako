@@ -65,25 +65,27 @@ def test():
 % endif
 
 
+def get_idx(input):	
+	idx = -1
+	if isinstance(input, int):
+		idx = input
+	elif hasattr(input, 'idx'):
+		idx = input.idx
+	else:
+		idx = find_hash(input)
+	if idx < 0 or idx > max_hash_idx:
+		raise ValueError('could not find hash %r' % input)
+	return idx
+
+
 cdef class Descriptor(object):
 
-	cdef int idx
+	cdef readonly int idx
 	cdef hash_desc desc
 	
 	def __init__(self, hash):
-		if isinstance(hash, int):
-			self.idx = hash
-		elif hasattr(hash, 'hash_idx'):
-			self.idx = hash.hash_idx
-		else:
-			self.idx = find_hash(hash)
-		if self.idx < 0 or self.idx > max_hash_idx:
-			raise ValueError('could not find hash %r' % hash)
+		self.idx = get_idx(hash)
 		self.desc = hash_descriptors[self.idx]
-	
-	@property
-	def hash_idx(self):
-		return self.idx
 
 	% for name in hash_properties:
 	@property

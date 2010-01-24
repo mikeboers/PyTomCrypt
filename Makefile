@@ -2,25 +2,19 @@
 PYTHON = bin/python
 PREPROCESS = ./preprocess
 LIBTOMCRYPT = libtomcrypt-1.16
-
+SUB = Makefile.sub
+SUBMAKE = make -f $(SUB)
 
 default : build
 
-tomcrypt/% : tomcrypt/%.mako
+% : %.mako
 	$(PREPROCESS) $< > $@
-	
-libtomcrypt : $(LIBTOMCRYPT)/libtomcrypt.a
-$(LIBTOMCRYPT)/libtomcrypt.a : 
-	make -C libtomcrypt-1.16
 
-tomcrypt/hash.so tomcrypt/cipher.so : tomcrypt/hash.pyx tomcrypt/cipher.pyx tomcrypt/cipher.pxd tomcrypt/common.pxi
-	$(PYTHON) setup.py build_ext --inplace
-
-build: libtomcrypt tomcrypt/cipher.so tomcrypt/hash.so
+build: Makefile.sub
+	$(SUBMAKE) build
 
 test: build
-	$(PYTHON) tests/test_cipher.py
-	$(PYTHON) tests/test_hash.py
+	$(SUBMAKE) test
 
 clean:
 	- rm *.o

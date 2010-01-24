@@ -16,13 +16,17 @@ build: makesub
 	$(SUBMAKE) build
 
 test: build
+	$(PYTHON) tests/test_cipher.py
+	$(PYTHON) tests/test_hash.py
 	$(SUBMAKE) test
 
 clean:
 	- rm *.o
 	- rm *.so
+	- rm *.pyc
 	- rm -rf build
 	- rm tomcrypt/*.c
 	- rm tomcrypt/*.so
+	- rm tomcrypt/*.pyc
 	- $(SUBMAKE) clean
 	- rm Makefile.sub

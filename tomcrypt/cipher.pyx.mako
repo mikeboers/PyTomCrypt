@@ -1,7 +1,7 @@
 
 
-include "common.pxi"
-
+from common cimport *
+from common import Error
 
 # Register all of the ciphers.
 # We don't really need to worry about doing this as they are needed as this

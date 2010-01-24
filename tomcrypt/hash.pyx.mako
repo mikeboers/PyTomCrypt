@@ -1,6 +1,7 @@
 
 
-include "common.pxi"
+from common cimport *
+from tomcrypt.common import Error
 
 
 cdef extern from "tomcrypt.h":

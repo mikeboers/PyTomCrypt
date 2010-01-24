@@ -38,3 +38,13 @@ test:
 	$(PYTHON) tests/test_${name}.py
 % endif
 % endfor
+
+
+clean:
+% for name in ext_names:
+% for ext in ('pyx', 'pxd', 'pxi'):
+% if exists('tomcrypt/%s.%s.mako' % (name, ext)):
+	- rm tomcrypt/${name}.${ext}
+% endif
+% endfor
+% endfor

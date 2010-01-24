@@ -20,8 +20,7 @@ clean:
 	- rm *.o
 	- rm *.so
 	- rm -rf build
-	- rm Makefile.sub
 	- rm tomcrypt/*.c
-	- rm tomcrypt/*.pyx
-	- rm tomcrypt/*.pxd
 	- rm tomcrypt/*.so
+	- $(SUBMAKE) clean
+	- rm Makefile.sub

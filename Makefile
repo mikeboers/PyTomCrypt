@@ -13,7 +13,7 @@ libtomcrypt : $(LIBTOMCRYPT)/libtomcrypt.a
 $(LIBTOMCRYPT)/libtomcrypt.a : 
 	make -C libtomcrypt-1.16
 
-tomcrypt/hash.so tomcrypt/cipher.so : tomcrypt/hash.pyx tomcrypt/cipher.pyx tomcrypt/common.pxi
+tomcrypt/hash.so tomcrypt/cipher.so : tomcrypt/hash.pyx tomcrypt/cipher.pyx tomcrypt/cipher.pxd tomcrypt/common.pxi
 	$(PYTHON) setup.py build_ext --inplace
 
 build: libtomcrypt tomcrypt/cipher.so tomcrypt/hash.so
@@ -26,6 +26,8 @@ clean:
 	- rm *.o
 	- rm *.so
 	- rm -rf build
+	- rm Makefile.sub
 	- rm tomcrypt/*.c
 	- rm tomcrypt/*.pyx
+	- rm tomcrypt/*.pxd
 	- rm tomcrypt/*.so

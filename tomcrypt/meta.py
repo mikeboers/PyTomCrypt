@@ -1,4 +1,6 @@
 
+import os
+
 ALL_CIPHERS = False
 
 cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8'.split()))
@@ -32,9 +34,8 @@ else:
 		blowfish
 		des'''.strip().split())
 
+cipher_properties = 'name min_key_size max_key_size block_size default_rounds'.split()
 
-
-import os
 hash_do_hmac = 'PyTomCrypt_do_hmac' in os.environ
 hash_do_hash = not hash_do_hmac
 hash_class_name = 'Hash' if hash_do_hash else 'HMAC'
@@ -58,3 +59,5 @@ tiger
 whirlpool
 
 '''.strip().split()
+
+hash_properties = ('name', 'digest_size', 'block_size')

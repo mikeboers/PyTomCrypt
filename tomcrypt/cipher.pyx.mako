@@ -40,7 +40,7 @@ cdef class Descriptor(object):
 	def cipher_idx(self):
 		return self.idx
 	
-	% for name in 'name min_key_size max_key_size block_size default_rounds'.split():
+	% for name in cipher_properties:
 	@property
 	def ${name}(self):
 		return self.desc.${name}

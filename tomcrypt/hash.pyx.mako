@@ -85,7 +85,7 @@ cdef class Descriptor(object):
 	def hash_idx(self):
 		return self.idx
 
-	% for name in 'name', 'digest_size', 'block_size':
+	% for name in hash_properties:
 	@property
 	def ${name}(self):
 		return self.desc.${name}

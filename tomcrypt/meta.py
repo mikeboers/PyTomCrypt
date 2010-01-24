@@ -1,15 +1,15 @@
 
 ALL_CIPHERS = False
 
-modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8'.split()))
-no_iv_modes = dict((k, modes[k]) for k in 'ecb'.split())
-iv_modes = dict((k, modes[k]) for k in modes if k not in no_iv_modes)
-simple_modes = dict((k, modes[k]) for k in 'cbc cfb ofb'.split())
+cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8'.split()))
+cipher_no_iv_modes = dict((k, cipher_modes[k]) for k in 'ecb'.split())
+cipher_iv_modes = dict((k, cipher_modes[k]) for k in cipher_modes if k not in cipher_no_iv_modes)
+cipher_simple_modes = dict((k, cipher_modes[k]) for k in 'cbc cfb ofb'.split())
 
-mode_items = list(sorted(modes.items(), key=lambda x: x[1]))
+cipher_mode_items = list(sorted(cipher_modes.items(), key=lambda x: x[1]))
 
 if ALL_CIPHERS:
-	ciphers = tuple('''
+	cipher_names = tuple('''
 		aes
 		anubis
 		blowfish
@@ -27,7 +27,7 @@ if ALL_CIPHERS:
 		twofish
 		xtea'''.strip().split())
 else:
-	ciphers = tuple('''
+	cipher_names = tuple('''
 		aes
 		blowfish
 		des'''.strip().split())

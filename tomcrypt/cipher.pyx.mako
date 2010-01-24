@@ -7,7 +7,7 @@ include "common.pxi"
 # We don't really need to worry about doing this as they are needed as this
 # doesn't take very long at all.
 cdef int max_cipher_idx = -1
-% for name in ciphers:
+% for name in cipher_names:
 max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 % endfor
 
@@ -15,7 +15,7 @@ max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 def test():
 	"""Run the internal tests."""
 	cdef int res
-	% for name in ciphers:
+	% for name in cipher_names:
 	check_for_error(${name}_test())
 	% endfor
 		
@@ -73,18 +73,18 @@ ctypedef int (*all_done_pt)(void *)
 
 # Setup arrays to hold the all the function pointers.
 % for name in 'encrypt decrypt getiv setiv done'.split():
-cdef all_${name}_pt all_${name}[${len(modes)}]
+cdef all_${name}_pt all_${name}[${len(cipher_modes)}]
 % endfor
 
 # Define a inline wrapper function for each that properly casts the symmetric
 # state to the right type. Then set these wrappers into the arrays.
-% for mode, i in mode_items:
+% for mode, i in cipher_mode_items:
 % for type in 'encrypt', 'decrypt':
 cdef inline int null_${mode}_${type}(unsigned char *input, unsigned char *out, unsigned long length, void *state):
 	return ${mode}_${type}(input, out, length, <symmetric_${mode}*>state)
 all_${type}[${i}] = null_${mode}_${type}
 % endfor
-% if mode in iv_modes:
+% if mode in cipher_iv_modes:
 cdef inline int null_${mode}_getiv(unsigned char *output, unsigned long *outlen, void *state):
 	return ${mode}_getiv(output, outlen, <symmetric_${mode}*>state)
 cdef inline int null_${mode}_setiv(unsigned char *input, unsigned long inlen, void *state):
@@ -100,7 +100,7 @@ all_done[${i}] = null_${mode}_done
 
 # Define a type to masquarade as ANY of the mode states.
 cdef union symmetric_all:
-	% for mode in modes:
+	% for mode in cipher_modes:
 	symmetric_${mode} ${mode}
 	% endfor
 
@@ -115,7 +115,7 @@ cdef class Cipher(Descriptor):
 		self._mode = str(mode).lower()
 		## We must keep these indices as magic numbers in the source.
 		self.mode_i = {
-		% for mode, i in mode_items:
+		% for mode, i in cipher_mode_items:
 			${repr(mode)}: ${i},
 		% endfor
 		}.get(self._mode, -1)
@@ -142,7 +142,7 @@ cdef class Cipher(Descriptor):
 		if not isinstance(iv, basestring) or len(iv) != self.desc.block_size:
 			raise Error('iv must be %d bytes' % self.desc.block_size)
 		
-		% for mode, i in mode_items:
+		% for mode, i in cipher_mode_items:
 		${'el' if i else ''}if self.mode_i == ${i}:
 			% if mode == 'ecb':
 			check_for_error(ecb_start(self.idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
@@ -150,7 +150,7 @@ cdef class Cipher(Descriptor):
 			% elif mode == 'ctr':
 			check_for_error(ctr_start(self.idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.state))
 			
-			% elif mode in simple_modes:
+			% elif mode in cipher_simple_modes:
 			check_for_error(${mode}_start(self.idx, iv, key, len(key), 0, <symmetric_${mode}*>&self.state))
 			
 			% elif mode == 'lrw':
@@ -206,13 +206,13 @@ cdef class Cipher(Descriptor):
 new = Cipher
 
 # Make some descriptors and informational stuff for convenience
-modes = ${repr(tuple(mode for mode, i in mode_items))}
-simple_modes = ${repr(set(simple_modes))}
-no_iv_modes = ${repr(set(no_iv_modes))}
-iv_modes = ${repr(set(iv_modes))}
+modes = ${repr(tuple(mode for mode, i in cipher_mode_items))}
+simple_modes = ${repr(set(cipher_simple_modes))}
+no_iv_modes = ${repr(set(cipher_no_iv_modes))}
+iv_modes = ${repr(set(cipher_iv_modes))}
 
 
-% for mode, i in mode_items:
+% for mode, i in cipher_mode_items:
 def ${mode}(key, *args, **kwargs):
 	"""Cipher constructor for ${mode.upper()} mode."""
 	return Cipher(key, *args, mode=${repr(mode)}, **kwargs)
@@ -220,7 +220,7 @@ def ${mode}(key, *args, **kwargs):
 
 
 ciphers = []
-% for name in ciphers:
+% for name in cipher_names:
 try:
 	${name} = Descriptor('${name}')
 	ciphers.append(${repr(name)})

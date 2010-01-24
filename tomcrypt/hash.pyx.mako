@@ -6,7 +6,7 @@ include "common.pxi"
 cdef extern from "tomcrypt.h":
 	
 	cdef union hash_state "Hash_state":
-		char dummy[1]
+		pass
 	
 	cdef struct hmac_state "Hmac_state":
 		pass

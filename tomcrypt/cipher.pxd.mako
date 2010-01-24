@@ -4,7 +4,7 @@ cdef extern from "tomcrypt.h":
 	int CTR_COUNTER_BIG_ENDIAN
 	
 	# Symmetric state for all the modes.
-	% for name in modes:
+	% for name in cipher_modes:
 	ctypedef struct symmetric_${name} "symmetric_${name.upper()}":
 		pass
 	% endfor
@@ -12,17 +12,17 @@ cdef extern from "tomcrypt.h":
 	# Pull in all the cipher functions for all the modes.
 	int ecb_start(int cipher, unsigned char *key, int keylen, int num_rounds, symmetric_ecb *ecb)
 	int ctr_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, int ctr_mode, symmetric_ctr *ctr)
-	% for name in simple_modes:
+	% for name in cipher_simple_modes:
 	int ${name}_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, int num_rounds, symmetric_${name} *${name})
 	% endfor
 	int lrw_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *tweak, int num_rounds, symmetric_lrw *lrw)
 	int f8_start(int cipher, unsigned char *iv, unsigned char *key, int keylen, unsigned char *salt_key, int skeylen, int num_rounds, symmetric_f8 *f8)
-	% for name in modes:
+	% for name in cipher_modes:
 	int ${name}_encrypt(unsigned char *pt, unsigned char *ct, unsigned long len, symmetric_${name} *${name})
 	int ${name}_decrypt(unsigned char *ct, unsigned char *pt, unsigned long len, symmetric_${name} *${name})
 	int ${name}_done(void *${name})
 	% endfor
-	% for name in iv_modes:
+	% for name in cipher_iv_modes:
 	int ${name}_getiv(unsigned char *iv, unsigned long *len, symmetric_${name} *${name})
 	int ${name}_setiv(unsigned char *iv, unsigned long len, symmetric_${name} *${name})
 	% endfor
@@ -41,7 +41,7 @@ cdef extern from "tomcrypt.h":
 	cipher_desc cipher_descriptors "cipher_descriptor" []
 	
 	# The descriptors themselves.
-	% for name in ciphers:
+	% for name in cipher_names:
 	cipher_desc ${name}_desc
 	int ${name}_test()
 	% endfor

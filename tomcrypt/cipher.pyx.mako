@@ -3,14 +3,6 @@
 from tomcrypt.common cimport *
 from tomcrypt.common import Error
 
-# Register all of the ciphers.
-# We don't really need to worry about doing this as they are needed as this
-# doesn't take very long at all.
-cdef int max_cipher_idx = -1
-% for name in cipher_names:
-max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
-% endfor
-
 
 def test():
 	"""Run the internal tests."""
@@ -20,14 +12,22 @@ def test():
 	% endfor
 		
 
-def get_idx(input):	
+cdef int max_cipher_idx = -1
+cpdef int get_cipher_idx(object input):
+	global max_cipher_idx
 	idx = -1
 	if isinstance(input, int):
 		idx = input
-	elif hasattr(input, 'idx'):
-		idx = input.idx
-	else:
+	elif isinstance(input, basestring):
 		idx = find_cipher(input)
+		if idx == -1:
+			% for i, name in enumerate(cipher_names):
+			${'el' if i else ''}if input == ${repr(name)}:
+				idx = register_cipher(&${name}_desc)
+			% endfor	
+			max_cipher_idx = max(idx, max_cipher_idx)
+	elif isinstance(input, Descriptor):
+		idx = input.idx
 	if idx < 0 or idx > max_cipher_idx:
 		raise ValueError('could not find cipher %r' % input)
 	return idx
@@ -39,7 +39,7 @@ cdef class Descriptor(object):
 	cdef cipher_desc desc
 	
 	def __init__(self, cipher):
-		self.idx = get_idx(cipher)
+		self.idx = get_cipher_idx(cipher)
 		self.desc = cipher_descriptors[self.idx]
 	
 	% for name in cipher_properties:

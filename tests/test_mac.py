@@ -9,7 +9,7 @@ import time
 from subprocess import Popen, PIPE
 import hashlib
 
-from tomcrypt.hmac import *
+from tomcrypt.mac import *
 
 
 def test_hashlib():

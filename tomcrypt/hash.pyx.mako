@@ -1,29 +1,15 @@
-<%
-
-DO_HASH = hash_do_hash = ext_name == 'hash'
-DO_MAC  = hash_do_hmac = not DO_HASH
-
-hash_class_name = 'Hash' if hash_do_hash else 'HMAC'
-hash_type = hash_class_name.lower()
-
-%>
 
 from tomcrypt.common cimport *
 from tomcrypt.common import Error
 
 
-% if hash_do_hash:
 def test():
 	"""Run the internal tests."""
+	register_all_hashes()
 	% for name in hash_names:
 	check_for_error(${name}_desc.test())
 	% endfor
-% else:
-def test():
-	check_for_error(hmac_test());
-% endif
 
-% if DO_HASH:
 
 cdef int max_hash_idx = -1
 cpdef int get_hash_idx(object input):
@@ -44,6 +30,13 @@ cpdef int get_hash_idx(object input):
 	if idx < 0 or idx > max_hash_idx:
 		raise ValueError('could not find hash %r' % input)
 	return idx
+	
+	
+cpdef register_all_hashes():
+	global max_hash_idx
+	% for name in hash_names:
+	max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
+	% endfor
 
 
 cdef class Descriptor(object):
@@ -64,29 +57,16 @@ cdef class Descriptor(object):
 			self.__class__.__module__, self.__class__.__name__, self.desc.name)
 	
 	def __call__(self, *args):
-		return ${hash_class_name}(self.desc.name, *args)
-		
-% else:
+		return Hash(self.desc.name, *args)
 
-from hash cimport Descriptor
-
-% endif
 			
-cdef class ${hash_class_name}(Descriptor):
+cdef class Hash(Descriptor):
 	
-	cdef ${hash_type}_state state
+	cdef hash_state state
 	
-	% if hash_do_hash:
 	def __init__(self, hash, *args):
-	% else:
-	def __init__(self, hash, key, *args):
-	% endif
 		Descriptor.__init__(self, hash)
-		% if hash_do_hash:
 		self.init()
-		% else:
-		self.init(key)
-		% endif
 		for arg in args:
 			self.update(arg)
 	
@@ -95,51 +75,30 @@ cdef class ${hash_class_name}(Descriptor):
 			self.__class__.__module__, self.__class__.__name__, self.name,
 			id(self))
 	
-	% if hash_do_hash:
 	cpdef init(self):
 		self.desc.init(&self.state)
-	% else:
-	cpdef init(self, key):
-		hmac_init(&self.state, self.idx, key, len(key))
-	% endif
-	
-	<%
-	func_prefix = 'self.desc.' if hash_do_hash else 'hmac_'
-	%>
-	##
+
 	cpdef update(self, input):
-		check_for_error(${func_prefix}process(&self.state, input, len(input)))
+		check_for_error(self.desc.process(&self.state, input, len(input)))
 	
-	% if hash_do_hash:
 	cpdef digest(self):
-	% else:
-	cpdef digest(self, length=None):
-		if length is None:
-			length = self.desc.digest_size
-		cdef unsigned long c_len = length
-	% endif
-		cdef ${hash_type}_state state
+		cdef hash_state state
 		memcpy(&state, &self.state, sizeof(hash_state))
 		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
-		% if hash_do_hash:
-		check_for_error(${func_prefix}done(&state, out))
+		check_for_error(self.desc.done(&state, out))
 		return out
-		% else:
-		check_for_error(${func_prefix}done(&state, out, &c_len))
-		return out[:c_len]
-		% endif
 	
 	def hexdigest(self, *args):
 		return self.digest(*args).encode('hex')
 	
 	cpdef copy(self):
-		cdef ${hash_class_name} copy = self.__class__(self.desc.name)
-		memcpy(&copy.state, &self.state, sizeof(${hash_type}_state))
+		cdef Hash copy = self.__class__(self.desc.name)
+		memcpy(&copy.state, &self.state, sizeof(hash_state))
 		return copy
 	
 	
 # To match the hashlib/hmac API.	
-new = ${hash_class_name}
+new = Hash
 
 hashes = []
 % for hash in hash_names:

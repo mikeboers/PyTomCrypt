@@ -7,6 +7,7 @@ from tomcrypt.common import Error
 def test():
 	"""Run the internal tests."""
 	cdef int res
+	register_all_ciphers()
 	% for name in cipher_names:
 	check_for_error(${name}_test())
 	% endfor
@@ -32,6 +33,11 @@ cpdef int get_cipher_idx(object input):
 		raise ValueError('could not find cipher %r' % input)
 	return idx
 
+cpdef register_all_ciphers():
+	global max_cipher_idx
+	% for name in cipher_names:
+	max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
+	% endfor
 	
 cdef class Descriptor(object):
 	

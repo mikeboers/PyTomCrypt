@@ -51,3 +51,4 @@ cdef extern from "tomcrypt.h":
 	int find_cipher(char * name)
 
 cpdef int get_cipher_idx(object input)
+cpdef register_all_ciphers()

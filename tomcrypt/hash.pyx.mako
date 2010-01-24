@@ -1,31 +1,3 @@
-<%!
-
-import os
-DO_HMAC = 'PyTomCrypt_do_hmac' in os.environ
-DO_HASH = not DO_HMAC
-class_name = 'Hash' if DO_HASH else 'HMAC'
-type = class_name.lower()
-
-
-hashes = '''
-md2
-md4
-md5
-rmd128
-rmd160
-rmd256
-rmd320
-sha1
-sha224
-sha256
-sha384
-sha512
-tiger
-whirlpool
-
-'''.strip().split()
-
-%>
 
 
 include "common.pxi"

@@ -1,0 +1,53 @@
+#!bin/python
+
+import sys
+
+
+def render(data, **kwargs):
+	from mako.template import Template
+	from mako.lookup import TemplateLookup
+	from mako.exceptions import text_error_template
+
+	try:
+		lookup = TemplateLookup(["."])
+		return Template(data, lookup=lookup).render(**kwargs)
+	except:
+		sys.stderr.write(text_error_template().render())
+		exit(1)
+
+
+def get_meta():
+	from tomcrypt import meta
+	return meta.__dict__.copy()
+	
+	
+def main(argv=None):
+	from os.path import isfile
+	from sys import stdin
+
+	if argv is None:
+		import sys
+		argv = sys.argv
+
+	from optparse import OptionParser
+
+	parser = OptionParser("usage: %prog [FILENAME]")
+
+	opts, args = parser.parse_args(argv[1:])
+	if len(args) not in (0, 1):
+		parser.error("wrong number of arguments") # Will exit
+
+	if (len(args) == 0) or (args[0] == "-"):
+		fo = stdin
+	else:
+		filename = args[0]
+		if not isfile(filename):
+			raise SystemExit("error: can't find %s" % filename)
+		fo = open(filename)
+
+	data = fo.read()
+	print render(data, **get_meta())
+
+
+if __name__ == '__main__':
+	main()

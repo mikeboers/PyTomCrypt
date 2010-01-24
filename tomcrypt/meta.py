@@ -36,10 +36,6 @@ else:
 
 cipher_properties = 'name min_key_size max_key_size block_size default_rounds'.split()
 
-hash_do_hmac = 'PyTomCrypt_do_hmac' in os.environ
-hash_do_hash = not hash_do_hmac
-hash_class_name = 'Hash' if hash_do_hash else 'HMAC'
-hash_type = hash_class_name.lower()
 
 
 hash_names = '''

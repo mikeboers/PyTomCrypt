@@ -49,3 +49,5 @@ cdef extern from "tomcrypt.h":
 	# Functions for registering and finding the registered ciphers.
 	int register_cipher(cipher_desc *cipher)
 	int find_cipher(char * name)
+
+cpdef int get_cipher_idx(object input)

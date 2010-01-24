@@ -24,7 +24,7 @@ if __name__ == '__main__':
 		k, v = (x.split('=', 1) + ['True'])[:2]
 		try:
 			v = literal_eval(v)
-		except SyntaxError:
+		except (ValueError, SyntaxError):
 			pass
 		defs[k] = v
 	

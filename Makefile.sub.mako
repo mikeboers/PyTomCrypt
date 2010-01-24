@@ -22,6 +22,14 @@ $(LIBTOMCRYPT)/libtomcrypt.a :
 % for name in ext_names:
 <%
 parents = ['tomcrypt/%s.%s' % (name, ext) for ext in ('pyx', 'pxd', 'pxi')]
+%>
+% for parent in parents:
+% if exists(parent + '.mako'):
+${parent}: ${parent}.mako
+	$(PREPROCESS) -D ext_name=${name} $< > $@
+% endif
+% endfor
+<%
 parents = [x for x in parents if exists(x) or exists(x + '.mako')]
 %>
 tomcrypt/${name}.so: libtomcrypt ${' '.join(parents)}

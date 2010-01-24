@@ -1,3 +1,12 @@
+<%
+
+DO_HASH = ext_name == 'hash'
+DO_MAC  = not DO_HASH
+
+hash_class_name = 'Hash' if hash_do_hash else 'MAC'
+hash_type = hash_class_name.lower()
+
+%>
 
 cdef extern from "tomcrypt.h":
 	
@@ -37,3 +46,4 @@ cdef extern from "tomcrypt.h":
 	% endif
 
 
+cpdef int get_hash_idx(object input)

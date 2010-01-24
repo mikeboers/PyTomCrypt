@@ -20,5 +20,7 @@
 /tomcrypt/cipher.pxd
 /tomcrypt/hash.pyx
 /tomcrypt/hash.pxd
+/tomcrypt/*mac.pyx
+/tomcrypt/*mac.pxd
 /Makefile.sub
 /libtomcrypt*

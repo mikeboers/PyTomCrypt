@@ -38,8 +38,8 @@ ${dst_path}: ${src_path}
 % endfor
 % if exists('tomcrypt/%s.pyx' % (name)) or exists('tomcrypt/%s.pyx.mako' % (src_name)):
 <%
-parents = ['tomcrypt/%s.%s' % (name, ext) for ext in exts]
-parents = [x for x in parents if exists(x) or exists(x + '.mako')]
+parents = [('tomcrypt/%s.%s' % (name, ext), 'tomcrypt/%s.%s.mako' % (src_name, ext)) for ext in exts]
+parents = [dst for dst, src in parents if exists(dst) or exists(src)]
 %>
 tomcrypt/${name}.so: libtomcrypt ${' '.join(parents)}
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
@@ -59,6 +59,8 @@ test:
 
 
 clean:
+	- rm tomcrypt/*mac.pyx
+	- rm tomcrypt/*mac.pxd
 % for name in ext_names:
 % for ext in ('pyx', 'pxd', 'pxi'):
 % if exists('tomcrypt/%s.%s.mako' % (name, ext)):

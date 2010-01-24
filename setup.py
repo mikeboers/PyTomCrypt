@@ -6,7 +6,7 @@ from Cython.Distutils import build_ext
 
 
 # Allow us to specify a single extension to build.
-ext_names = ['common', 'cipher', 'hash']
+ext_names = ['hmac', 'common', 'cipher', 'hash']
 ext_name = os.environ.get('PyTomCrypt_ext_name')
 if ext_name:
 	if ext_name not in ext_names:

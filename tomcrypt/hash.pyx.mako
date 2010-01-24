@@ -23,6 +23,7 @@ def test():
 	check_for_error(hmac_test());
 % endif
 
+% if DO_HASH:
 
 cdef int max_hash_idx = -1
 cpdef int get_hash_idx(object input):
@@ -46,9 +47,6 @@ cpdef int get_hash_idx(object input):
 
 
 cdef class Descriptor(object):
-
-	cdef readonly int idx
-	cdef hash_desc desc
 	
 	def __init__(self, hash):
 		self.idx = get_hash_idx(hash)
@@ -61,14 +59,18 @@ cdef class Descriptor(object):
 
 	% endfor
 	##
-	
 	def __repr__(self):
 		return ${repr('<%s.%s of %s>')} % (
 			self.__class__.__module__, self.__class__.__name__, self.desc.name)
 	
 	def __call__(self, *args):
 		return ${hash_class_name}(self.desc.name, *args)
+		
+% else:
 
+from hash cimport Descriptor
+
+% endif
 			
 cdef class ${hash_class_name}(Descriptor):
 	

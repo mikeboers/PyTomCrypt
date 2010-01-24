@@ -1,3 +1,13 @@
+<%
+
+DO_HASH = hash_do_hash = ext_name == 'hash'
+DO_MAC  = hash_do_hmac = not DO_HASH
+
+hash_class_name = 'Hash' if hash_do_hash else 'HMAC'
+hash_type = hash_class_name.lower()
+
+%>
+
 
 cdef extern from "tomcrypt.h":
 	
@@ -36,4 +46,12 @@ cdef extern from "tomcrypt.h":
 	int hmac_done(hmac_state *, unsigned char *, unsigned long *)
 
 
+% if DO_HASH:
 cpdef int get_hash_idx(object input)
+
+cdef class Descriptor(object):
+	cdef readonly int idx
+	cdef hash_desc desc
+
+
+% endif

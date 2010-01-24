@@ -39,6 +39,8 @@ ${dst_path}: ${src_path}
 % if exists('tomcrypt/%s.pyx' % (name)) or exists('tomcrypt/%s.pyx.mako' % (src_name)):
 <%
 parents = [('tomcrypt/%s.%s' % (name, ext), 'tomcrypt/%s.%s.mako' % (src_name, ext)) for ext in exts]
+if src_name != name:
+	parents.append(('tomcrypt/%s.pxd' % src_name, 'tomcrypt/%s.pxd.mako' % src_name))
 parents = [dst for dst, src in parents if exists(dst) or exists(src)]
 %>
 tomcrypt/${name}.so: libtomcrypt ${' '.join(parents)}

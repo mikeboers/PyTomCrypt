@@ -1,12 +1,3 @@
-<%
-
-DO_HASH = ext_name == 'hash'
-DO_MAC  = not DO_HASH
-
-hash_class_name = 'Hash' if hash_do_hash else 'MAC'
-hash_type = hash_class_name.lower()
-
-%>
 
 cdef extern from "tomcrypt.h":
 	
@@ -38,12 +29,11 @@ cdef extern from "tomcrypt.h":
 	int register_hash(hash_desc *hash)
 	int find_hash(char * name)
 	
-	% if hash_do_hmac:
+	# HMAC
 	int hmac_test()
 	int hmac_init(hmac_state *, int, unsigned char *, unsigned long)
 	int hmac_process(hmac_state *, unsigned char *, unsigned long)
 	int hmac_done(hmac_state *, unsigned char *, unsigned long *)
-	% endif
 
 
 cpdef int get_hash_idx(object input)

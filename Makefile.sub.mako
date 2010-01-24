@@ -21,19 +21,29 @@ $(LIBTOMCRYPT)/libtomcrypt.a :
 
 % for name in ext_names:
 <%
-parents = ['tomcrypt/%s.%s' % (name, ext) for ext in ('pyx', 'pxd', 'pxi')]
+exts = ('pyx', 'pxd', 'pxi')
+src_name = dict(
+	hmac='hash',
+).get(name, name)
 %>
-% for parent in parents:
-% if exists(parent + '.mako'):
-${parent}: ${parent}.mako
+% for ext in exts:
+<%
+src_path = 'tomcrypt/%s.%s.mako' % (src_name, ext)
+dst_path = 'tomcrypt/%s.%s' % (name, ext)
+%>
+% if exists(src_path):
+${dst_path}: ${src_path}
 	$(PREPROCESS) -D ext_name=${name} $< > $@
 % endif
 % endfor
+% if exists('tomcrypt/%s.pyx' % (name)) or exists('tomcrypt/%s.pyx.mako' % (src_name)):
 <%
+parents = ['tomcrypt/%s.%s' % (name, ext) for ext in exts]
 parents = [x for x in parents if exists(x) or exists(x + '.mako')]
 %>
 tomcrypt/${name}.so: libtomcrypt ${' '.join(parents)}
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
+% endif
 % endfor
 
 

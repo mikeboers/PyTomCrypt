@@ -9,7 +9,7 @@ def test_cipher():
 		
 
 cdef int max_cipher_idx = -1
-cpdef int get_cipher_idx(object input):
+def get_cipher_idx(input):
 	global max_cipher_idx
 	idx = -1
 	if isinstance(input, int):

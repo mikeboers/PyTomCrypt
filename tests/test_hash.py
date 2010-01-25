@@ -14,6 +14,8 @@ from tomcrypt.hash import *
 
 def test_hashlib():
 	for name in hashes:
+		if name == 'chc':
+			continue
 		print name, 
 		x = Hash(name)
 		try:

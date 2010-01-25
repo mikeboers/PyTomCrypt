@@ -7,7 +7,7 @@ def test_hash():
 
 
 cdef int max_hash_idx = -1
-cpdef int get_hash_idx(object input):
+def get_hash_idx(input):
 	global max_hash_idx
 	idx = -1
 	if isinstance(input, int):

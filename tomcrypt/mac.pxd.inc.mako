@@ -1,9 +1,13 @@
 cdef extern from "tomcrypt.h" nogil:
 
-	cdef struct hmac_state "Hmac_state":
-		pass
+	% for mode in 'hmac', 'omac':
+	ctypedef struct ${mode}_state:
+		unsigned char *key # The block size of the hash.
 	
-	int hmac_test()
-	int hmac_init(hmac_state *, int, unsigned char *, unsigned long)
-	int hmac_process(hmac_state *, unsigned char *, unsigned long)
-	int hmac_done(hmac_state *, unsigned char *, unsigned long *)
+	int ${mode}_test()
+	int ${mode}_init(${mode}_state *, int, unsigned char *, unsigned long)
+	int ${mode}_process(${mode}_state *, unsigned char *, unsigned long)
+	int ${mode}_done(${mode}_state *, unsigned char *, unsigned long *)
+	
+	
+	% endfor

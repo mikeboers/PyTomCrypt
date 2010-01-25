@@ -27,8 +27,11 @@ cdef class hmac(HashDescriptor):
 		cdef unsigned long c_len = length
 		cdef hmac_state state
 		memcpy(&state, &self.state, sizeof(hash_state))
+		state.key = <unsigned char *>malloc(self.desc.block_size)
+		memcpy(state.key, self.state.key, self.desc.block_size)
 		out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
-		check_for_error(hmac_done(&state, out, &c_len))
+		check_for_error(hmac_done(&self.state, out, &c_len))
+		self.state = state
 		return out[:c_len]
 	
 	def hexdigest(self, *args):

@@ -1,5 +1,3 @@
-
-
 def test_hash():
 	"""Run the internal tests."""
 	register_all_hashes()
@@ -66,17 +64,15 @@ cdef class Hash(HashDescriptor):
 	
 	def __init__(self, hash, *args):
 		HashDescriptor.__init__(self, hash)
-		self.init()
+		# This does not return an error value, so we don't check.
+		self.desc.init(&self.state)
 		for arg in args:
 			self.update(arg)
 	
 	def __repr__(self):
 		return ${repr('<%s.%s of %s at 0x%x>')} % (
 			self.__class__.__module__, self.__class__.__name__, self.name,
-			id(self))
-	
-	cpdef init(self):
-		self.desc.init(&self.state)
+			id(self))		
 
 	cpdef update(self, input):
 		check_for_error(self.desc.process(&self.state, input, len(input)))
@@ -104,5 +100,3 @@ try:
 except ValueError:
 	pass
 % endfor
-
-

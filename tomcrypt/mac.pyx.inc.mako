@@ -1,5 +1,3 @@
-
-
 def test_mac():
 	register_all_hashes()
 	check_for_error(hmac_test());
@@ -11,7 +9,7 @@ cdef class hmac(HashDescriptor):
 	
 	def __init__(self, hash, key, *args):
 		HashDescriptor.__init__(self, hash)
-		self.init(key)
+		check_for_error(hmac_init(&self.state, self.idx, key, len(key)))
 		for arg in args:
 			self.update(arg)
 	
@@ -20,12 +18,8 @@ cdef class hmac(HashDescriptor):
 			self.__class__.__module__, self.__class__.__name__, self.name,
 			id(self))
 	
-	cpdef init(self, key):
-		hmac_init(&self.state, self.idx, key, len(key))
-	
 	cpdef update(self, input):
 		check_for_error(hmac_process(&self.state, input, len(input)))
-	
 	
 	cpdef digest(self, length=None):
 		if length is None:

@@ -1,4 +1,3 @@
-
 class Error(Exception):
 	def __init__(self, err):
 		if isinstance(err, int):

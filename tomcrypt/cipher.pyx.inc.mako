@@ -1,6 +1,6 @@
 
 def test_cipher():
-	"""Run the internal tests."""
+	"""Run internal cipher tests."""
 	cdef int res
 	register_all_ciphers()
 	% for name in cipher_names:
@@ -28,12 +28,14 @@ cpdef int get_cipher_idx(object input):
 		raise ValueError('could not find cipher %r' % input)
 	return idx
 
+
 cpdef register_all_ciphers():
 	global max_cipher_idx
 	% for name in cipher_names:
 	max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 	% endfor
-	
+
+
 cdef class CipherDescriptor(object):
 	
 	cdef readonly int idx
@@ -60,11 +62,6 @@ cdef class CipherDescriptor(object):
 		return Cipher(key, *args, cipher=self.name, **kwargs)
 	
 
-
-
-
-
-
 # Define function pointer types for each of the functions that have common
 # signatures, except they take a null pointer to the symmetric state.
 ctypedef int (*all_crypt_pt)(unsigned char *, unsigned char *, unsigned long, void *)
@@ -90,9 +87,9 @@ all_${type}[${i}] = null_${mode}_${type}
 % if mode in cipher_iv_modes:
 cdef inline int null_${mode}_getiv(unsigned char *output, unsigned long *outlen, void *state):
 	return ${mode}_getiv(output, outlen, <symmetric_${mode}*>state)
+all_getiv[${i}] = null_${mode}_getiv
 cdef inline int null_${mode}_setiv(unsigned char *input, unsigned long inlen, void *state):
 	return ${mode}_setiv(input, inlen, <symmetric_${mode}*>state)
-all_getiv[${i}] = null_${mode}_getiv
 all_setiv[${i}] = null_${mode}_setiv
 % endif
 cdef inline int null_${mode}_done(void *state):
@@ -111,17 +108,17 @@ cdef union symmetric_all:
 cdef class Cipher(CipherDescriptor):
 	
 	cdef symmetric_all state
-	cdef object _mode
+	cdef readonly object mode
 	cdef int mode_i
 	
 	def __init__(self, key, iv=None, cipher='aes', mode='ecb', **kwargs):
-		self._mode = str(mode).lower()
+		self.mode = mode
 		## We must keep these indices as magic numbers in the source.
 		self.mode_i = {
 		% for mode, i in cipher_mode_items:
 			${repr(mode)}: ${i},
 		% endfor
-		}.get(self._mode, -1)
+		}.get(self.mode, -1)
 		if self.mode_i < 0:
 			raise Error('no mode %r' % mode)
 		CipherDescriptor.__init__(self, cipher)
@@ -132,9 +129,10 @@ cdef class Cipher(CipherDescriptor):
 			self.__class__.__module__, self.__class__.__name__, self.name,
 			self.mode, id(self))
 	
-	@property
-	def mode(self):
-		return self._mode
+	def __dealloc__(self):
+		# Not going to check for error here, because it is not safe to raise
+		# an exception during garbage collection.
+		all_done[self.mode_i](&self.state)
 	
 	def start(self, key, iv=None, **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
@@ -187,9 +185,6 @@ cdef class Cipher(CipherDescriptor):
 		if all_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)
 		check_for_error(all_setiv[self.mode_i](iv, len(iv), &self.state))
-
-	cpdef done(self):
-		check_for_error(all_done[self.mode_i](&self.state))
 	
 	% for type in 'encrypt decrypt'.split():
 	cpdef ${type}(self, input):
@@ -204,20 +199,6 @@ cdef class Cipher(CipherDescriptor):
 	
 	% endfor
 
-# This is just so that the API is pretty much the same for all the modules
-# and to hashlib and hmac in the stdlib.
-new = Cipher
-
-# Make some descriptors and informational stuff for convenience
-modes = ${repr(tuple(mode for mode, i in cipher_mode_items))}
-simple_modes = ${repr(set(cipher_simple_modes))}
-no_iv_modes = ${repr(set(cipher_no_iv_modes))}
-iv_modes = ${repr(set(cipher_iv_modes))}
-
-
-
-
-
 cipher_descs = {}
 % for name in cipher_names:
 try:
@@ -226,6 +207,7 @@ except ValueError:
 	pass
 % endfor
 
+
 cipher_modes = {}
 % for mode, i in cipher_mode_items:
 def ${mode}(key, *args, **kwargs):
@@ -233,6 +215,3 @@ def ${mode}(key, *args, **kwargs):
 	return Cipher(key, *args, mode=${repr(mode)}, **kwargs)
 cipher_modes[${repr(mode)}] = ${mode}
 % endfor
-
-
-

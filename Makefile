@@ -33,3 +33,7 @@ clean:
 	- rm tomcrypt/*.pyc
 	- $(SUBMAKE) clean
 	- rm Makefile.sub
+
+cleantest:
+	make clean
+	make test

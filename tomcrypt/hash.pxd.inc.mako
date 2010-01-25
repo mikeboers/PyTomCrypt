@@ -1,8 +1,5 @@
-
 cdef extern from "tomcrypt.h" nogil:
 
-
-	
 	cdef union hash_state "Hash_state":
 		pass
 	
@@ -27,4 +24,3 @@ cdef extern from "tomcrypt.h" nogil:
 	# Functions for registering and finding the registered hashs.
 	int register_hash(hash_desc *hash)
 	int find_hash(char * name)
-

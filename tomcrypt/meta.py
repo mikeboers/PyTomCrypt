@@ -1,5 +1,11 @@
 
-import os
+# For each actual extension, what are the base names that are included into it?
+ext_includes = {
+	'_main': 'common cipher hash mac'.split()
+}
+
+
+
 
 ALL_CIPHERS = False
 

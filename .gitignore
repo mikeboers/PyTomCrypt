@@ -16,13 +16,7 @@
 /*.pyx
 /tomcrypt/*.so
 /tomcrypt/*.c
-/tomcrypt/cipher.pyx
-/tomcrypt/cipher.pxd
-/tomcrypt/hash.pyx
-/tomcrypt/hash.pxd
-/tomcrypt/*mac.pyx
-/tomcrypt/*mac.pxd
-/tomcrypt/_symmetric.pyx
-/tomcrypt/_symmetric.pxd
+/tomcrypt/_main.pyx
+/tomcrypt/_main.pxd
 /Makefile.sub
 /libtomcrypt*

@@ -1,0 +1,10 @@
+
+- Try to get the proper parts of libtomcrypt compiling via setup.py.
+
+- Add cipher modes: EAX (page 46), PCB(50), CCM(53), and GCM(56)
+
+- Make sure I'm calling *_done on everything when it gets dealocated as they may be leaking memory.
+
+- Implement CHC hashing:
+	a CHCHash class will need to call chc_register before every update
+	

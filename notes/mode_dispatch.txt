@@ -1,0 +1,20 @@
+
+In several places in the library there are a number of function sets that have identical (or nearly so) signatures, but differ in the name, and the encryption or hashing mode they work under. For example, all of the encrypt/decrypt functions for all the cipher modes have exactly the same signature with the exception of the type of the state pointer.
+
+There are several methods that we can take to dispatch to these various methods.
+
+1. Save an int representing the current mode as an attribute on the cipher object. Then run through a series of (el)if statements checking against this int and calling the appropriate function. The (el)if block can be constructed very easily via mako, and Cython should turn it into a switch statement.
+	- Takes about 300 ns per block.
+
+2. Build a class for each of the modes. Every class is completely seperate and only uses the proper functions.
+	- Takes about 292-294 ns per block.
+
+3. Reference all the functions with a void* state type, and save pointers to the en/decrypt functions in the Cipher class.
+	- This relies upon the compiler automatically casting from void* to
+	  whatever it should be (symetric_XXX*), although simple inline functions
+	  could wrap these which do an explicit cast.
+	- Takes about 295 ns per block.
+
+4. Build array of pointer functions and store the index into that array in the class.
+    - Same issue with the types as 3.
+    - Takes about 292-293 per block.

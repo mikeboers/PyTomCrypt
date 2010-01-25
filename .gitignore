@@ -11,12 +11,10 @@
 /pip-log.txt
 
 # Build
-/*.so
-/*.c
-/*.pyx
 /tomcrypt/*.so
 /tomcrypt/*.c
-/tomcrypt/_main.pyx
-/tomcrypt/_main.pxd
+/tomcrypt/*.pyx
+/tomcrypt/*.pxd
+/tomcrypt/*.pxi
 /Makefile.sub
 /libtomcrypt*

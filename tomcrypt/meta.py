@@ -7,7 +7,7 @@ ext_includes = {
 
 
 
-ALL_CIPHERS = False
+ALL_CIPHERS = True
 
 cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8'.split()))
 cipher_no_iv_modes = dict((k, cipher_modes[k]) for k in 'ecb'.split())
@@ -45,6 +45,8 @@ cipher_properties = 'name min_key_size max_key_size block_size default_rounds'.s
 
 
 hash_names = '''
+
+chc
 md2
 md4
 md5

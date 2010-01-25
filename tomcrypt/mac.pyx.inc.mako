@@ -7,7 +7,7 @@ cdef class hmac(HashDescriptor):
 	
 	cdef hmac_state state
 	
-	def __init__(self, hash, key, *args):
+	def __init__(self, key, hash, *args):
 		HashDescriptor.__init__(self, hash)
 		check_for_error(hmac_init(&self.state, self.idx, key, len(key)))
 		for arg in args:

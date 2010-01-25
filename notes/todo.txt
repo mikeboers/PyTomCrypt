@@ -7,4 +7,12 @@
 
 - Implement CHC hashing:
 	a CHCHash class will need to call chc_register before every update
+
+- Decide how to do implement the several different mac modes.
+	1. A class for each one.
+	2. A class for the hmac, and a class for all the rest (cipher based)
+	3. One class for all of them specifying the mode with a kwarg:
+		x = MAC('key', mode='omac', cipher='aes')
+		def hmac(hash, key):
+			return MAC(key, mode='hmac', hash=hash)
 	

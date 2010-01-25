@@ -17,4 +17,15 @@ There are several methods that we can take to dispatch to these various methods.
 
 4. Build array of pointer functions and store the index into that array in the class.
     - Same issue with the types as 3.
-    - Takes about 292-293 per block.
+    - Takes about 305ns per block.
+
+	Compile times (via `make clean && make preprocess && time make build`):
+		real	0m9.629s
+		user	0m8.883s
+		sys		0m0.423s
+		
+		real	0m9.296s
+		user	0m8.870s
+		sys		0m0.413s
+		
+		

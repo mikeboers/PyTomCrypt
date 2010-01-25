@@ -1,7 +1,7 @@
 
 import sys
 
-from ._symmetric import (hmac, test_mac as test)
+from ._main import (hmac, test_mac as test)
 
 
 self = sys.modules[__name__]

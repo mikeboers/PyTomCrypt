@@ -1,7 +1,7 @@
 
 import sys
 
-from ._symmetric import (HashDescriptor as Descriptor, Hash, hash_descs,
+from ._main import (HashDescriptor as Descriptor, Hash, hash_descs,
 	test_hash as test)
 
 

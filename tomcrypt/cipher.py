@@ -1,7 +1,7 @@
 
 import sys
 
-from ._symmetric import (CipherDescriptor as Descriptor, Cipher, cipher_descs,
+from ._main import (CipherDescriptor as Descriptor, Cipher, cipher_descs,
 	cipher_modes, test_cipher as test)
 
 

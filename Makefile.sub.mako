@@ -7,15 +7,14 @@ from setup import ext_names
 %>
 PYTHON = bin/python
 PREPROCESS = ./preprocess
-LIBTOMCRYPT = libtomcrypt-1.16
+LIBTOMCRYPT = libtomcrypt-1.16/libtomcrypt.a
 
 ## Need to escape the "%" for mako's sake.
 ${'%'} : %.mako
 	$(PREPROCESS) $< > $@
 
 
-libtomcrypt : $(LIBTOMCRYPT)/libtomcrypt.a
-$(LIBTOMCRYPT)/libtomcrypt.a : 
+$(LIBTOMCRYPT): 
 	make -C libtomcrypt-1.16
 	
 
@@ -43,7 +42,7 @@ if src_name != name:
 	parents.append(('tomcrypt/%s.pxd' % src_name, 'tomcrypt/%s.pxd.mako' % src_name))
 parents = [dst for dst, src in parents if exists(dst) or exists(src)]
 %>
-tomcrypt/${name}.so: libtomcrypt ${' '.join(parents)}
+tomcrypt/${name}.so: $(LIBTOMCRYPT) ${' '.join(parents)}
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
 % endif
 % endfor

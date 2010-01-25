@@ -4,14 +4,18 @@ from os.path import exists
 
 from setup import ext_names
 
-%>
+exts = ('pyx', 'pxd', 'pxi')
+
+sources = {}
+for name in ext_names:
+	sources[name] = ['tomcrypt/%s.%s' % (name, ext) for ext in exts]
+	sources[name] = [x for x in sources[name] if exists(x) or exists(x + '.mako')]
+
+%>\
+##
 PYTHON = bin/python
 PREPROCESS = ./preprocess
 LIBTOMCRYPT = libtomcrypt-1.16/libtomcrypt.a
-
-## Need to escape the "%" for mako's sake.
-${'%'} : %.mako
-	$(PREPROCESS) $< > $@
 
 
 $(LIBTOMCRYPT): 
@@ -19,53 +23,25 @@ $(LIBTOMCRYPT):
 	
 
 % for name in ext_names:
-<%
-exts = ('pyx', 'pxd', 'pxi')
-src_name = dict(
-	hmac='hash',
-).get(name, name)
-%>
-% for ext in exts:
-<%
-src_path = 'tomcrypt/%s.%s.mako' % (src_name, ext)
-dst_path = 'tomcrypt/%s.%s' % (name, ext)
-%>
-% if exists(src_path):
-${dst_path}: ${src_path}
+ % for source in sources[name]:
+  % if exists(source + '.mako'):
+${source}: ${source}.mako
 	$(PREPROCESS) -D ext_name=${name} $< > $@
-% endif
-% endfor
-% if exists('tomcrypt/%s.pyx' % (name)) or exists('tomcrypt/%s.pyx.mako' % (src_name)):
-<%
-parents = [('tomcrypt/%s.%s' % (name, ext), 'tomcrypt/%s.%s.mako' % (src_name, ext)) for ext in exts]
-if src_name != name:
-	parents.append(('tomcrypt/%s.pxd' % src_name, 'tomcrypt/%s.pxd.mako' % src_name))
-parents = [dst for dst, src in parents if exists(dst) or exists(src)]
-%>
-tomcrypt/${name}.so: $(LIBTOMCRYPT) ${' '.join(parents)}
+  % endif
+ % endfor
+tomcrypt/${name}.so: $(LIBTOMCRYPT) ${' '.join(sources[name])}
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
-% endif
 % endfor
 
 
 build: ${' '.join('tomcrypt/%s.so' % name for name in ext_names)}
 
 
-test:
-% for name in ext_names:
-% if exists('tests/test_%s.py' % name):
-	$(PYTHON) tests/test_${name}.py
-% endif
-% endfor
-
-
 clean:
-	- rm tomcrypt/*mac.pyx
-	- rm tomcrypt/*mac.pxd
 % for name in ext_names:
-% for ext in ('pyx', 'pxd', 'pxi'):
-% if exists('tomcrypt/%s.%s.mako' % (name, ext)):
+ % for ext in ('pyx', 'pxd', 'pxi'):
+  % if exists('tomcrypt/%s.%s.mako' % (name, ext)):
 	- rm tomcrypt/${name}.${ext}
-% endif
-% endfor
+  % endif
+ % endfor
 % endfor

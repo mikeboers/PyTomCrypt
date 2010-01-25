@@ -7,6 +7,4 @@
 
 - Implement CHC hashing:
 	a CHCHash class will need to call chc_register before every update
-
-- Cleanup the mess I made in the dynamic Makefile.
 	

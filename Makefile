@@ -10,9 +10,9 @@ default : build
 % : %.mako
 	$(PREPROCESS) $< > $@
 
-makesub: Makefile.sub
+submake: Makefile.sub
 
-build: makesub
+build: submake
 	$(SUBMAKE) build
 
 test: build

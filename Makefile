@@ -12,6 +12,9 @@ default : build
 
 submake: Makefile.sub
 
+preprocess: submake
+	$(SUBMAKE) preprocess
+
 build: submake
 	$(SUBMAKE) build
 

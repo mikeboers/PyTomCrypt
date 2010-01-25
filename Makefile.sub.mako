@@ -21,6 +21,7 @@ for name in ext_names:
 	all_sources[name] = sorted(set(all_sources[name]))
 	sources[name]     = sorted(set(sources[name]))
 
+to_preprocess = []
 %>\
 ##
 PYTHON = bin/python
@@ -32,9 +33,9 @@ $(LIBTOMCRYPT):
 	make -C libtomcrypt-1.16
 	
 % for name in ext_names:
-
  % for source in sources[name]:
   % if exists(source + '.mako'):
+   <% to_preprocess.append(source) %>
 ${source}: ${source}.mako
 	$(PREPROCESS) -D ext_name=${name} $< > $@
   % endif
@@ -44,6 +45,8 @@ tomcrypt/${name}.so: $(LIBTOMCRYPT) ${' '.join(sources[name])}
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
 
 % endfor
+
+preprocess: ${' '.join(to_preprocess)}
 
 build: ${' '.join('tomcrypt/%s.so' % name for name in ext_names)}
 

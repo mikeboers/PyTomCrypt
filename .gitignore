@@ -16,5 +16,6 @@
 /tomcrypt/*.pyx
 /tomcrypt/*.pxd
 /tomcrypt/*.pxi
+/tomcrypt/*.inc
 /Makefile.sub
 /libtomcrypt*

@@ -1,15 +1,13 @@
 
 
-cdef extern from "stdlib.h":
+cdef extern from "stdlib.h" nogil:
 
 	void * malloc(int size)
 	void free(void * ptr)
 	void * memcpy(void *dest, void *src, size_t num)
 
 
-cdef extern from "Python.h":
-
-	object PyString_FromStringAndSize(char *s, Py_ssize_t len)
+from python cimport PyString_FromStringAndSize
 
 
 cdef extern from "pyerrors.h":
@@ -17,18 +15,13 @@ cdef extern from "pyerrors.h":
 		pass
 
 
-cdef extern from "tomcrypt.h":
+cdef extern from "tomcrypt.h" nogil:
 
 	int CRYPT_OK
 	char * error_to_string(int err)
 
 
 
-cdef inline check_for_error(int res)
-
-
-
-cdef extern from "tomcrypt.h":
 
 	int CTR_COUNTER_BIG_ENDIAN
 	
@@ -79,19 +72,6 @@ cdef extern from "tomcrypt.h":
 	int register_cipher(cipher_desc *cipher)
 	int find_cipher(char * name)
 
-cpdef int get_cipher_idx(object input)
-cpdef register_all_ciphers()
-
-
-
-
-
-
-
-
-
-
-cdef extern from "tomcrypt.h":
 	
 	cdef union hash_state "Hash_state":
 		pass
@@ -119,15 +99,6 @@ cdef extern from "tomcrypt.h":
 	int find_hash(char * name)
 
 
-cpdef int get_hash_idx(object input)
-cpdef register_all_hashes()
-
-
-
-
-
-
-cdef extern from "tomcrypt.h":
 	
 	cdef struct hmac_state "Hmac_state":
 		pass

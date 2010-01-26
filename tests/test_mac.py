@@ -36,8 +36,8 @@ def test_py_hmac_multi():
 				x.update(v)
 				y.update(v)
 				assert x.hexdigest() == y.hexdigest()
-	except (AssertionError, TomCryptError):
-		assert False, 'failed on %d-%d' % (i, j)
+	except (AssertionError, TomCryptError) as e:
+		assert False, 'failed on %d-%d: %r' % (i, j, e)
 					
 if __name__ == '__main__':
 	start_time = time.time()

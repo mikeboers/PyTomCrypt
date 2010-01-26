@@ -1,6 +1,6 @@
 cdef extern from "tomcrypt.h" nogil:
 
-	cdef union hash_state "Hash_state":
+	ctypedef union hash_state:
 		pass
 	
 	# Hash descriptor.

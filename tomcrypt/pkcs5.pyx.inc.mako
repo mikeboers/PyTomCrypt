@@ -5,17 +5,15 @@ cpdef str pkcs5_alg1(str password, str salt, int iteration_count, hash):
 		raise ValueError('salt must be length 8')
 	cdef HashDescriptor desc = HashDescriptor(hash)
 	cdef unsigned long outlen = desc.digest_size
-	cdef unsigned char *out_pt
-	out_pt = out = PyString_FromStringAndSize(NULL, outlen)
-	c_pkcs5_alg1(password, len(password), salt, iteration_count, desc.idx, out_pt, &outlen)
+	out = PyString_FromStringAndSize(NULL, outlen)
+	c_pkcs5_alg1(password, len(password), salt, iteration_count, desc.idx, out, &outlen)
 	return out[:outlen]
 
 
 cpdef str pkcs5_alg2(str password, str salt, int iteration_count, hash, unsigned long outlen):	
 	cdef HashDescriptor desc = HashDescriptor(hash)
-	cdef unsigned char *out_pt
-	out_pt = out = PyString_FromStringAndSize(NULL, outlen)
-	c_pkcs5_alg2(password, len(password), salt, len(salt), iteration_count, desc.idx, out_pt, &outlen)
+	out = PyString_FromStringAndSize(NULL, outlen)
+	c_pkcs5_alg2(password, len(password), salt, len(salt), iteration_count, desc.idx, out, &outlen)
 	return out[:outlen]
 
 

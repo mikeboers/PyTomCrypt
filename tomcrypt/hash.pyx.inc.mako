@@ -58,25 +58,30 @@ cdef class HashDescriptor(object):
 	
 	def __call__(self, *args):
 		return Hash(self.desc.name, *args)
+	
+	def digest(self, input):
+		return self(input).digest()
+	
+	def hexdigest(self, input):
+		return self(input).hexdigest()
 
 
 cdef class Hash(HashDescriptor):
 	
 	cdef hash_state state
 	
-	def __init__(self, hash, *args):
+	def __init__(self, hash, input=''):
 		HashDescriptor.__init__(self, hash)
 		# This does not return an error value, so we don't check.
 		self.desc.init(&self.state)
-		for arg in args:
-			self.update(arg)
+		self.update(input)
 	
 	def __repr__(self):
 		return ${repr('<%s.%s of %s at 0x%x>')} % (
 			self.__class__.__module__, self.__class__.__name__, self.name,
 			id(self))		
 
-	cpdef update(self, input):
+	cpdef update(self, str input):
 		check_for_error(self.desc.process(&self.state, input, len(input)))
 	
 	cpdef digest(self):
@@ -90,7 +95,7 @@ cdef class Hash(HashDescriptor):
 		return self.digest().encode('hex')
 	
 	cpdef copy(self):
-		cdef Hash copy = self.__class__(self.desc.name)
+		cdef Hash copy = self.__class__(self.idx)
 		memcpy(&copy.state, &self.state, sizeof(hash_state))
 		return copy
 	
@@ -100,11 +105,11 @@ cdef class CHC(Hash):
 	cdef readonly int cipher_idx
 	cdef cipher_desc cipher_desc
 	
-	def __init__(self, cipher, *args):
+	def __init__(self, cipher, input=''):
 		self.cipher_idx = get_cipher_idx(cipher)
 		self.cipher_desc = cipher_descriptors[self.cipher_idx]
 		self.assert_chc_cipher()
-		Hash.__init__(self, 'chc', *args)
+		Hash.__init__(self, 'chc', input)
 	
 	@property
 	def cipher_name(self):
@@ -126,7 +131,7 @@ cdef class CHC(Hash):
 	
 	% endfor
 	##
-	cpdef update(self, input):
+	cpdef update(self, str input):
 		self.assert_chc_cipher()
 		Hash.update(self, input)
 	

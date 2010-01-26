@@ -6,12 +6,16 @@ def test_mac():
 cdef class hmac(HashDescriptor):
 	
 	cdef hmac_state state
+	cdef object key
 	
-	def __init__(self, key, hash, *args):
+	def __init__(self, key, hash, input=''):
 		HashDescriptor.__init__(self, hash)
 		check_for_error(hmac_init(&self.state, self.idx, key, len(key)))
-		for arg in args:
-			self.update(arg)
+		self.key = key
+		self.update(input)
+	
+	def __dealloc__(self):
+		free(self.state.key)
 	
 	def __repr__(self):
 		return ${repr('<%s.%s of %s at 0x%x>')} % (
@@ -24,23 +28,26 @@ cdef class hmac(HashDescriptor):
 	cpdef digest(self, length=None):
 		if length is None:
 			length = self.desc.digest_size
-		cdef unsigned long c_len = length
+		cdef unsigned long c_length = length
 		
 		# Make a copy of the hmac state and all of it's parts. We need to do
-		# this because the *_done function deallocates a bunch of memory.
+		# this because the *_done function mutates the state. The key is
+		# deallocated so we aren't causing a memory leak here.
 		cdef hmac_state state
 		memcpy(&state, &self.state, sizeof(hmac_state))
 		state.key = <unsigned char *>malloc(self.desc.block_size)
 		memcpy(state.key, self.state.key, self.desc.block_size)
 		
-		out = PyString_FromStringAndSize(NULL, c_len)
-		check_for_error(hmac_done(&state, out, &c_len))
-		return out[:c_len]
+		out = PyString_FromStringAndSize(NULL, c_length)
+		check_for_error(hmac_done(&state, out, &c_length))
+		return out[:c_length]
 	
-	def hexdigest(self, *args):
-		return self.digest(*args).encode('hex')
+	cpdef hexdigest(self, length=None):
+		return self.digest(length).encode('hex')
 	
 	cpdef copy(self):
-		cdef hmac copy = self.__class__(self.desc.name)
+		cdef hmac copy = self.__class__(self.key, self.idx)
 		memcpy(&copy.state, &self.state, sizeof(hmac_state))
+		copy.state.key = <unsigned char *>malloc(self.desc.block_size)
+		memcpy(copy.state.key, self.state.key, self.desc.block_size)
 		return copy

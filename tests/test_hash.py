@@ -16,14 +16,14 @@ def test_hashlib():
 	for name in hashes:
 		if name == 'chc':
 			continue
-		print name, 
-		x = Hash(name)
+		print name,
 		try:
 			y = hashlib.new(name)
 		except ValueError:
 			print 'is unknown to hashlib'
 			continue
 		print
+		x = Hash(name)
 		for i in xrange(100):
 			s = os.urandom(i)
 			x.update(s)

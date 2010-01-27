@@ -1,7 +1,9 @@
 cdef extern from "tomcrypt.h" nogil:
 
 	ctypedef union hash_state:
-		pass
+		# There are a lot of other structs in here too, but I only need the
+		# pointer.
+		void *data
 	
 	# Hash descriptor.
 	cdef struct hash_desc "ltc_hash_descriptor":

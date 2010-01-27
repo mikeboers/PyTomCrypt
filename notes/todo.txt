@@ -17,4 +17,7 @@
 			return MAC(key, mode='hmac', hash=hash)
 
 - Figure out how to pull the digest of a hmac without destructing it. It currently checks out against the built in hmac module for the FIRST digest, but not after that.
+
+- Consider adding a new hash_desc that will actually serve as an adapter to a
+fully python based hash being supplied to the hmac.
 	

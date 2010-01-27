@@ -151,31 +151,7 @@ except ValueError:
 % endfor
 
 
-# Attempt to make my own descriptor!
 
-cdef hash_desc py_desc
-
-cdef void py_hash_init(hash_state *state):
-	pass
-
-cdef int py_hash_process(hash_state *state, unsigned char *input, unsigned long inputlen):
-	return CRYPT_OK
-	
-cdef int py_hash_done(hash_state *state, unsigned char *out):
-	return CRYPT_OK
-
-cdef int py_hash_test():
-	return CRYPT_OK
-
-py_desc.name = "python"
-py_desc.block_size = 10
-py_desc.digest_size = 10
-py_desc.init = py_hash_init
-py_desc.process = py_hash_process
-py_desc.done = py_hash_done
-py_desc.test = py_hash_test
-
-cdef int py_desc_idx = register_hash(&py_desc)
 
 
 

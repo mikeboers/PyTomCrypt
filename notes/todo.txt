@@ -20,4 +20,11 @@
 
 - Consider adding a new hash_desc that will actually serve as an adapter to a
 fully python based hash being supplied to the hmac.
+	- Will need some hand written C to do the reference counting and casting
+		PyObject* to void* to store in the hash data.
+	- Will need to manually initialize the hash_state everywhere it is used,
+	unless I can figure out how to inject it into the *mac_init somehow.
+		- Register the PyObject in a global place, and the init function of
+		the py_hash_desc will pull off the functions it needs to use as
+		objects
 	

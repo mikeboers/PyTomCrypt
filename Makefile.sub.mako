@@ -41,7 +41,10 @@ ${source}: ${source}.mako
   % endif
  % endfor
 
-tomcrypt/${name}.so: $(LIBTOMCRYPT) ${' '.join(sources[name])}
+tomcrypt/${name}.c: ${' '.join(sources[name])}
+	bin/cython tomcrypt/${name}.pyx
+
+tomcrypt/${name}.so: $(LIBTOMCRYPT) tomcrypt/${name}.c
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
 
 % endfor

@@ -6,6 +6,7 @@
 /.Python
 /bin
 /build
+/dist
 /include
 /lib
 /pip-log.txt

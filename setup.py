@@ -1,8 +1,9 @@
 import os
+import datetime
 
 from distutils.core import setup
 from distutils.extension import Extension
-from Cython.Distutils import build_ext
+# from Cython.Distutils import build_ext
 
 
 # Allow us to specify a single extension to build.
@@ -346,16 +347,17 @@ sources = [x.strip() for x in sources if not x.lstrip().startswith('#')]
 
 # Define the extensions
 ext_modules = [Extension(
-    'tomcrypt.%s' % name, ["tomcrypt/%s.pyx" % name] + sources,
+    'tomcrypt.%s' % name, ["tomcrypt/%s.c" % name] + sources,
     include_dirs=['./libtomcrypt-1.16/src/headers'],
-    # extra_objects=['./libtomcrypt-1.16/libtomcrypt.a'],
 ) for name in ext_names]
 
 
 # Go!
 if __name__ == '__main__':
 	setup(
-	  name = 'PyTomCrypt',
-	  cmdclass = {'build_ext': build_ext},
-	  ext_modules = ext_modules,
+	    name='PyTomCrypt',
+		version='1.0a.dev%s' % datetime.datetime.utcnow().strftime('%Y%m%dT%H%M'),
+		packages=['tomcrypt'],
+	    # cmdclass = {'build_ext': build_ext},
+	    ext_modules=ext_modules,
 	)

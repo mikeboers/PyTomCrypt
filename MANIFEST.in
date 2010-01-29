@@ -1,0 +1,4 @@
+include *.txt
+recursive-include tests *.txt *.py
+recursive-include tomcrypt *.txt *.py
+recursive-include libtomcrypt-1.16 *

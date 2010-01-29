@@ -17,4 +17,7 @@
 			return MAC(key, mode='hmac', hash=hash)
 
 - Figure out how to pull the digest of a hmac without destructing it. It currently checks out against the built in hmac module for the FIRST digest, but not after that.
-	
+
+- Need to pull in the libtomcrypt/*.c files explicitly in the setup file. Only this way will we be able t compile with the setup script.
+
+aes_enc.o comes from compiling aes.c with a macro defined.

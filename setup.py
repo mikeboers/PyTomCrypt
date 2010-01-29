@@ -355,9 +355,29 @@ ext_modules = [Extension(
 # Go!
 if __name__ == '__main__':
 	setup(
+		
 	    name='PyTomCrypt',
+		description='Python+Cython wrapper around LibTomCrypt',
 		version='1.0a.dev%s' % datetime.datetime.utcnow().strftime('%Y%m%dT%H%M'),
+		license='New BSD',
+		platforms=['any'],
+		author='Mike Boers',
+		author_email='pytomcrypt@mikeboers.com',
+		maintainer='Mike Boers',
+		maintainer_email='pytomcrypt@mikeboers.com',
 		packages=['tomcrypt'],
+        url='http://github.com/mikeboers/PyTomCrypt',
+		
+		classifiers = [
+		    'Development Status :: 2 - Pre-Alpha',
+		    'Intended Audience :: Developers',
+		    'Operating System :: OS Independent',
+		    'Programming Language :: C',
+		    'Programming Language :: Python',
+		    'Topic :: Security :: Cryptography',
+		    'Topic :: Software Development :: Libraries :: Python Modules',
+		],
+		
 	    # cmdclass = {'build_ext': build_ext},
 	    ext_modules=ext_modules,
 	)

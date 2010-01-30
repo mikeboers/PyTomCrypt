@@ -57,9 +57,6 @@ cdef class HashDescriptor(object):
 		return ${repr('<%s.%s of %s>')} % (
 			self.__class__.__module__, self.__class__.__name__, self.desc.name)
 	
-	def __call__(self, *args):
-		return Hash(self.desc.name, *args)
-	
 	def digest(self, input):
 		return self(input).digest()
 	
@@ -148,10 +145,6 @@ cdef class CHC(Hash):
 		check_for_error(self.desc.done(&state, out))
 		return out
 				
-hash_descs = {'chc': CHC}
-% for hash in hash_names:
-try:
-	hash_descs[${repr(hash)}] = HashDescriptor(${repr(hash)})
-except ValueError:
-	pass
-% endfor
+
+hash_names = ${repr(set(hash_names))}
+

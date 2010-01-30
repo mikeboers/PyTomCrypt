@@ -1,12 +1,7 @@
 
-- Try to get the proper parts of libtomcrypt compiling via setup.py.
-
 - Add cipher modes: EAX (page 46), PCB(50), CCM(53), and GCM(56)
 
 - Make sure I'm calling *_done on everything when it gets dealocated as they may be leaking memory.
-
-- Implement CHC hashing:
-	a CHCHash class will need to call chc_register before every update
 
 - Decide how to do implement the several different mac modes.
 	1. A class for each one.
@@ -16,9 +11,6 @@
 		def hmac(hash, key):
 			return MAC(key, mode='hmac', hash=hash)
 
-- Figure out how to pull the digest of a hmac without destructing it. It currently checks out against the built in hmac module for the FIRST digest, but not after that.
-
-- Need to pull in the libtomcrypt/*.c files explicitly in the setup file. Only this way will we be able t compile with the setup script.
 
 - aes_enc.o comes from compiling aes.c with a macro defined.
 	- make a aes_enc.o which simple defines ENCRYPT_ONLY and includes aes.c

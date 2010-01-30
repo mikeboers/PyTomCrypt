@@ -27,3 +27,6 @@ for mode in modes:
 		return Cipher(key, *args, mode=mode, **kwargs)
 	mode_constructor.__name__ = mode
 	self.__dict__[mode] = mode_constructor
+
+
+new = Cipher

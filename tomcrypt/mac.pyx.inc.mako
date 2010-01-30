@@ -1,8 +1,47 @@
-def test_mac():
-	register_all_hashes()
-	check_for_error(hmac_test());
 
-			
+def test_mac():
+	get_hash_idx('md5')
+	get_hash_idx('sha1')
+	get_cipher_idx('aes')
+	% for mac in mac_names:
+	check_for_error(${mac}_test())
+	% endfor
+
+
+# A data type to hold ALL of the different mac type states.
+cdef union mac_all_state:
+	% for mac in mac_names:
+	${mac}_state ${mac}
+	% endfor
+	
+
+	
+# Define function pointer types for each of the functions that have common
+# signatures, except they take a null pointer to the symmetric state.
+ctypedef int (*mac_init_pt)(void *, int, unsigned char *, unsigned long)
+ctypedef int (*mac_process_pt)(void *, unsigned char *, unsigned long)
+ctypedef int (*mac_done_pt)(void *, unsigned char *, unsigned long *)
+
+# Setup arrays to hold the all the function pointers.
+% for name in 'init process done'.split():
+cdef mac_${name}_pt mac_${name}[${len(mac_names)}]
+% endfor
+
+# Define a inline wrapper function for each that properly casts the symmetric
+# state to the right type. Then set these wrappers into the arrays.
+% for mac, i in mac_ids:
+cdef inline int wrapped_${mac}_init(void * state, int idx, unsigned char * key, unsigned long keylen):
+	return ${mac}_init(<${mac}_state *> state, idx, key, keylen)
+mac_init[${i}] = wrapped_${mac}_init
+cdef inline int wrapped_${mac}_process(void * state, unsigned char * key, unsigned long keylen):
+	return ${mac}_process(<${mac}_state *> state, key, keylen)
+mac_process[${i}] = wrapped_${mac}_process
+cdef inline int wrapped_${mac}_done(void * state, unsigned char * key, unsigned long *keylen):
+	return ${mac}_done(<${mac}_state *> state, key, keylen)
+mac_done[${i}] = wrapped_${mac}_done
+% endfor
+
+
 cdef class hmac(HashDescriptor):
 	
 	cdef hmac_state state

@@ -1,16 +1,20 @@
 cdef extern from "tomcrypt.h" nogil:
 
-	% for mode in 'hmac', 'omac':
-	ctypedef struct ${mode}_state:
+	ctypedef struct hmac_state:
 		hash_state	   md
 		int			   hash
 		hash_state	   hashstate
 		unsigned char *key
 	
-	int ${mode}_test()
-	int ${mode}_init(${mode}_state *, int, unsigned char *, unsigned long)
-	int ${mode}_process(${mode}_state *, unsigned char *, unsigned long)
-	int ${mode}_done(${mode}_state *, unsigned char *, unsigned long *)
+	% for mode in 'omac', 'pmac':
+	ctypedef struct ${mode}_state:
+		pass
 	
+	% endfor
+	% for mac in mac_names:
+	int ${mac}_test()
+	int ${mac}_init(${mac}_state *, int, unsigned char *, unsigned long)
+	int ${mac}_process(${mac}_state *, unsigned char *, unsigned long)
+	int ${mac}_done(${mac}_state *, unsigned char *, unsigned long *)
 	
 	% endfor

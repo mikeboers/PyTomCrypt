@@ -20,4 +20,12 @@
 
 - Need to pull in the libtomcrypt/*.c files explicitly in the setup file. Only this way will we be able t compile with the setup script.
 
-aes_enc.o comes from compiling aes.c with a macro defined.
+- aes_enc.o comes from compiling aes.c with a macro defined.
+	- make a aes_enc.o which simple defines ENCRYPT_ONLY and includes aes.c
+	- should be in a src directory seperate from the main libtomcrypt
+
+- cleanup the test output so it is easier to see at a glance what is going on
+	- consider using unittest module
+
+- write documentation
+	- with doctest!

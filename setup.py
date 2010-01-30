@@ -358,7 +358,8 @@ if __name__ == '__main__':
 		
 	    name='PyTomCrypt',
 		description='Python+Cython wrapper around LibTomCrypt',
-		version='1.0a.dev%s' % datetime.datetime.utcnow().strftime('%Y%m%dT%H%M'),
+		# version='1.0a.dev%s' % datetime.datetime.utcnow().strftime('%Y%m%dT%H%M'),
+		version='1.0a.dev',
 		license='New BSD',
 		platforms=['any'],
 		author='Mike Boers',

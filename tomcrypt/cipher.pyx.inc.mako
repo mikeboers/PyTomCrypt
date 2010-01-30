@@ -4,7 +4,9 @@ def test_cipher():
 	cdef int res
 	register_all_ciphers()
 	% for name in cipher_names:
+	% if not name.endswith('_enc'):
 	check_for_error(${name}_test())
+	% endif
 	% endfor
 		
 

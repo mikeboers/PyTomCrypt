@@ -28,10 +28,11 @@ cpdef register_all_prngs():
 
 def test_prng():
 	"""Run the internal tests."""
-	print 'registering'
+	register_all_hashes()
+	register_all_ciphers()
 	register_all_prngs()
+	
 	% for name in prng_names:
-	print ${repr(name)}
 	check_for_error(${name}_desc.test())
 	% endfor
 

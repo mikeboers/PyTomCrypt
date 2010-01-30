@@ -19,6 +19,7 @@ cipher_mode_items = list(sorted(cipher_modes.items(), key=lambda x: x[1]))
 if ALL_CIPHERS:
 	cipher_names = tuple('''
 		aes
+		aes_enc
 		anubis
 		blowfish
 		cast5
@@ -31,6 +32,8 @@ if ALL_CIPHERS:
 		rc2
 		rc5
 		rc6
+		rijndael
+		rijndael_enc
 		saferp
 		twofish
 		xtea'''.strip().split())
@@ -89,6 +92,6 @@ prng_names = """
 	rc4
 	sober128
 	sprng
-	
+	yarrow
 
 """.strip().split()

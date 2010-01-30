@@ -41,7 +41,9 @@ cdef extern from "tomcrypt.h" nogil:
 	# The descriptors themselves.
 	% for name in cipher_names:
 	cipher_desc ${name}_desc
+	% if not name.endswith('_enc'):
 	int ${name}_test()
+	% endif
 	% endfor
 		
 	# Functions for registering and finding the registered ciphers.

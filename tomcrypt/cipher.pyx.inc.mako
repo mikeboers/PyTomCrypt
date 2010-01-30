@@ -65,37 +65,37 @@ cdef class CipherDescriptor(object):
 
 # Define function pointer types for each of the functions that have common
 # signatures, except they take a null pointer to the symmetric state.
-ctypedef int (*all_crypt_pt)(unsigned char *, unsigned char *, unsigned long, void *)
-ctypedef all_crypt_pt all_encrypt_pt
-ctypedef all_crypt_pt all_decrypt_pt
-ctypedef int (*all_getiv_pt)(unsigned char *, unsigned long *, void *)
-ctypedef int (*all_setiv_pt)(unsigned char *, unsigned long  , void *)
-ctypedef int (*all_done_pt)(void *)
+ctypedef int (*cipher_crypt_pt)(unsigned char *, unsigned char *, unsigned long, void *)
+ctypedef cipher_crypt_pt cipher_encrypt_pt
+ctypedef cipher_crypt_pt cipher_decrypt_pt
+ctypedef int (*cipher_getiv_pt)(unsigned char *, unsigned long *, void *)
+ctypedef int (*cipher_setiv_pt)(unsigned char *, unsigned long  , void *)
+ctypedef int (*cipher_done_pt)(void *)
 
 # Setup arrays to hold the all the function pointers.
 % for name in 'encrypt decrypt getiv setiv done'.split():
-cdef all_${name}_pt all_${name}[${len(cipher_modes)}]
+cdef cipher_${name}_pt cipher_${name}[${len(cipher_modes)}]
 % endfor
 
 # Define a inline wrapper function for each that properly casts the symmetric
 # state to the right type. Then set these wrappers into the arrays.
 % for mode, i in cipher_mode_items:
 % for type in 'encrypt', 'decrypt':
-cdef inline int null_${mode}_${type}(unsigned char *input, unsigned char *out, unsigned long length, void *state):
+cdef inline int wrapped_${mode}_${type}(unsigned char *input, unsigned char *out, unsigned long length, void *state):
 	return ${mode}_${type}(input, out, length, <symmetric_${mode}*>state)
-all_${type}[${i}] = null_${mode}_${type}
+cipher_${type}[${i}] = wrapped_${mode}_${type}
 % endfor
 % if mode in cipher_iv_modes:
-cdef inline int null_${mode}_getiv(unsigned char *output, unsigned long *outlen, void *state):
+cdef inline int wrapped_${mode}_getiv(unsigned char *output, unsigned long *outlen, void *state):
 	return ${mode}_getiv(output, outlen, <symmetric_${mode}*>state)
-all_getiv[${i}] = null_${mode}_getiv
-cdef inline int null_${mode}_setiv(unsigned char *input, unsigned long inlen, void *state):
+cipher_getiv[${i}] = wrapped_${mode}_getiv
+cdef inline int wrapped_${mode}_setiv(unsigned char *input, unsigned long inlen, void *state):
 	return ${mode}_setiv(input, inlen, <symmetric_${mode}*>state)
-all_setiv[${i}] = null_${mode}_setiv
+cipher_setiv[${i}] = wrapped_${mode}_setiv
 % endif
-cdef inline int null_${mode}_done(void *state):
+cdef inline int wrapped_${mode}_done(void *state):
 	return ${mode}_done(<symmetric_${mode}*>state)
-all_done[${i}] = null_${mode}_done
+cipher_done[${i}] = wrapped_${mode}_done
 % endfor
 
 
@@ -169,18 +169,18 @@ cdef class Cipher(CipherDescriptor):
 		% endfor
 	##
 	cpdef get_iv(self):
-		if all_getiv[self.mode_i] == NULL:
+		if cipher_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)
 		cdef unsigned long length
 		length = self.desc.block_size
 		iv = PyString_FromStringAndSize(NULL, length)
-		check_for_error(all_getiv[self.mode_i](iv, &length, &self.state))
+		check_for_error(cipher_getiv[self.mode_i](iv, &length, &self.state))
 		return iv
 	
 	cpdef set_iv(self, iv):	
-		if all_getiv[self.mode_i] == NULL:
+		if cipher_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)
-		check_for_error(all_setiv[self.mode_i](iv, len(iv), &self.state))
+		check_for_error(cipher_setiv[self.mode_i](iv, len(iv), &self.state))
 	
 	% for type in 'encrypt decrypt'.split():
 	cpdef ${type}(self, input):
@@ -190,7 +190,7 @@ cdef class Cipher(CipherDescriptor):
 		# We need to make sure we have a brand new string as it is going to be
 		# modified. The input will not be, so we can use the python one.
 		output = PyString_FromStringAndSize(NULL, length)
-		check_for_error(all_${type}[self.mode_i](input, output, length, &self.state))
+		check_for_error(cipher_${type}[self.mode_i](input, output, length, &self.state))
 		return output
 	
 	% endfor

@@ -45,8 +45,10 @@ cdef class PRNG(object):
 	cdef readonly int idx
 	cdef prng_state state
 	
-	def __init__(self, prng, int auto_seed=1024):
-		self.idx = get_prng_idx(prng)	
+	def __init__(self, prng, int auto_seed=0):
+		self.idx = get_prng_idx(prng)
+		self.desc = prng_descriptors[self.idx]
+		self.start()
 		if auto_seed > 0:
 			self.auto_seed(auto_seed)
 	

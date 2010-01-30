@@ -1,15 +1,26 @@
 
 import sys
 
-from ._main import (hmac, test_mac as test)
+from ._main import (MAC as _MAC, mac_names, hash_macs, cipher_macs,
+	test_mac as test)
 
 
 self = sys.modules[__name__]
 
-# self.__dict__.update(hash_descs)
 
-# hashes = hash_descs.keys()
+class MAC(_MAC):
+	pass
 
-# del hash_descs
 
-# new = Hash
+def make_mac_constructor(name):
+	if name in hash_macs:
+		def mac_constructor(key, hash, input=''):
+			return MAC(name, hash, key, input)
+	else:
+		def mac_constructor(key, cipher, input=''):
+			return MAC(name, cipher, key, input='')
+	mac_constructor.__name__ = name
+	return mac_constructor
+
+for name in mac_names:
+	self.__dict__[name] = make_mac_constructor(name)

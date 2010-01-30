@@ -75,7 +75,8 @@ pmac
 
 '''.strip().split()
 
-mac_ids = [(name, i) for i, name in enumerate(mac_names)]
+mac_items = [(name, i) for i, name in enumerate(mac_names)]
+mac_ids = dict(mac_items)
 
 hash_macs = set('hmac'.split())
 cipher_macs = set(x for x in mac_names if x not in hash_macs)

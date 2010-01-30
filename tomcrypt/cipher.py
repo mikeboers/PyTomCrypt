@@ -22,11 +22,15 @@ for name in ciphers:
 	except ValueError:
 		pass
 
-for mode in modes:
+
+def make_mode_constructor(mode):
 	def mode_constructor(key, *args, **kwargs):
 		return Cipher(key, *args, mode=mode, **kwargs)
 	mode_constructor.__name__ = mode
-	self.__dict__[mode] = mode_constructor
+	return mode_constructor
+
+for mode in modes:	
+	self.__dict__[mode] = make_mode_constructor(mode)
 
 
 new = Cipher

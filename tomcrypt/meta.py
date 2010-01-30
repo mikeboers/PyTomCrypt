@@ -72,6 +72,7 @@ mac_names = '''
 hmac
 omac
 pmac
+xcbc
 
 '''.strip().split()
 

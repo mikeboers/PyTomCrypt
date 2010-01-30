@@ -6,7 +6,7 @@ cdef extern from "tomcrypt.h" nogil:
 		hash_state	   hashstate
 		unsigned char *key
 	
-	% for mode in 'omac', 'pmac':
+	% for mode in 'omac', 'pmac', 'xcbc':
 	ctypedef struct ${mode}_state:
 		pass
 	

@@ -28,6 +28,7 @@ sources = '''
 # libtomcrypt-1.16/notes/etc/whirlgen.c
 # libtomcrypt-1.16/notes/etc/whirltest.c
 libtomcrypt-1.16/src/ciphers/aes/aes.c
+libtomcrypt-extra/aes_enc.c
 # libtomcrypt-1.16/src/ciphers/aes/aes_tab.c
 libtomcrypt-1.16/src/ciphers/anubis.c
 libtomcrypt-1.16/src/ciphers/blowfish.c
@@ -317,14 +318,14 @@ libtomcrypt-1.16/src/modes/ofb/ofb_start.c
 # libtomcrypt-1.16/src/pk/rsa/rsa_make_key.c
 # libtomcrypt-1.16/src/pk/rsa/rsa_sign_hash.c
 # libtomcrypt-1.16/src/pk/rsa/rsa_verify_hash.c
-# libtomcrypt-1.16/src/prngs/fortuna.c
-# libtomcrypt-1.16/src/prngs/rc4.c
-# libtomcrypt-1.16/src/prngs/rng_get_bytes.c
-# libtomcrypt-1.16/src/prngs/rng_make_prng.c
-# libtomcrypt-1.16/src/prngs/sober128.c
+libtomcrypt-1.16/src/prngs/fortuna.c
+libtomcrypt-1.16/src/prngs/rc4.c
+libtomcrypt-1.16/src/prngs/rng_get_bytes.c
+libtomcrypt-1.16/src/prngs/rng_make_prng.c
+libtomcrypt-1.16/src/prngs/sober128.c
 # libtomcrypt-1.16/src/prngs/sober128tab.c
-# libtomcrypt-1.16/src/prngs/sprng.c
-# libtomcrypt-1.16/src/prngs/yarrow.c
+libtomcrypt-1.16/src/prngs/sprng.c
+libtomcrypt-1.16/src/prngs/yarrow.c
 # libtomcrypt-1.16/testprof/base64_test.c
 # libtomcrypt-1.16/testprof/cipher_hash_test.c
 # libtomcrypt-1.16/testprof/der_tests.c
@@ -348,7 +349,7 @@ sources = [x.strip() for x in sources if not x.lstrip().startswith('#')]
 # Define the extensions
 ext_modules = [Extension(
     'tomcrypt.%s' % name, ["tomcrypt/%s.c" % name] + sources,
-    include_dirs=['./libtomcrypt-1.16/src/headers'],
+    include_dirs=['.', './libtomcrypt-1.16/src/headers'],
 ) for name in ext_names]
 
 

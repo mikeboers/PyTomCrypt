@@ -1,7 +1,7 @@
 
 # For each actual extension, what are the base names that are included into it?
 ext_includes = {
-	'_main': 'common cipher hash mac pkcs5'.split()
+	'_main': 'common cipher hash mac pkcs5 prng'.split()
 }
 
 
@@ -46,21 +46,21 @@ cipher_properties = 'name min_key_size max_key_size block_size default_rounds'.s
 
 hash_names = '''
 
-chc
-md2
-md4
-md5
-rmd128
-rmd160
-rmd256
-rmd320
-sha1
-sha224
-sha256
-sha384
-sha512
-tiger
-whirlpool
+	chc
+	md2
+	md4
+	md5
+	rmd128
+	rmd160
+	rmd256
+	rmd320
+	sha1
+	sha224
+	sha256
+	sha384
+	sha512
+	tiger
+	whirlpool
 
 '''.strip().split()
 
@@ -69,10 +69,10 @@ hash_properties = ('name', 'digest_size', 'block_size')
 
 mac_names = '''
 
-hmac
-omac
-pmac
-xcbc
+	hmac
+	omac
+	pmac
+	xcbc
 
 '''.strip().split()
 
@@ -82,4 +82,12 @@ mac_ids = dict(mac_items)
 hash_macs = set('hmac'.split())
 cipher_macs = set(x for x in mac_names if x not in hash_macs)
 
+prng_names = """
 
+	fortuna
+	rc4
+	sober128
+	sprng
+	yarrow
+
+""".strip().split()

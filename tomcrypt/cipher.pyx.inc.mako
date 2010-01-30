@@ -62,9 +62,6 @@ cdef class CipherDescriptor(object):
 		check_for_error(self.desc.key_size(&out))
 		return out
 	
-	def __call__(self, key, *args, **kwargs):
-		return Cipher(key, *args, cipher=self.name, **kwargs)
-	
 
 # Define function pointer types for each of the functions that have common
 # signatures, except they take a null pointer to the symmetric state.
@@ -203,19 +200,6 @@ cdef class Cipher(CipherDescriptor):
 	
 	% endfor
 
-cipher_descs = {}
-% for name in cipher_names:
-try:
-	cipher_descs[${repr(name)}] = CipherDescriptor(${repr(name)})
-except ValueError:
-	pass
-% endfor
 
-
-cipher_modes = {}
-% for mode, i in cipher_mode_items:
-def ${mode}(key, *args, **kwargs):
-	"""Cipher constructor for ${mode.upper()} mode."""
-	return Cipher(key, *args, mode=${repr(mode)}, **kwargs)
-cipher_modes[${repr(mode)}] = ${mode}
-% endfor
+cipher_names = ${repr(set(cipher_names))}
+cipher_modes = ${repr(set(cipher_modes.keys()))}

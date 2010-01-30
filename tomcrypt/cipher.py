@@ -1,19 +1,29 @@
 
 import sys
 
-from ._main import (CipherDescriptor as Descriptor, Cipher, cipher_descs,
-	cipher_modes, test_cipher as test)
+from ._main import (CipherDescriptor as _Descriptor, Cipher as _Cipher, cipher_names as ciphers,
+	cipher_modes as modes, test_cipher as test)
 
 
 self = sys.modules[__name__]
 
-self.__dict__.update(cipher_descs)
-self.__dict__.update(cipher_modes)
 
-ciphers = cipher_descs.keys()
-modes = cipher_modes.keys()
+class Descriptor(_Descriptor):
+	def __call__(self, key, *args, **kwargs):
+		return Cipher(key, *args, cipher=self.name, **kwargs)
 
-del cipher_descs
-del cipher_modes
+class Cipher(_Cipher):
+	pass
 
-new = Cipher
+
+for name in ciphers:
+	try:
+		self.__dict__[name] = Descriptor(name)
+	except ValueError:
+		pass
+
+for mode in modes:
+	def mode_constructor(key, *args, **kwargs):
+		return Cipher(key, *args, mode=mode, **kwargs)
+	mode_constructor.__name__ = mode
+	self.__dict__[mode] = mode_constructor

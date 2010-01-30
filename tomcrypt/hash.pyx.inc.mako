@@ -102,45 +102,50 @@ cdef class Hash(HashDescriptor):
 
 cdef class CHC(Hash):
 	
-	cdef readonly int cipher_idx
-	cdef cipher_desc cipher_desc
+	cdef readonly CipherDescriptor cipher
 	
 	def __init__(self, cipher, input=''):
-		self.cipher_idx = get_cipher_idx(cipher)
-		self.cipher_desc = cipher_descriptors[self.cipher_idx]
+		self.cipher = CipherDescriptor(cipher)
 		self.assert_chc_cipher()
 		Hash.__init__(self, 'chc', input)
 	
-	@property
-	def cipher_name(self):
-		return self.cipher_desc.name
-	
 	def __repr__(self):
 		return ${repr('<%s.%s of %s at 0x%x>')} % (
-			self.__class__.__module__, self.__class__.__name__, self.cipher_name,
+			self.__class__.__module__, self.__class__.__name__, self.cipher.name,
 			id(self))
 			
 	cdef inline assert_chc_cipher(self):
-		check_for_error(chc_register(self.cipher_idx))
+		# This is kinda ugly to do EVERY time, but I haven't been able to get
+		# around it. Whoops.
+		check_for_error(chc_register(self.cipher.idx))
+		self.desc.block_size  = self.cipher.desc.block_size
+		self.desc.digest_size = self.cipher.desc.block_size
 	
-	% for name in hash_properties:
 	@property
-	def ${name}(self):
-		self.assert_chc_cipher()
-		return self.desc.${name}
+	def name(self):
+		return 'chc'
 	
-	% endfor
-	##
+	@property
+	def block_size(self):
+		return self.cipher.desc.block_size
+	
+	@property
+	def digest_size(self):
+		return self.cipher.desc.block_size
+	
 	cpdef update(self, str input):
 		self.assert_chc_cipher()
 		Hash.update(self, input)
 	
-	% for method in 'digest hexdigest copy'.split():
-	cpdef ${method}(self):
+	# This is only different cause it is taking the cipher block size, and
+	# making sure the right hash is still registered.
+	cpdef digest(self):
+		cdef hash_state state
+		memcpy(&state, &self.state, sizeof(hash_state))
+		out = PyString_FromStringAndSize(NULL, self.cipher.desc.block_size)
 		self.assert_chc_cipher()
-		return Hash.${method}(self)
-	
-	% endfor
+		check_for_error(self.desc.done(&state, out))
+		return out
 				
 hash_descs = {'chc': CHC}
 % for hash in hash_names:

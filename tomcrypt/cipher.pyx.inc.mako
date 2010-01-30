@@ -44,7 +44,11 @@ cdef class CipherDescriptor(object):
 	def __init__(self, cipher):
 		self.idx = get_cipher_idx(cipher)
 		self.desc = cipher_descriptors[self.idx]
-	
+		
+	def __repr__(self):
+		return ${repr('<%s.%s of %s>')} % (
+			self.__class__.__module__, self.__class__.__name__, self.desc.name)
+				
 	% for name in cipher_properties:
 	@property
 	def ${name}(self):

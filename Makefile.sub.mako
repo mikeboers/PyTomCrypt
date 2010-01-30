@@ -31,7 +31,7 @@ PREPROCESS = ./preprocess
  % for source in sources[name]:
   % if exists(source + '.mako'):
    <% to_preprocess.append(source) %>
-${source}: ${source}.mako
+${source}: ${source}.mako tomcrypt/meta.py
 	$(PREPROCESS) -D ext_name=${name} $< > $@
   % endif
  % endfor

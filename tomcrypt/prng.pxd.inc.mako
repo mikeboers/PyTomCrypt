@@ -1,5 +1,5 @@
 ##
-cdef extern from "tomcrypt.h":
+cdef extern from "tomcrypt.h" nogil:
 
 	ctypedef struct prng_state:
 		pass

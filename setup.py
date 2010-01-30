@@ -141,7 +141,7 @@ libtomcrypt-1.16/src/mac/xcbc/xcbc_process.c
 libtomcrypt-1.16/src/mac/xcbc/xcbc_test.c
 libtomcrypt-1.16/src/math/fp/ltc_ecc_fp_mulmod.c
 # libtomcrypt-1.16/src/math/gmp_desc.c
-# libtomcrypt-1.16/src/math/ltm_desc.c
+libtomcrypt-1.16/src/math/ltm_desc.c
 # libtomcrypt-1.16/src/math/multi.c
 # libtomcrypt-1.16/src/math/rand_prime.c
 # libtomcrypt-1.16/src/math/tfm_desc.c
@@ -315,7 +315,7 @@ libtomcrypt-1.16/src/modes/ofb/ofb_start.c
 # libtomcrypt-1.16/src/pk/rsa/rsa_exptmod.c
 # libtomcrypt-1.16/src/pk/rsa/rsa_free.c
 # libtomcrypt-1.16/src/pk/rsa/rsa_import.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_make_key.c
+libtomcrypt-1.16/src/pk/rsa/rsa_make_key.c
 # libtomcrypt-1.16/src/pk/rsa/rsa_sign_hash.c
 # libtomcrypt-1.16/src/pk/rsa/rsa_verify_hash.c
 libtomcrypt-1.16/src/prngs/fortuna.c

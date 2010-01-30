@@ -18,3 +18,13 @@ cdef extern from "tomcrypt.h" nogil:
 	int CRYPT_OK
 	int MAXBLOCKSIZE
 	char * error_to_string(int err)
+	
+	ctypedef struct math_desc "ltc_math_descriptor":
+		pass
+	
+	math_desc ltm_desc
+	math_desc tfm_desc
+	math_desc gmp_desc
+	
+	math_desc ltc_mp
+	

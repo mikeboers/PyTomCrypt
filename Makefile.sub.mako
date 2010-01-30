@@ -26,11 +26,6 @@ to_preprocess = []
 ##
 PYTHON = bin/python
 PREPROCESS = ./preprocess
-LIBTOMCRYPT = libtomcrypt-1.16/libtomcrypt.a
-
-
-$(LIBTOMCRYPT): 
-	make -C libtomcrypt-1.16
 	
 % for name in ext_names:
  % for source in sources[name]:
@@ -44,7 +39,7 @@ ${source}: ${source}.mako
 tomcrypt/${name}.c: ${' '.join(sources[name])}
 	bin/cython tomcrypt/${name}.pyx
 
-tomcrypt/${name}.so: $(LIBTOMCRYPT) tomcrypt/${name}.c
+tomcrypt/${name}.so: tomcrypt/${name}.c
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
 
 % endfor

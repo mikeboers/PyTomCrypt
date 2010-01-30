@@ -1,6 +1,7 @@
 def test_hash():
 	"""Run the internal tests."""
 	register_all_hashes()
+	get_cipher_idx('aes') # Register AES for the CHC hash.
 	% for name in hash_names:
 	check_for_error(${name}_desc.test())
 	% endfor

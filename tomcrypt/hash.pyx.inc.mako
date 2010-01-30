@@ -74,6 +74,12 @@ cdef class Hash(HashDescriptor):
 		self.desc.init(&self.state)
 		self.update(input)
 	
+	def __dealloc__(self):
+		cdef unsigned char *out = <unsigned char *> malloc(MAXBLOCKSIZE)
+		# Not checking for errors in the deallocator...
+		self.desc.done(&self.state, out)
+		free(out)
+		
 	def __repr__(self):
 		return ${repr('<%s.%s of %s at 0x%x>')} % (
 			self.__class__.__module__, self.__class__.__name__, self.name,

@@ -130,11 +130,6 @@ cdef class Cipher(CipherDescriptor):
 			self.__class__.__module__, self.__class__.__name__, self.name,
 			self.mode, id(self))
 	
-	def __dealloc__(self):
-		# Not going to check for error here, because it is not safe to raise
-		# an exception during garbage collection.
-		all_done[self.mode_i](&self.state)
-	
 	def start(self, key, iv=None, **kwargs):
 		# Both the key and the iv are "const" for the start functions, so we
 		# don't need to worry about making unique ones.

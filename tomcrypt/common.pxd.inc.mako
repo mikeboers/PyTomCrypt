@@ -16,4 +16,5 @@ cdef extern from "pyerrors.h":
 cdef extern from "tomcrypt.h" nogil:
 
 	int CRYPT_OK
+	int MAXBLOCKSIZE
 	char * error_to_string(int err)

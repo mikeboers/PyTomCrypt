@@ -82,12 +82,13 @@ mac_ids = dict(mac_items)
 hash_macs = set('hmac'.split())
 cipher_macs = set(x for x in mac_names if x not in hash_macs)
 
+# There is no YARROW in here
 prng_names = """
 
 	fortuna
 	rc4
 	sober128
 	sprng
-	yarrow
+	
 
 """.strip().split()

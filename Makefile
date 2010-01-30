@@ -22,6 +22,7 @@ test: build
 	$(PYTHON) tests/test_cipher.py
 	$(PYTHON) tests/test_hash.py
 	$(PYTHON) tests/test_mac.py
+	$(PYTHON) tests/test_prng.py
 
 clean:
 	- rm *.o

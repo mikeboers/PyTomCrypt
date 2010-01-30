@@ -1,8 +1,9 @@
 ##
 cdef extern from "tomcrypt.h":
 
-	cdef struct prng_state:
+	ctypedef struct prng_state:
 		pass
+	
 	
 	# Cipher descriptor.
 	cdef struct prng_desc "ltc_prng_descriptor":
@@ -28,5 +29,8 @@ cdef extern from "tomcrypt.h":
 	# Functions for registering and finding the registered prngs.
 	int register_prng(prng_desc *prng)
 	int find_prng(char * name)
+	
+	unsigned long rng_get_bytes(unsigned char *buf, unsigned long len, void	(*callback)())
+	int rng_make_prng(int bits, int wprng, prng_state *prng, void (*callback)())
 
 

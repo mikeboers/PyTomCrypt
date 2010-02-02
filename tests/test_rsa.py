@@ -48,10 +48,9 @@ if __name__ == '__main__':
 	
 	print repr(pt2)
 	
+	pt = pt * 1000
 	sig = private.sign(pt)
 	print repr(sig)
 	print public.verify(pt, sig)
-	
-	print private.decrypt(ct, padding='pss')
 	
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

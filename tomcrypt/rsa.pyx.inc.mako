@@ -44,6 +44,8 @@ _rsa_pad_map = {
 RSA_FORMAT_PEM = 'pem'
 RSA_FORMAT_DER = 'der'
 
+RSA_DEFAULT_HASH = 'sha1'
+RSA_DEFAULT_PRNG = 'sprng'
 
 cdef object key_sentinel = object()
 
@@ -160,7 +162,7 @@ cdef class RSAKey(object):
             self._public = self.copy_public()
         return self._public
 
-    cdef raw_crypt(self, int mode, str input):
+    cdef str raw_crypt(self, int mode, str input):
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long out_length = 4096
         check_for_error(rsa_exptmod(
@@ -169,38 +171,32 @@ cdef class RSAKey(object):
             mode,
             &self.key))
         return out[:out_length]
-
-    cpdef raw_encrypt(self, str input):
-        return self.raw_crypt(RSA_TYPE_PUBLIC, input)
-
-    cpdef raw_decrypt(self, str input):
-        return self.raw_crypt(RSA_TYPE_PRIVATE, input)
     
-    cpdef _conform_padding(self, padding):
+    cdef int _conform_padding(self, padding):
         if padding not in _rsa_pad_map:
             raise ValueError('unknown rsa padding %r' % padding)
         padding = _rsa_pad_map[padding]
         return padding
     
-    cpdef _conform_prng(self, prng):
+    cdef PRNG _conform_prng(self, prng):
         if isinstance(prng, PRNG):
             return prng
         if prng is None:
-            return PRNG('sprng')
+            return PRNG(RSA_DEFAULT_PRNG)
         return PRNG(prng, auto_seed=1024)
     
-    cpdef _conform_hash(self, hash):
+    cdef HashDescriptor _conform_hash(self, hash):
         if isinstance(hash, HashDescriptor):
             return hash
         if hash is None:
-            return HashDescriptor('sha1')
+            return HashDescriptor(RSA_DEFAULT_HASH)
         return HashDescriptor(hash)
     
     cpdef encrypt(self, str input, prng=None, hash=None, padding=RSA_PAD_OAEP):
     
         padding = self._conform_padding(padding)
         if padding == RSA_PAD_NONE:
-            return self.raw_encrypt(input)
+            return self.raw_crypt(RSA_TYPE_PUBLIC, input)
 
         cdef PRNG c_prng = self._conform_prng(prng)
         cdef HashDescriptor c_hash = self._conform_hash(hash)
@@ -222,7 +218,7 @@ cdef class RSAKey(object):
     
         padding = self._conform_padding(padding)
         if padding == RSA_PAD_NONE:
-            return self.raw_decrypt(input)
+            return self.raw_crypt(RSA_TYPE_PRIVATE, input)
 
         cdef HashDescriptor c_hash = self._conform_hash(hash)
 
@@ -245,8 +241,6 @@ cdef class RSAKey(object):
     cpdef sign(self, str input, prng=None, hash=None, padding=RSA_PAD_PSS, unsigned long saltlen=16):
     
         padding = self._conform_padding(padding)
-        if padding == RSA_PAD_NONE:
-            return self.raw_encrypt(input)
 
         cdef PRNG c_prng = self._conform_prng(prng)
         cdef HashDescriptor c_hash = self._conform_hash(hash)
@@ -268,8 +262,6 @@ cdef class RSAKey(object):
         """This will throw an exception if the signature could not possibly be valid."""
         
         padding = self._conform_padding(padding)
-        if padding == RSA_PAD_NONE:
-            return self.raw_decrypt(input)
 
         cdef HashDescriptor c_hash = self._conform_hash(hash)
 

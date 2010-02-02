@@ -9,6 +9,7 @@ import time
 from subprocess import Popen, PIPE
 
 from tomcrypt.cipher import *
+from tomcrypt import meta
 
 internal_tests = (
     ( 16,
@@ -74,6 +75,8 @@ def test_openssl():
 			keysizes.append(cipher_desc.key_size(i))
 		keysizes = list(sorted(set(keysizes)))
 		for mode in 'ecb', 'cbc', 'cfb', 'ofb':
+			if mode not in meta.cipher_modes:
+				continue
 			for keysize in keysizes:
 				keysize *= 8
 				print cipher_name, keysize, mode
@@ -93,12 +96,15 @@ def test_openssl():
 					cipher = Cipher(key=key, iv=iv, cipher=cipher_name, mode=mode)
 					ct = cipher.encrypt(pt)
 					assert ct == out, 'openssl: %s != %s' % (ct.encode('hex'), out.encode('hex'))
-			
+
+
 def test_external():
 	for filename in os.listdir('test_vectors'):
 		if 'CFB1' in filename:
 			continue
 		mode = filename[:3].lower()
+		if mode not in meta.cipher_modes:
+			continue
 		fh = open('test_vectors/' + filename, 'rb')
 		type = fh.readline().strip()[1:-1].lower()
 		fh.readline()

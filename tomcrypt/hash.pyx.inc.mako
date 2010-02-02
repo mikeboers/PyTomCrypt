@@ -43,8 +43,10 @@ cdef class HashDescriptor(object):
 	def __init__(self, hash):
 		self.idx = get_hash_idx(hash)
 		self.desc = hash_descriptors[self.idx]
+		% if 'chc' in hash_names:
 		if not isinstance(self, CHC) and self.name == 'chc_hash':
 			raise ValueError('cannot build chc descriptor')
+		% endif
 
 	% for name in hash_properties:
 	@property
@@ -103,6 +105,7 @@ cdef class Hash(HashDescriptor):
 		memcpy(&copy.state, &self.state, sizeof(hash_state))
 		return copy
 	
+% if 'chc' in hash_names:
 
 cdef class CHC(Hash):
 	
@@ -150,7 +153,8 @@ cdef class CHC(Hash):
 		self.assert_chc_cipher()
 		check_for_error(self.desc.done(&state, out))
 		return out
-				
+
+% endif			
 
 hash_names = ${repr(set(hash_names))}
 

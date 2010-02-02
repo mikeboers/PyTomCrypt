@@ -25,4 +25,6 @@ cdef extern from "tomcrypt.h" nogil:
 	int register_hash(hash_desc *hash)
 	int find_hash(char * name)
 	
+	% if 'chc' in hash_names:
 	int chc_register(int)
+	% endif

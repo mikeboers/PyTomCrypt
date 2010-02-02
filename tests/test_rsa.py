@@ -16,9 +16,10 @@ from tomcrypt.rsa import *
 if __name__ == '__main__':
 	start_time = time.time()
 	
-	k = Key.generate(1024)
-	print k.bits
-	print k.public.as_string()
+	bits = Key.bits_for_payload(100)
+	k = Key.generate(bits)
+	print bits, k.bits
+	print 100, k.max_payload()
 	
 	private = Key.from_string('''-----BEGIN RSA PRIVATE KEY-----
     MIICXQIBAAKBgQC9mcyIFoka73NeECWjCHxr5ssMU5MBPpV2AMYHmtB8qiO5gmiU

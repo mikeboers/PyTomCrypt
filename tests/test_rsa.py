@@ -18,11 +18,11 @@ if __name__ == '__main__':
 	
 	k = Key.generate()
 	k.dump()
-	pprint(k.as_dict(64))
-	der = k.as_string()
-	print len(der)
+	# pprint(k.as_dict(64))
+	der = k.to_string()
 	
-	file('private.der', 'wb').write(der)
+	k2 = Key.from_string(der)
+	k2.dump()
 	
 	
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

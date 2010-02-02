@@ -141,10 +141,10 @@ libtomcrypt-1.16/src/mac/xcbc/xcbc_process.c
 libtomcrypt-1.16/src/mac/xcbc/xcbc_test.c
 libtomcrypt-1.16/src/math/fp/ltc_ecc_fp_mulmod.c
 # libtomcrypt-1.16/src/math/gmp_desc.c
-libtomcrypt-1.16/src/math/ltm_desc.c
-# libtomcrypt-1.16/src/math/multi.c
-# libtomcrypt-1.16/src/math/rand_prime.c
-# libtomcrypt-1.16/src/math/tfm_desc.c
+# libtomcrypt-1.16/src/math/ltm_desc.c
+libtomcrypt-1.16/src/math/multi.c
+libtomcrypt-1.16/src/math/rand_prime.c
+libtomcrypt-1.16/src/math/tfm_desc.c
 libtomcrypt-1.16/src/misc/base64/base64_decode.c
 libtomcrypt-1.16/src/misc/base64/base64_encode.c
 libtomcrypt-1.16/src/misc/burn_stack.c
@@ -220,104 +220,104 @@ libtomcrypt-1.16/src/modes/ofb/ofb_encrypt.c
 libtomcrypt-1.16/src/modes/ofb/ofb_getiv.c
 libtomcrypt-1.16/src/modes/ofb/ofb_setiv.c
 libtomcrypt-1.16/src/modes/ofb/ofb_start.c
-# libtomcrypt-1.16/src/pk/asn1/der/bit/der_decode_bit_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/bit/der_encode_bit_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/bit/der_length_bit_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/boolean/der_decode_boolean.c
-# libtomcrypt-1.16/src/pk/asn1/der/boolean/der_encode_boolean.c
-# libtomcrypt-1.16/src/pk/asn1/der/boolean/der_length_boolean.c
-# libtomcrypt-1.16/src/pk/asn1/der/choice/der_decode_choice.c
-# libtomcrypt-1.16/src/pk/asn1/der/ia5/der_decode_ia5_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/ia5/der_encode_ia5_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/ia5/der_length_ia5_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/integer/der_decode_integer.c
-# libtomcrypt-1.16/src/pk/asn1/der/integer/der_encode_integer.c
-# libtomcrypt-1.16/src/pk/asn1/der/integer/der_length_integer.c
-# libtomcrypt-1.16/src/pk/asn1/der/object_identifier/der_decode_object_identifier.c
-# libtomcrypt-1.16/src/pk/asn1/der/object_identifier/der_encode_object_identifier.c
-# libtomcrypt-1.16/src/pk/asn1/der/object_identifier/der_length_object_identifier.c
-# libtomcrypt-1.16/src/pk/asn1/der/octet/der_decode_octet_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/octet/der_encode_octet_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/octet/der_length_octet_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/printable_string/der_decode_printable_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/printable_string/der_encode_printable_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/printable_string/der_length_printable_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/sequence/der_decode_sequence_ex.c
-# libtomcrypt-1.16/src/pk/asn1/der/sequence/der_decode_sequence_flexi.c
-# libtomcrypt-1.16/src/pk/asn1/der/sequence/der_decode_sequence_multi.c
-# libtomcrypt-1.16/src/pk/asn1/der/sequence/der_encode_sequence_ex.c
-# libtomcrypt-1.16/src/pk/asn1/der/sequence/der_encode_sequence_multi.c
-# libtomcrypt-1.16/src/pk/asn1/der/sequence/der_length_sequence.c
-# libtomcrypt-1.16/src/pk/asn1/der/sequence/der_sequence_free.c
-# libtomcrypt-1.16/src/pk/asn1/der/set/der_encode_set.c
-# libtomcrypt-1.16/src/pk/asn1/der/set/der_encode_setof.c
-# libtomcrypt-1.16/src/pk/asn1/der/short_integer/der_decode_short_integer.c
-# libtomcrypt-1.16/src/pk/asn1/der/short_integer/der_encode_short_integer.c
-# libtomcrypt-1.16/src/pk/asn1/der/short_integer/der_length_short_integer.c
-# libtomcrypt-1.16/src/pk/asn1/der/utctime/der_decode_utctime.c
-# libtomcrypt-1.16/src/pk/asn1/der/utctime/der_encode_utctime.c
-# libtomcrypt-1.16/src/pk/asn1/der/utctime/der_length_utctime.c
-# libtomcrypt-1.16/src/pk/asn1/der/utf8/der_decode_utf8_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/utf8/der_encode_utf8_string.c
-# libtomcrypt-1.16/src/pk/asn1/der/utf8/der_length_utf8_string.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_decrypt_key.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_encrypt_key.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_export.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_free.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_import.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_make_key.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_shared_secret.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_sign_hash.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_verify_hash.c
-# libtomcrypt-1.16/src/pk/dsa/dsa_verify_key.c
-# libtomcrypt-1.16/src/pk/ecc/ecc.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_ansi_x963_export.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_ansi_x963_import.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_decrypt_key.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_encrypt_key.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_export.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_free.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_get_size.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_import.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_make_key.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_shared_secret.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_sign_hash.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_sizes.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_test.c
-# libtomcrypt-1.16/src/pk/ecc/ecc_verify_hash.c
-# libtomcrypt-1.16/src/pk/ecc/ltc_ecc_is_valid_idx.c
-# libtomcrypt-1.16/src/pk/ecc/ltc_ecc_map.c
-# libtomcrypt-1.16/src/pk/ecc/ltc_ecc_mul2add.c
-# libtomcrypt-1.16/src/pk/ecc/ltc_ecc_mulmod.c
-# libtomcrypt-1.16/src/pk/ecc/ltc_ecc_mulmod_timing.c
-# libtomcrypt-1.16/src/pk/ecc/ltc_ecc_points.c
-# libtomcrypt-1.16/src/pk/ecc/ltc_ecc_projective_add_point.c
-# libtomcrypt-1.16/src/pk/ecc/ltc_ecc_projective_dbl_point.c
-# libtomcrypt-1.16/src/pk/katja/katja_decrypt_key.c
-# libtomcrypt-1.16/src/pk/katja/katja_encrypt_key.c
-# libtomcrypt-1.16/src/pk/katja/katja_export.c
-# libtomcrypt-1.16/src/pk/katja/katja_exptmod.c
-# libtomcrypt-1.16/src/pk/katja/katja_free.c
-# libtomcrypt-1.16/src/pk/katja/katja_import.c
-# libtomcrypt-1.16/src/pk/katja/katja_make_key.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_i2osp.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_mgf1.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_oaep_decode.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_oaep_encode.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_os2ip.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_pss_decode.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_pss_encode.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_v1_5_decode.c
-# libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_v1_5_encode.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_decrypt_key.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_encrypt_key.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_export.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_exptmod.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_free.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_import.c
+libtomcrypt-1.16/src/pk/asn1/der/bit/der_decode_bit_string.c
+libtomcrypt-1.16/src/pk/asn1/der/bit/der_encode_bit_string.c
+libtomcrypt-1.16/src/pk/asn1/der/bit/der_length_bit_string.c
+libtomcrypt-1.16/src/pk/asn1/der/boolean/der_decode_boolean.c
+libtomcrypt-1.16/src/pk/asn1/der/boolean/der_encode_boolean.c
+libtomcrypt-1.16/src/pk/asn1/der/boolean/der_length_boolean.c
+libtomcrypt-1.16/src/pk/asn1/der/choice/der_decode_choice.c
+libtomcrypt-1.16/src/pk/asn1/der/ia5/der_decode_ia5_string.c
+libtomcrypt-1.16/src/pk/asn1/der/ia5/der_encode_ia5_string.c
+libtomcrypt-1.16/src/pk/asn1/der/ia5/der_length_ia5_string.c
+libtomcrypt-1.16/src/pk/asn1/der/integer/der_decode_integer.c
+libtomcrypt-1.16/src/pk/asn1/der/integer/der_encode_integer.c
+libtomcrypt-1.16/src/pk/asn1/der/integer/der_length_integer.c
+libtomcrypt-1.16/src/pk/asn1/der/object_identifier/der_decode_object_identifier.c
+libtomcrypt-1.16/src/pk/asn1/der/object_identifier/der_encode_object_identifier.c
+libtomcrypt-1.16/src/pk/asn1/der/object_identifier/der_length_object_identifier.c
+libtomcrypt-1.16/src/pk/asn1/der/octet/der_decode_octet_string.c
+libtomcrypt-1.16/src/pk/asn1/der/octet/der_encode_octet_string.c
+libtomcrypt-1.16/src/pk/asn1/der/octet/der_length_octet_string.c
+libtomcrypt-1.16/src/pk/asn1/der/printable_string/der_decode_printable_string.c
+libtomcrypt-1.16/src/pk/asn1/der/printable_string/der_encode_printable_string.c
+libtomcrypt-1.16/src/pk/asn1/der/printable_string/der_length_printable_string.c
+libtomcrypt-1.16/src/pk/asn1/der/sequence/der_decode_sequence_ex.c
+libtomcrypt-1.16/src/pk/asn1/der/sequence/der_decode_sequence_flexi.c
+libtomcrypt-1.16/src/pk/asn1/der/sequence/der_decode_sequence_multi.c
+libtomcrypt-1.16/src/pk/asn1/der/sequence/der_encode_sequence_ex.c
+libtomcrypt-1.16/src/pk/asn1/der/sequence/der_encode_sequence_multi.c
+libtomcrypt-1.16/src/pk/asn1/der/sequence/der_length_sequence.c
+libtomcrypt-1.16/src/pk/asn1/der/sequence/der_sequence_free.c
+libtomcrypt-1.16/src/pk/asn1/der/set/der_encode_set.c
+libtomcrypt-1.16/src/pk/asn1/der/set/der_encode_setof.c
+libtomcrypt-1.16/src/pk/asn1/der/short_integer/der_decode_short_integer.c
+libtomcrypt-1.16/src/pk/asn1/der/short_integer/der_encode_short_integer.c
+libtomcrypt-1.16/src/pk/asn1/der/short_integer/der_length_short_integer.c
+libtomcrypt-1.16/src/pk/asn1/der/utctime/der_decode_utctime.c
+libtomcrypt-1.16/src/pk/asn1/der/utctime/der_encode_utctime.c
+libtomcrypt-1.16/src/pk/asn1/der/utctime/der_length_utctime.c
+libtomcrypt-1.16/src/pk/asn1/der/utf8/der_decode_utf8_string.c
+libtomcrypt-1.16/src/pk/asn1/der/utf8/der_encode_utf8_string.c
+libtomcrypt-1.16/src/pk/asn1/der/utf8/der_length_utf8_string.c
+libtomcrypt-1.16/src/pk/dsa/dsa_decrypt_key.c
+libtomcrypt-1.16/src/pk/dsa/dsa_encrypt_key.c
+libtomcrypt-1.16/src/pk/dsa/dsa_export.c
+libtomcrypt-1.16/src/pk/dsa/dsa_free.c
+libtomcrypt-1.16/src/pk/dsa/dsa_import.c
+libtomcrypt-1.16/src/pk/dsa/dsa_make_key.c
+libtomcrypt-1.16/src/pk/dsa/dsa_shared_secret.c
+libtomcrypt-1.16/src/pk/dsa/dsa_sign_hash.c
+libtomcrypt-1.16/src/pk/dsa/dsa_verify_hash.c
+libtomcrypt-1.16/src/pk/dsa/dsa_verify_key.c
+libtomcrypt-1.16/src/pk/ecc/ecc.c
+libtomcrypt-1.16/src/pk/ecc/ecc_ansi_x963_export.c
+libtomcrypt-1.16/src/pk/ecc/ecc_ansi_x963_import.c
+libtomcrypt-1.16/src/pk/ecc/ecc_decrypt_key.c
+libtomcrypt-1.16/src/pk/ecc/ecc_encrypt_key.c
+libtomcrypt-1.16/src/pk/ecc/ecc_export.c
+libtomcrypt-1.16/src/pk/ecc/ecc_free.c
+libtomcrypt-1.16/src/pk/ecc/ecc_get_size.c
+libtomcrypt-1.16/src/pk/ecc/ecc_import.c
+libtomcrypt-1.16/src/pk/ecc/ecc_make_key.c
+libtomcrypt-1.16/src/pk/ecc/ecc_shared_secret.c
+libtomcrypt-1.16/src/pk/ecc/ecc_sign_hash.c
+libtomcrypt-1.16/src/pk/ecc/ecc_sizes.c
+libtomcrypt-1.16/src/pk/ecc/ecc_test.c
+libtomcrypt-1.16/src/pk/ecc/ecc_verify_hash.c
+libtomcrypt-1.16/src/pk/ecc/ltc_ecc_is_valid_idx.c
+libtomcrypt-1.16/src/pk/ecc/ltc_ecc_map.c
+libtomcrypt-1.16/src/pk/ecc/ltc_ecc_mul2add.c
+libtomcrypt-1.16/src/pk/ecc/ltc_ecc_mulmod.c
+libtomcrypt-1.16/src/pk/ecc/ltc_ecc_mulmod_timing.c
+libtomcrypt-1.16/src/pk/ecc/ltc_ecc_points.c
+libtomcrypt-1.16/src/pk/ecc/ltc_ecc_projective_add_point.c
+libtomcrypt-1.16/src/pk/ecc/ltc_ecc_projective_dbl_point.c
+libtomcrypt-1.16/src/pk/katja/katja_decrypt_key.c
+libtomcrypt-1.16/src/pk/katja/katja_encrypt_key.c
+libtomcrypt-1.16/src/pk/katja/katja_export.c
+libtomcrypt-1.16/src/pk/katja/katja_exptmod.c
+libtomcrypt-1.16/src/pk/katja/katja_free.c
+libtomcrypt-1.16/src/pk/katja/katja_import.c
+libtomcrypt-1.16/src/pk/katja/katja_make_key.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_i2osp.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_mgf1.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_oaep_decode.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_oaep_encode.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_os2ip.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_pss_decode.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_pss_encode.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_v1_5_decode.c
+libtomcrypt-1.16/src/pk/pkcs1/pkcs_1_v1_5_encode.c
+libtomcrypt-1.16/src/pk/rsa/rsa_decrypt_key.c
+libtomcrypt-1.16/src/pk/rsa/rsa_encrypt_key.c
+libtomcrypt-1.16/src/pk/rsa/rsa_export.c
+libtomcrypt-1.16/src/pk/rsa/rsa_exptmod.c
+libtomcrypt-1.16/src/pk/rsa/rsa_free.c
+libtomcrypt-1.16/src/pk/rsa/rsa_import.c
 libtomcrypt-1.16/src/pk/rsa/rsa_make_key.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_sign_hash.c
-# libtomcrypt-1.16/src/pk/rsa/rsa_verify_hash.c
+libtomcrypt-1.16/src/pk/rsa/rsa_sign_hash.c
+libtomcrypt-1.16/src/pk/rsa/rsa_verify_hash.c
 libtomcrypt-1.16/src/prngs/fortuna.c
 libtomcrypt-1.16/src/prngs/rc4.c
 libtomcrypt-1.16/src/prngs/rng_get_bytes.c
@@ -349,7 +349,39 @@ sources = [x.strip() for x in sources if not x.lstrip().startswith('#')]
 # Define the extensions
 ext_modules = [Extension(
     'tomcrypt.%s' % name, ["tomcrypt/%s.c" % name] + sources,
-    include_dirs=['.', './libtomcrypt-1.16/src/headers'],
+    include_dirs=[
+		'.',
+		'./libtomcrypt-extra',
+		'./libtomcrypt-1.16/src/headers',
+		'./libtommath-0.39',
+		'./tomsfastmath-0.10',
+	],
+	define_macros=dict(
+		
+	 	# LTC_NO_MODES=None,
+	 	# 	   	LTC_ECB_MODE=None,
+	 	# 	   	LTC_CBC_MODE=None,
+	 	# 	   	LTC_CTR_MODE=None,
+	 	# 	   	LTC_CFB_MODE=None,
+	 	# 	   	LTC_OFB_MODE=None,
+	 	# 	   	LTC_LRW_MODE=None,
+	 	# 	   	LTC_F8_MODE=None,
+		
+		# LTC_NO_MACS=None,
+		# LTC_HMAC=None,
+		# LTC_OMAC=None,
+		# LTC_PMAC=None,
+		# LTC_XCBC=None,
+		
+		# LTC_NO_PK=None,
+		# 	    MRSA=None,
+	   	# MECC=None,
+		
+		TFM_DESC=None,
+		LTC_SOURCE=None,
+		
+	).items(),
+	extra_objects=['./tomsfastmath-0.10/libtfm.a'],
 ) for name in ext_names]
 
 

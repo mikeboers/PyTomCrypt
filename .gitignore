@@ -12,6 +12,9 @@
 /pip-log.txt
 /MANIFEST
 
+/libtommath-0.39
+/tomsfastmath-0.10
+
 # Build
 /tomcrypt/*.so
 /tomcrypt/*.c

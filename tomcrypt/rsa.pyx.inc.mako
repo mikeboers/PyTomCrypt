@@ -171,15 +171,55 @@ cdef class RSAKey(object):
         
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long out_length = 4096
-        check_for_error(rsa_encrypt_key_ex(
-            input, len(input),
-            out, &out_length,
-            NULL, 0,
-            &prng.state, prng.idx,
-            hash.idx,
-            padding,
-            &self.key
-        ))
+        
+        if padding == RSA_PAD_NONE:
+            check_for_error(rsa_exptmod(
+                input, len(input),
+                out, &out_length,
+                RSA_TYPE_PUBLIC, # For encryption
+                &self.key))
+        else:
+            check_for_error(rsa_encrypt_key_ex(
+                input, len(input),
+                out, &out_length,
+                NULL, 0,
+                &prng.state, prng.idx,
+                hash.idx,
+                padding,
+                &self.key
+            ))
+        
+        return out[:out_length]
+    
+    cpdef decrypt(self, str input, HashDescriptor hash=None, padding=RSA_PAD_OAEP):
+        if padding not in _rsa_pad_map:
+            raise ValueError('unknown rsa padding %r' % padding)
+        padding = _rsa_pad_map[padding]
+        if hash is None:
+            hash = HashDescriptor('sha1')
+
+        out = PyString_FromStringAndSize(NULL, 4096)
+        cdef unsigned long out_length = 4096
+        cdef int status = 0
+        
+        if padding == RSA_PAD_NONE:
+            check_for_error(rsa_exptmod(
+                input, len(input),
+                out, &out_length,
+                RSA_TYPE_PRIVATE, # For encryption
+                &self.key))
+        else:
+            check_for_error(rsa_decrypt_key_ex(
+                input, len(input),
+                out, &out_length,
+                NULL, 0,
+                hash.idx,
+                padding,
+                &status,
+                &self.key
+            ))        
+            if not status:
+                raise Error('invalid padding')
         
         return out[:out_length]
 

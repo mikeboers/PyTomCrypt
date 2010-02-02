@@ -44,5 +44,8 @@ if __name__ == '__main__':
 	pt = 'Hello, world.'
 	ct = public.encrypt(pt)
 	print repr(ct)
+	pt2 = private.decrypt(ct)
+	
+	print repr(pt2)
 	
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

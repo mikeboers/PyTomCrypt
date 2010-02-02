@@ -35,6 +35,12 @@ cdef extern from "tomcrypt.h" nogil:
     cdef int _RSA_PAD_OAEP "LTC_PKCS_1_OAEP"
     cdef int _RSA_PAD_PSS  "LTC_PKCS_1_PSS"
     
+    int rsa_exptmod(
+        unsigned char *input, unsigned long inlen,
+        unsigned char *out  , unsigned long *outlen,
+        int mode,
+        rsa_key *key)
+    
     int rsa_encrypt_key_ex(
         unsigned char *input,
         unsigned long inlen,
@@ -46,4 +52,16 @@ cdef extern from "tomcrypt.h" nogil:
         int prng_idx,
         int hash_idx,
         int padding,
+        rsa_key *key)
+    
+    int rsa_decrypt_key_ex(
+        unsigned char *input,
+        unsigned long inlen,
+        unsigned char *out,
+        unsigned long *outlen,
+        unsigned char *lparam,
+        unsigned long lparamlen,
+        int hash_idx,
+        int padding,
+        int *stat,
         rsa_key *key)

@@ -10,13 +10,14 @@ from distutils.extension import Extension
 ext_names = ['_main']
 ext_name = os.environ.get('PyTomCrypt_ext_name')
 if ext_name:
-	if ext_name not in ext_names:
-		raise ValueError('unknown extension %r' % ext_name)
-	ext_names = [ext_name]
+    if ext_name not in ext_names:
+        raise ValueError('unknown extension %r' % ext_name)
+    ext_names = [ext_name]
 
 
 sources = '''
 
+### LIBTOMCRYPT
 # libtomcrypt-1.16/demos/encrypt.c
 # libtomcrypt-1.16/demos/hashsum.c
 # libtomcrypt-1.16/demos/multi.c
@@ -28,7 +29,6 @@ sources = '''
 # libtomcrypt-1.16/notes/etc/whirlgen.c
 # libtomcrypt-1.16/notes/etc/whirltest.c
 libtomcrypt-1.16/src/ciphers/aes/aes.c
-libtomcrypt-extra/aes_enc.c
 # libtomcrypt-1.16/src/ciphers/aes/aes_tab.c
 libtomcrypt-1.16/src/ciphers/anubis.c
 libtomcrypt-1.16/src/ciphers/blowfish.c
@@ -340,9 +340,83 @@ libtomcrypt-1.16/src/prngs/yarrow.c
 # libtomcrypt-1.16/testprof/test_driver.c
 # libtomcrypt-1.16/testprof/x86_prof.c
 
+
+### TOMSFASTMATH
+# tomsfastmath-0.10/comba_mont_gen.c
+# tomsfastmath-0.10/comba_mult_gen.c
+# tomsfastmath-0.10/comba_mult_smallgen.c
+# tomsfastmath-0.10/comba_sqr_gen.c
+# tomsfastmath-0.10/comba_sqr_smallgen.c
+# tomsfastmath-0.10/demo/rsa.c
+# tomsfastmath-0.10/demo/stest.c
+# tomsfastmath-0.10/demo/test.c
+tomsfastmath-0.10/fp_2expt.c
+tomsfastmath-0.10/fp_add.c
+tomsfastmath-0.10/fp_add_d.c
+tomsfastmath-0.10/fp_addmod.c
+tomsfastmath-0.10/fp_cmp.c
+tomsfastmath-0.10/fp_cmp_d.c
+tomsfastmath-0.10/fp_cmp_mag.c
+tomsfastmath-0.10/fp_cnt_lsb.c
+tomsfastmath-0.10/fp_count_bits.c
+tomsfastmath-0.10/fp_div.c
+tomsfastmath-0.10/fp_div_2.c
+tomsfastmath-0.10/fp_div_2d.c
+tomsfastmath-0.10/fp_div_d.c
+tomsfastmath-0.10/fp_exptmod.c
+tomsfastmath-0.10/fp_gcd.c
+tomsfastmath-0.10/fp_ident.c
+tomsfastmath-0.10/fp_invmod.c
+tomsfastmath-0.10/fp_isprime.c
+tomsfastmath-0.10/fp_lcm.c
+tomsfastmath-0.10/fp_lshd.c
+tomsfastmath-0.10/fp_mod.c
+tomsfastmath-0.10/fp_mod_2d.c
+tomsfastmath-0.10/fp_mod_d.c
+tomsfastmath-0.10/fp_mont_small.c
+tomsfastmath-0.10/fp_montgomery_calc_normalization.c
+tomsfastmath-0.10/fp_montgomery_reduce.c
+tomsfastmath-0.10/fp_montgomery_setup.c
+tomsfastmath-0.10/fp_mul.c
+tomsfastmath-0.10/fp_mul_2.c
+tomsfastmath-0.10/fp_mul_2d.c
+tomsfastmath-0.10/fp_mul_comba.c
+tomsfastmath-0.10/fp_mul_d.c
+tomsfastmath-0.10/fp_mulmod.c
+tomsfastmath-0.10/fp_prime_miller_rabin.c
+tomsfastmath-0.10/fp_prime_random_ex.c
+tomsfastmath-0.10/fp_radix_size.c
+tomsfastmath-0.10/fp_read_radix.c
+tomsfastmath-0.10/fp_read_signed_bin.c
+tomsfastmath-0.10/fp_read_unsigned_bin.c
+tomsfastmath-0.10/fp_reverse.c
+tomsfastmath-0.10/fp_rshd.c
+tomsfastmath-0.10/fp_s_rmap.c
+tomsfastmath-0.10/fp_set.c
+tomsfastmath-0.10/fp_signed_bin_size.c
+tomsfastmath-0.10/fp_sqr.c
+tomsfastmath-0.10/fp_sqr_comba.c
+# tomsfastmath-0.10/fp_sqr_comba_generic.c
+tomsfastmath-0.10/fp_sqrmod.c
+tomsfastmath-0.10/fp_sub.c
+tomsfastmath-0.10/fp_sub_d.c
+tomsfastmath-0.10/fp_submod.c
+tomsfastmath-0.10/fp_to_signed_bin.c
+tomsfastmath-0.10/fp_to_unsigned_bin.c
+tomsfastmath-0.10/fp_toradix.c
+tomsfastmath-0.10/fp_unsigned_bin_size.c
+# tomsfastmath-0.10/mtest/mtest.c
+# tomsfastmath-0.10/pre_gen/mpi.c
+tomsfastmath-0.10/s_fp_add.c
+tomsfastmath-0.10/s_fp_sub.c
+
+
+### CUSTOM
+libtomcrypt-extra/aes_enc.c
+
 '''.strip().splitlines()
 
-sources = [x.strip() for x in sources if not x.lstrip().startswith('#')]
+sources = [x.strip() for x in sources if x.strip() and not x.lstrip().startswith('#')]
 
 # print '\n'.join(sources)
 
@@ -350,68 +424,48 @@ sources = [x.strip() for x in sources if not x.lstrip().startswith('#')]
 ext_modules = [Extension(
     'tomcrypt.%s' % name, ["tomcrypt/%s.c" % name] + sources,
     include_dirs=[
-		'.',
-		'./libtomcrypt-extra',
-		'./libtomcrypt-1.16/src/headers',
-		'./libtommath-0.39',
-		'./tomsfastmath-0.10',
-	],
-	define_macros=dict(
-		
-	 	# LTC_NO_MODES=None,
-	 	# 	   	LTC_ECB_MODE=None,
-	 	# 	   	LTC_CBC_MODE=None,
-	 	# 	   	LTC_CTR_MODE=None,
-	 	# 	   	LTC_CFB_MODE=None,
-	 	# 	   	LTC_OFB_MODE=None,
-	 	# 	   	LTC_LRW_MODE=None,
-	 	# 	   	LTC_F8_MODE=None,
-		
-		# LTC_NO_MACS=None,
-		# LTC_HMAC=None,
-		# LTC_OMAC=None,
-		# LTC_PMAC=None,
-		# LTC_XCBC=None,
-		
-		# LTC_NO_PK=None,
-		# 	    MRSA=None,
-	   	# MECC=None,
-		
-		TFM_DESC=None,
-		LTC_SOURCE=None,
-		
-	).items(),
-	extra_objects=['./tomsfastmath-0.10/libtfm.a'],
+                '.',
+                './libtomcrypt-1.16/src/headers',
+                './tomsfastmath-0.10',
+        ],
+        define_macros=dict(
+			# These two macros are needed for the math library.
+			TFM_DESC=None,
+			LTC_SOURCE=None,
+        ).items(),
+        extra_objects=[
+			#'./tomsfastmath-0.10/libtfm.a'
+		],
 ) for name in ext_names]
 
 
 # Go!
 if __name__ == '__main__':
-	setup(
-		
-	    name='PyTomCrypt',
-		description='Python+Cython wrapper around LibTomCrypt',
-		# version='1.0a.dev%s' % datetime.datetime.utcnow().strftime('%Y%m%dT%H%M'),
-		version='1.0a.dev',
-		license='New BSD',
-		platforms=['any'],
-		author='Mike Boers',
-		author_email='pytomcrypt@mikeboers.com',
-		maintainer='Mike Boers',
-		maintainer_email='pytomcrypt@mikeboers.com',
-		packages=['tomcrypt'],
-        url='http://github.com/mikeboers/PyTomCrypt',
-		
-		classifiers = [
-		    'Development Status :: 2 - Pre-Alpha',
-		    'Intended Audience :: Developers',
-		    'Operating System :: OS Independent',
-		    'Programming Language :: C',
-		    'Programming Language :: Python',
-		    'Topic :: Security :: Cryptography',
-		    'Topic :: Software Development :: Libraries :: Python Modules',
-		],
-		
-	    # cmdclass = {'build_ext': build_ext},
-	    ext_modules=ext_modules,
-	)
+    setup(
+
+        name='PyTomCrypt',
+            description='Python+Cython wrapper around LibTomCrypt',
+            # version='1.0a.dev%s' % datetime.datetime.utcnow().strftime('%Y%m%dT%H%M'),
+            version='1.0a.dev',
+            license='New BSD',
+            platforms=['any'],
+            author='Mike Boers',
+            author_email='pytomcrypt@mikeboers.com',
+            maintainer='Mike Boers',
+            maintainer_email='pytomcrypt@mikeboers.com',
+            packages=['tomcrypt'],
+    url='http://github.com/mikeboers/PyTomCrypt',
+
+            classifiers = [
+                'Development Status :: 2 - Pre-Alpha',
+                'Intended Audience :: Developers',
+                'Operating System :: OS Independent',
+                'Programming Language :: C',
+                'Programming Language :: Python',
+                'Topic :: Security :: Cryptography',
+                'Topic :: Software Development :: Libraries :: Python Modules',
+            ],
+
+        # cmdclass = {'build_ext': build_ext},
+        ext_modules=ext_modules,
+    )

@@ -24,16 +24,21 @@ test: build
 	$(PYTHON) tests/test_mac.py
 	$(PYTHON) tests/test_prng.py
 
+cleanbuild:	
+	- rm -rf build
+
 clean:
 	- rm *.o
 	- rm *.so
 	- rm *.pyc
-	- rm -rf build
 	- rm tomcrypt/*.c
 	- rm tomcrypt/*.so
 	- rm tomcrypt/*.pyc
+	- rm -rf dist
 	- $(SUBMAKE) clean
 	- rm Makefile.sub
+
+cleanall: clean cleanbuild
 
 cleantest:
 	make clean

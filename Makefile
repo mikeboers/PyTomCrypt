@@ -23,6 +23,7 @@ test: build
 	$(PYTHON) tests/test_hash.py
 	$(PYTHON) tests/test_mac.py
 	$(PYTHON) tests/test_prng.py
+	$(PYTHON) tests/test_rsa.py
 
 cleanbuild:	
 	- rm -rf build

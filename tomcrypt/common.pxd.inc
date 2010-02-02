@@ -17,10 +17,11 @@ cdef extern from "tomcrypt.h" nogil:
 
     int CRYPT_OK
     int CRYPT_INVALID_PACKET
+    int CRYPT_PK_INVALID_PADDING
     
     int MAXBLOCKSIZE
     
-    char * error_to_string(int err)
+    char * raw_error_to_string "error_to_string"(int err)
     
     ctypedef struct math_desc "ltc_math_descriptor":
         char * name

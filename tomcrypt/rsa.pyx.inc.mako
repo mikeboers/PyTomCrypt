@@ -175,14 +175,16 @@ cdef class RSAKey(object):
 
     cpdef raw_decrypt(self, str input):
         return self.raw_crypt(RSA_TYPE_PRIVATE, input)
-
-    cpdef encrypt(self, str input, PRNG prng=None, hash=None, padding=RSA_PAD_OAEP):
+    
+    cpdef _conform_padding(self, padding):
         if padding not in _rsa_pad_map:
             raise ValueError('unknown rsa padding %r' % padding)
         padding = _rsa_pad_map[padding]
-        if padding == RSA_PAD_PSS:
-            raise Error('cannot use PSS padding for encryption')
-
+        return padding
+    
+    cpdef encrypt(self, str input, PRNG prng=None, hash=None, padding=RSA_PAD_OAEP):
+    
+        padding = self._conform_padding(padding)
         if padding == RSA_PAD_NONE:
             return self.raw_encrypt(input)
 
@@ -204,12 +206,8 @@ cdef class RSAKey(object):
         return out[:out_length]
 
     cpdef decrypt(self, str input, hash=None, padding=RSA_PAD_OAEP):
-        if padding not in _rsa_pad_map:
-            raise ValueError('unknown rsa padding %r' % padding)
-        padding = _rsa_pad_map[padding]
-        if padding == RSA_PAD_PSS:
-            raise Error('cannot use PSS padding for decryption')
-
+    
+        padding = self._conform_padding(padding)
         if padding == RSA_PAD_NONE:
             return self.raw_decrypt(input)
 
@@ -232,12 +230,8 @@ cdef class RSAKey(object):
         return out[:out_length]
 
     cpdef sign(self, str input, PRNG prng=None, hash=None, padding=RSA_PAD_PSS, unsigned long saltlen=16):
-        if padding not in _rsa_pad_map:
-            raise ValueError('unknown rsa padding %r' % padding)
-        padding = _rsa_pad_map[padding]
-        if padding == RSA_PAD_OAEP:
-            raise Error('cannot use OAEP padding for signing')
-
+    
+        padding = self._conform_padding(padding)
         if padding == RSA_PAD_NONE:
             return self.raw_encrypt(input)
 
@@ -261,12 +255,7 @@ cdef class RSAKey(object):
     cpdef verify(self, str input, str sig, hash=None, padding=RSA_PAD_PSS, unsigned long saltlen=16):
         """This will throw an exception if the signature could not possibly be valid."""
         
-        if padding not in _rsa_pad_map:
-            raise ValueError('unknown rsa padding %r' % padding)
-        padding = _rsa_pad_map[padding]
-        if padding == RSA_PAD_OAEP:
-            raise Error('cannot use OAEP padding for signing')
-
+        padding = self._conform_padding(padding)
         if padding == RSA_PAD_NONE:
             return self.raw_decrypt(input)
 

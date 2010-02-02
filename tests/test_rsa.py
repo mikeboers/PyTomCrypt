@@ -51,7 +51,7 @@ if __name__ == '__main__':
 	sig = private.sign(pt)
 	print repr(sig)
 	print public.verify(pt, sig)
-	print public.verify(pt + '1', sig)
-	print public.verify(pt, sig + '1')
+	
+	print private.decrypt(ct, padding='pss')
 	
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

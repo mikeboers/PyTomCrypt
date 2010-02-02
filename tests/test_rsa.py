@@ -48,4 +48,10 @@ if __name__ == '__main__':
 	
 	print repr(pt2)
 	
+	sig = private.sign(pt)
+	print repr(sig)
+	print public.verify(pt, sig)
+	print public.verify(pt + '1', sig)
+	print public.verify(pt, sig + '1')
+	
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

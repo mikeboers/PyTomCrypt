@@ -42,26 +42,38 @@ cdef extern from "tomcrypt.h" nogil:
         rsa_key *key)
     
     int rsa_encrypt_key_ex(
-        unsigned char *input,
-        unsigned long inlen,
-        unsigned char *out,
-        unsigned long *outlen,
-        unsigned char *lparam,
-        unsigned long lparamlen,
-        prng_state *prng,
-        int prng_idx,
+        unsigned char *input, unsigned long inlen,
+        unsigned char *out, unsigned long *outlen,
+        unsigned char *lparam, unsigned long lparamlen,
+        prng_state *prng, int prng_idx,
         int hash_idx,
         int padding,
         rsa_key *key)
     
     int rsa_decrypt_key_ex(
-        unsigned char *input,
-        unsigned long inlen,
-        unsigned char *out,
-        unsigned long *outlen,
-        unsigned char *lparam,
-        unsigned long lparamlen,
+        unsigned char *input, unsigned long inlen,
+        unsigned char *out, unsigned long *outlen,
+        unsigned char *lparam, unsigned long lparamlen,
         int hash_idx,
         int padding,
-        int *stat,
+        int *success,
         rsa_key *key)
+    
+    int rsa_sign_hash_ex(
+        unsigned char *input, unsigned long inlen,
+        unsigned char *out, unsigned long *outlen,
+        int padding,
+        prng_state *prng, int prng_idx,
+        int hash_idx,
+        unsigned long saltlen,
+        rsa_key *key)
+        
+    int rsa_verify_hash_ex(
+        unsigned char *sig,  unsigned long siglen,
+        unsigned char *hash, unsigned long hashlen,
+        int padding,
+        int hash_idx,
+        unsigned long saltlen,
+        int *success,
+        rsa_key *key)
+    

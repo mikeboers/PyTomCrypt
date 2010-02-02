@@ -1,3 +1,5 @@
+
+
 # General
 *.pyc
 .DS_Store
@@ -12,15 +14,31 @@
 /pip-log.txt
 /MANIFEST
 
+*.o
+*.a
+
+/libtomcrypt-1.16
 /libtommath-0.39
 /tomsfastmath-0.10
 
-# Build
-/tomcrypt/*.so
-/tomcrypt/*.c
-/tomcrypt/*.pyx
-/tomcrypt/*.pxd
-/tomcrypt/*.pxi
-/tomcrypt/*.inc
+/gitignore
 /Makefile.sub
-/libtomcrypt*
+
+# Build
+/tomcrypt/_main.so
+/tomcrypt/_main.c
+
+/tomcrypt/_main.pyx
+/tomcrypt/_main.pxd
+/tomcrypt/cipher.pyx.inc
+/tomcrypt/cipher.pxd.inc
+/tomcrypt/hash.pyx.inc
+/tomcrypt/hash.pxd.inc
+/tomcrypt/mac.pyx.inc
+/tomcrypt/mac.pxd.inc
+/tomcrypt/pkcs5.pyx.inc
+/tomcrypt/pkcs5.pxd.inc
+/tomcrypt/prng.pyx.inc
+/tomcrypt/prng.pxd.inc
+/tomcrypt/rsa.pyx.inc
+

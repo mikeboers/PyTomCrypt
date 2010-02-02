@@ -5,6 +5,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
+from pprint import pprint, pformat
 import time
 from subprocess import Popen, PIPE
 import hashlib
@@ -17,8 +18,11 @@ if __name__ == '__main__':
 	
 	k = Key.generate()
 	k.dump()
-	print k.as_dict()
+	pprint(k.as_dict(64))
+	der = k.as_string()
+	print len(der)
 	
+	file('private.der', 'wb').write(der)
 	
 	
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

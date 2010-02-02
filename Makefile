@@ -15,6 +15,9 @@ submake: Makefile.sub
 preprocess: submake
 	$(SUBMAKE) preprocess
 
+.gitignore: gitignore.mako
+	$(PREPROCESS) gitignore.mako > .gitignore
+
 build: submake
 	$(SUBMAKE) build
 

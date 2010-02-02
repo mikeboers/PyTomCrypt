@@ -27,7 +27,7 @@ cdef extern from "tomcrypt.h" nogil:
         int init(void **a)
         
         # Copy-init a bignum.
-        int init_copy(void **dst, void**src)
+        int init_copy(void **dst, void *src)
         
         # Deinit.
         int deinit(void *a)

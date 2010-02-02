@@ -6,7 +6,7 @@ key_parts = 'e d N p q qP dP dQ'.split()
 
 import re
 import base64
-
+from math import ceil
 
 RSA_TYPE_PRIVATE = _RSA_TYPE_PRIVATE
 RSA_TYPE_PUBLIC  = _RSA_TYPE_PUBLIC
@@ -44,7 +44,8 @@ _rsa_pad_map = {
 RSA_FORMAT_PEM = 'pem'
 RSA_FORMAT_DER = 'der'
 
-RSA_DEFAULT_HASH = 'sha1'
+RSA_DEFAULT_ENC_HASH = 'sha1'
+RSA_DEFAULT_SIG_HASH = 'sha512'
 RSA_DEFAULT_PRNG = 'sprng'
 
 cdef object key_sentinel = object()
@@ -121,8 +122,17 @@ cdef class RSAKey(object):
         return self.key.type == _RSA_TYPE_PUBLIC
 
     @property
-    def size(self):
+    def bits(self):
         return mp.count_bits(self.key.N)
+    
+    def max_payload(self, hash=None):
+        hash = self._conform_hash(hash, RSA_DEFAULT_ENC_HASH)
+        return (self.bits / 8) - 2 * hash.digest_size - 2
+    
+    @classmethod
+    def bits_for_payload(cls, size, hash=None):
+        hash = cls._conform_hash(hash, RSA_DEFAULT_ENC_HASH)
+        return 8 * (size + 2 + 2 * hash.digest_size)
 
     @property
     def type(self):
@@ -185,12 +195,17 @@ cdef class RSAKey(object):
             return PRNG(RSA_DEFAULT_PRNG)
         return PRNG(prng, auto_seed=1024)
     
-    cdef HashDescriptor _conform_hash(self, hash):
+    cdef HashDescriptor _conform_hash(self, hash, default):
         if isinstance(hash, HashDescriptor):
             return hash
         if hash is None:
-            return HashDescriptor(RSA_DEFAULT_HASH)
+            return HashDescriptor(default)
         return HashDescriptor(hash)
+    
+    cdef unsigned long _conform_saltlen(self, saltlen, HashDescriptor hash):
+        if saltlen is None:
+            return (self.bits / 8) - hash.digest_size - 2
+        return saltlen
     
     cpdef encrypt(self, str input, prng=None, hash=None, padding=RSA_PAD_OAEP):
     
@@ -199,7 +214,7 @@ cdef class RSAKey(object):
             return self.raw_crypt(RSA_TYPE_PUBLIC, input)
 
         cdef PRNG c_prng = self._conform_prng(prng)
-        cdef HashDescriptor c_hash = self._conform_hash(hash)
+        cdef HashDescriptor c_hash = self._conform_hash(hash, RSA_DEFAULT_ENC_HASH)
 
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long out_length = 4096
@@ -220,7 +235,7 @@ cdef class RSAKey(object):
         if padding == RSA_PAD_NONE:
             return self.raw_crypt(RSA_TYPE_PRIVATE, input)
 
-        cdef HashDescriptor c_hash = self._conform_hash(hash)
+        cdef HashDescriptor c_hash = self._conform_hash(hash, RSA_DEFAULT_ENC_HASH)
 
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long out_length = 4096
@@ -238,13 +253,14 @@ cdef class RSAKey(object):
             raise Error('invalid padding')
         return out[:out_length]
 
-    cpdef sign(self, str input, prng=None, hash=None, padding=RSA_PAD_PSS, unsigned long saltlen=16):
+    cpdef sign(self, str input, prng=None, hash=None, padding=RSA_PAD_PSS, saltlen=None):
     
         padding = self._conform_padding(padding)
 
         cdef PRNG c_prng = self._conform_prng(prng)
-        cdef HashDescriptor c_hash = self._conform_hash(hash)
-
+        cdef HashDescriptor c_hash = self._conform_hash(hash, RSA_DEFAULT_SIG_HASH)
+        cdef unsigned long c_saltlen = self._conform_saltlen(saltlen, c_hash)
+        
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long out_length = 4096
         check_for_error(rsa_sign_hash_ex(
@@ -253,17 +269,18 @@ cdef class RSAKey(object):
             padding,
             &c_prng.state, c_prng.idx,
             c_hash.idx,
-            saltlen,
+            c_saltlen,
             &self.key
         ))
         return out[:out_length]
 
-    cpdef verify(self, str input, str sig, hash=None, padding=RSA_PAD_PSS, unsigned long saltlen=16):
+    cpdef verify(self, str input, str sig, hash=None, padding=RSA_PAD_PSS, saltlen=None):
         """This will throw an exception if the signature could not possibly be valid."""
         
         padding = self._conform_padding(padding)
-
-        cdef HashDescriptor c_hash = self._conform_hash(hash)
+        
+        cdef HashDescriptor c_hash = self._conform_hash(hash, RSA_DEFAULT_SIG_HASH)
+        cdef unsigned long c_saltlen = self._conform_saltlen(saltlen, c_hash)
 
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long out_length = 4096
@@ -273,7 +290,7 @@ cdef class RSAKey(object):
             input, len(input),
             padding,
             c_hash.idx,
-            saltlen,
+            c_saltlen,
             &status,
             &self.key
         ))

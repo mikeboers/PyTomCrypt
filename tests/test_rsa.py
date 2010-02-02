@@ -16,6 +16,10 @@ from tomcrypt.rsa import *
 if __name__ == '__main__':
 	start_time = time.time()
 	
+	k = Key.generate(1024)
+	print k.bits
+	print k.public.as_string()
+	
 	private = Key.from_string('''-----BEGIN RSA PRIVATE KEY-----
     MIICXQIBAAKBgQC9mcyIFoka73NeECWjCHxr5ssMU5MBPpV2AMYHmtB8qiO5gmiU
     qVjSZGdtHUAUdzigQsguKmihSaJGBctUPwdRaQY+CGj2zkIj+yEWPb/ieGAtA5XP
@@ -40,10 +44,12 @@ if __name__ == '__main__':
     35DXKfa6sB0V5EXVzwIDAQAB
     -----END PUBLIC KEY-----
     ''')
-		
+	
+	print 'max_payload', private.max_payload(), public.max_payload()
+	
 	pt = 'Hello, world.'
 	ct = public.encrypt(pt)
-	print repr(ct)
+	print 'ct len', len(ct)
 	pt2 = private.decrypt(ct)
 	
 	print repr(pt2)

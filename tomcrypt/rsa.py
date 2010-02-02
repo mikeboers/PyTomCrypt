@@ -17,3 +17,7 @@ class Key(_Key):
             self.__class__.__name__,
             'public' if self.is_public else 'private',id(self))
 
+
+generate_key = Key.generate
+key_from_string = Key.from_string
+

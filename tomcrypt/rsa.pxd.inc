@@ -39,7 +39,7 @@ cdef extern from "tomcrypt.h" nogil:
         unsigned char *input,
         unsigned long inlen,
         unsigned char *out,
-        unsigned long outlen,
+        unsigned long *outlen,
         unsigned char *lparam,
         unsigned long lparamlen,
         prng_state *prng,

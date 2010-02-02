@@ -7,6 +7,7 @@ key_parts = 'e d N p q qP dP dQ'.split()
 import re
 import base64
 
+
 RSA_TYPE_PRIVATE = _RSA_TYPE_PRIVATE
 RSA_TYPE_PUBLIC  = _RSA_TYPE_PUBLIC
 
@@ -17,14 +18,35 @@ _rsa_type_map = {
     'public' : RSA_TYPE_PUBLIC
 }
 
+
+RSA_PAD_NONE = 0
 RSA_PAD_V1_5 = _RSA_PAD_V1_5
 RSA_PAD_OAEP = _RSA_PAD_OAEP
 RSA_PAD_PSS  = _RSA_PAD_PSS
 
+for i in range(4):
+    if i not in (RSA_PAD_V1_5, RSA_PAD_OAEP, RSA_PAD_PSS):
+        RSA_PAD_NONE = i
+        break
+
+_rsa_pad_map = {
+    RSA_PAD_NONE: RSA_PAD_NONE,
+    RSA_PAD_V1_5: RSA_PAD_V1_5,
+    RSA_PAD_OAEP: RSA_PAD_OAEP,
+    RSA_PAD_PSS : RSA_PAD_PSS,
+    'none': RSA_PAD_NONE,
+    'v1.5': RSA_PAD_V1_5,
+    'oaep': RSA_PAD_OAEP,
+    'pss' : RSA_PAD_PSS,
+}
+
+
 RSA_FORMAT_PEM = 'pem'
 RSA_FORMAT_DER = 'der'
 
+
 cdef object key_sentinel = object()
+
 
 cdef class RSAKey(object):
 
@@ -41,7 +63,7 @@ cdef class RSAKey(object):
         
     def __dealloc__(self):
         # Only free the key if it was inited.
-        if self._init_type == self.key.type:
+        if self._init_type != self.key.type:
             rsa_free(&self.key)
     
     @classmethod
@@ -65,9 +87,9 @@ cdef class RSAKey(object):
         if format == RSA_FORMAT_DER:
             return out[:length]
         else:
-            return '-----BEGIN RSA %(type)s KEY-----\n%(key)s-----END RSA %(type)s KEY-----\n' % {
+            return '-----BEGIN %(type)s KEY-----\n%(key)s-----END %(type)s KEY-----\n' % {
                 'key': out[:length].encode('base64'),
-                'type': 'PRIVATE' if type == RSA_TYPE_PRIVATE else 'PUBLIC'
+                'type': 'RSA PRIVATE' if type == RSA_TYPE_PRIVATE else 'PUBLIC'
             }
     
     @classmethod
@@ -138,13 +160,35 @@ cdef class RSAKey(object):
             self._public = self.copy_public()
         return self._public
     
+    cpdef encrypt(self, str input, PRNG prng=None, HashDescriptor hash=None, padding=RSA_PAD_OAEP):
+        if padding not in _rsa_pad_map:
+            raise ValueError('unknown rsa padding %r' % padding)
+        padding = _rsa_pad_map[padding]
+        if prng is None:
+            prng = PRNG('sprng')
+        if hash is None:
+            hash = HashDescriptor('sha1')
+        
+        out = PyString_FromStringAndSize(NULL, 4096)
+        cdef unsigned long out_length = 4096
+        check_for_error(rsa_encrypt_key_ex(
+            input, len(input),
+            out, &out_length,
+            NULL, 0,
+            &prng.state, prng.idx,
+            hash.idx,
+            padding,
+            &self.key
+        ))
+        
+        return out[:out_length]
 
 
 cdef RSAKey new_rsa_key(cls=RSAKey):
     return cls(key_sentinel)
 
 
-cpdef RSAKey generate_rsa_key(cls, int size=2048, long e=65537, PRNG prng=None):
+cpdef RSAKey generate_rsa_key(cls, int size=1024, long e=65537, PRNG prng=None):
     if prng is None:
         prng = PRNG('sprng')
     cdef RSAKey key = new_rsa_key(cls)
@@ -152,7 +196,7 @@ cpdef RSAKey generate_rsa_key(cls, int size=2048, long e=65537, PRNG prng=None):
     return key
 
 
-_rsa_pem_re = re.compile(r'^\s*-----BEGIN RSA (PUBLIC|PRIVATE) KEY-----(.+)-----END RSA (PUBLIC|PRIVATE) KEY-----', re.DOTALL)
+_rsa_pem_re = re.compile(r'^\s*-----BEGIN ((?:RSA )?(?:PRIVATE|PUBLIC)) KEY-----(.+)-----END \1 KEY-----', re.DOTALL)
 
 
 cpdef RSAKey rsa_key_from_string(cls, input):

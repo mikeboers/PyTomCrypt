@@ -12,6 +12,8 @@ from ._main import (
     
     RSA_FORMAT_PEM as FORMAT_PEM,
     RSA_FORMAT_DER as FORMAT_DER,
+    
+    rsa_bitlen_for_payload as bitlen_for_payload,
 )
 
 class Key(_Key):

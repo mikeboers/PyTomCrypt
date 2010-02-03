@@ -77,11 +77,36 @@ cdef HashDescriptor rsa_conform_hash(hash, default):
 
 
 cdef unsigned long rsa_conform_saltlen(self, saltlen, HashDescriptor hash):
+    """Turn a user supplied saltlen into an appropriate object.
+    
+    Defaults to as long a salt as possible if not supplied.
+    
+    """
     if saltlen is None:
         return (self.bits / 8) - hash.digest_size - 2
     return saltlen
 
 
+def rsa_max_payload(bitlen, hash=None):
+    """Determine the maximum length of the payload for a given keysize.
+    
+    This is for OAEP padding with the given (or default) hash.
+    
+    """
+    hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
+    return (bitlen / 8) - 2 * hash.digest_size - 2
+
+
+def rsa_bitlen_for_payload(size, hash=None):
+    """Determine the min bitlen of a key for a payload of a given size.
+    
+    This is for OAEP padding with the given (or default) hash.
+    
+    """
+    hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
+    return 8 * (size + 2 + 2 * hash.digest_size)
+        
+        
 # This object must be passed to the RSAKey constructor in order for an
 # instance to be created. This is to assert that keys can only be created by
 # the C code. This is a BAD idea.
@@ -90,14 +115,16 @@ cdef object _rsa_key_init_sentinel = object()
 cdef class RSAKey
 
 cdef RSAKey rsa_new_key(cls):
-    """Create a new key object.
+    """Create a new uninitialized key object.
 
-    This must be used as we do not allow one to init a key manually.
+    This must be used as we do not allow one to create a key with the normal
+    constructor (to make sure we don't have any keys in an undefined state).
 
     """
-
     return cls(_rsa_key_init_sentinel)
 
+
+# Regular expression for determining and extracting PEM data.
 cdef object _rsa_pem_re = re.compile(r'^\s*-----BEGIN ((?:RSA )?(?:PRIVATE|PUBLIC)) KEY-----(.+)-----END \1 KEY-----', re.DOTALL)
 
 
@@ -105,7 +132,9 @@ cdef class RSAKey(object):
 
     cdef rsa_key key
     cdef RSAKey _public
-
+    
+    # The sentinel checking code is in the cinit because I believe it is the
+    # only place that it cannot be overidden.
     def __cinit__(self, x=None):
         if x is not _rsa_key_init_sentinel:
             raise ValueError('cannot manually init new %s' % self.__class__)
@@ -127,20 +156,20 @@ cdef class RSAKey(object):
     cdef nullify(self):
         self.key.N = NULL
 
-    cdef _generate(self, int size, long e, PRNG prng):
+    cdef _generate(self, int bitlen, long e, PRNG prng):
         self._public = None
         if prng is None:
             prng = PRNG('sprng')
         try:
-            check_for_error(rsa_make_key(&prng.state, prng.idx, size / 8, e, &self.key))
+            check_for_error(rsa_make_key(&prng.state, prng.idx, bitlen / 8, e, &self.key))
         except:
             self.nullify()
             raise
 
     @classmethod
-    def generate(cls, int size=1024, long e=65537, PRNG prng=None):
+    def generate(cls, int bitlen=1024, long e=65537, PRNG prng=None):
         cdef RSAKey key = rsa_new_key(cls)
-        key._generate(size, e, prng)
+        key._generate(bitlen, e, prng)
         return key
 
     def as_string(self, type=None, format=RSA_FORMAT_PEM):
@@ -216,21 +245,11 @@ cdef class RSAKey(object):
         return self.key.type == c_RSA_TYPE_PUBLIC
 
     @property
-    def bits(self):
+    def bitlen(self):
         return mp.count_bits(self.key.N)
 
-    @classmethod
-    def max_payload_for_bits(cls, bits, hash=None):
-        hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
-        return (bits / 8) - 2 * hash.digest_size - 2
-
     def max_payload(self, hash=None):
-        return self.max_payload_for_bits(self.bits, hash)
-
-    @classmethod
-    def bits_for_payload(cls, size, hash=None):
-        hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
-        return 8 * (size + 2 + 2 * hash.digest_size)
+        return rsa_max_payload(self.bitlen, hash)
 
     cdef RSAKey public_copy(self):
         cdef RSAKey copy = rsa_new_key(self.__class__)
@@ -365,4 +384,7 @@ cdef class RSAKey(object):
             &self.key
         ))
         return bool(status)
+
+
+
 

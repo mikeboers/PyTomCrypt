@@ -1,4 +1,13 @@
 include *.txt
-recursive-include tests *.txt *.py
-recursive-include tomcrypt *.txt *.py
-recursive-include libtomcrypt-1.16 *
+recursive-include tests *.py
+recursive-include tomcrypt *.py
+
+resursive-include libtomcrypt-extra *
+
+include libtomcrypt-1.16/LICENSE
+recursive-include libtomcrypt-1.16/src *.h *.c
+
+include tomsfastmath-0.10/LICENSE
+include tomsfastmath-0.10/*.h
+include tomsfastmath-0.10/*.c
+include tomsfastmath-0.10/*.i

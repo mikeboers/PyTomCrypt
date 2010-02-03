@@ -446,7 +446,7 @@ if __name__ == '__main__':
         name='PyTomCrypt',
             description='Python+Cython wrapper around LibTomCrypt',
             # version='1.0a.dev%s' % datetime.datetime.utcnow().strftime('%Y%m%dT%H%M'),
-            version='1.0a.dev',
+            version='1.0a.dev2',
             license='New BSD',
             platforms=['any'],
             author='Mike Boers',
@@ -457,7 +457,7 @@ if __name__ == '__main__':
     url='http://github.com/mikeboers/PyTomCrypt',
 
             classifiers = [
-                'Development Status :: 2 - Pre-Alpha',
+                'Development Status :: 3 - Alpha',
                 'Intended Audience :: Developers',
                 'Operating System :: OS Independent',
                 'Programming Language :: C',

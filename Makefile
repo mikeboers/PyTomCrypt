@@ -21,6 +21,9 @@ preprocess: submake
 build: submake
 	$(SUBMAKE) build
 
+tomcrypt/_main.c: submake
+	$(SUBMAKE) tomcrypt/_main.c
+
 test: build
 	$(PYTHON) tests/test_cipher.py
 	$(PYTHON) tests/test_hash.py

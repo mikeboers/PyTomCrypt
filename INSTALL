@@ -1,0 +1,20 @@
+
+If you have the PyPi distribution, you only need run:
+
+	python setup.py install
+
+If you have the source:
+
+	1. Download libtomcrypt-1.16 from http://libtomcrypt.com/download.html and
+	   install into the project root.
+	2. Download tomsfastmath-0.10 from http://tfm.libtomcrypt.com/download.html
+	   and install into the project root.
+	
+	If you want to build the module:
+	
+	3a. Run `make`.
+	
+	If you want to install the module:
+	
+	3b. Run `make tomcrypt/_main.c`.
+	4. Run `python setup.py install`.

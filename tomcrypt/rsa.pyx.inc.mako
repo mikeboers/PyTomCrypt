@@ -77,8 +77,9 @@ cdef unsigned long rsa_conform_saltlen(self, saltlen, HashDescriptor hash):
     return saltlen
 
 
-# This object is just for usage as a sentinel. It must be passed to the RSAKey
-# constructor.
+# This object must be passed to the RSAKey constructor in order for an
+# instance to be created. This is to assert that keys can only be created by
+# the C code. This is a BAD idea.
 cdef object _rsa_key_init_sentinel = object()
 
 cdef class RSAKey
@@ -98,7 +99,7 @@ cdef object _rsa_pem_re = re.compile(r'^\s*-----BEGIN ((?:RSA )?(?:PRIVATE|PUBLI
 cdef class RSAKey(object):
 
     cdef rsa_key key
-    cdef object _public
+    cdef RSAKey _public
 
     def __cinit__(self, x=None):
         if x is not _rsa_key_init_sentinel:
@@ -113,7 +114,8 @@ cdef class RSAKey(object):
         #
         # BUT, if we tried to make a key or import one and it FAILED, this
         # will still attempt to free the key. Caution must be taken to make
-        # sure that a failed key is NEVER stored in this class.
+        # sure that a failed key is NEVER stored in this class. Ergo, the
+        # nullify method.
         if self.key.N != NULL:
             rsa_free(&self.key)
 

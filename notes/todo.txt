@@ -1,21 +1,6 @@
 
 - Add cipher modes: EAX (page 46), PCB(50), CCM(53), and GCM(56)
 
-- Make sure I'm calling *_done on everything when it gets dealocated as they may be leaking memory.
-
-- Decide how to do implement the several different mac modes.
-	1. A class for each one.
-	2. A class for the hmac, and a class for all the rest (cipher based)
-	3. One class for all of them specifying the mode with a kwarg:
-		x = MAC('key', mode='omac', cipher='aes')
-		def hmac(hash, key):
-			return MAC(key, mode='hmac', hash=hash)
-
-
-- aes_enc.o comes from compiling aes.c with a macro defined.
-	- make a aes_enc.o which simple defines ENCRYPT_ONLY and includes aes.c
-	- should be in a src directory seperate from the main libtomcrypt
-
 - cleanup the test output so it is easier to see at a glance what is going on
 	- consider using unittest module
 

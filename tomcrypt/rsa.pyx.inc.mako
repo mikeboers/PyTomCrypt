@@ -8,36 +8,33 @@ import re
 import base64
 from math import ceil
 
-RSA_TYPE_PRIVATE = _RSA_TYPE_PRIVATE
-RSA_TYPE_PUBLIC  = _RSA_TYPE_PUBLIC
+
+RSA_TYPE_PRIVATE = 'private'
+RSA_TYPE_PUBLIC  = 'public'
 
 cdef object _rsa_type_map = {
-    RSA_TYPE_PRIVATE: RSA_TYPE_PRIVATE,
-    RSA_TYPE_PUBLIC : RSA_TYPE_PUBLIC,
-    'private': RSA_TYPE_PRIVATE,
-    'public' : RSA_TYPE_PUBLIC
+    RSA_TYPE_PRIVATE: c_RSA_TYPE_PRIVATE,
+    RSA_TYPE_PUBLIC : c_RSA_TYPE_PUBLIC,
 }
 
 
-RSA_PAD_NONE = 0
-RSA_PAD_V1_5 = _RSA_PAD_V1_5 # 1
-RSA_PAD_OAEP = _RSA_PAD_OAEP # 2
-RSA_PAD_PSS  = _RSA_PAD_PSS  # 3
+cdef c_RSA_PAD_NONE = 0
+RSA_PAD_NONE = 'none'
+RSA_PAD_V1_5 = 'v1.5'
+RSA_PAD_OAEP = 'oaep'
+RSA_PAD_PSS  = 'pss'
 
 cdef object _rsa_pad_map = {
-    RSA_PAD_NONE: RSA_PAD_NONE,
-    RSA_PAD_V1_5: RSA_PAD_V1_5,
-    RSA_PAD_OAEP: RSA_PAD_OAEP,
-    RSA_PAD_PSS : RSA_PAD_PSS,
-    'none': RSA_PAD_NONE,
-    'v1.5': RSA_PAD_V1_5,
-    'oaep': RSA_PAD_OAEP,
-    'pss' : RSA_PAD_PSS,
+    RSA_PAD_NONE: c_RSA_PAD_NONE,
+    RSA_PAD_V1_5: c_RSA_PAD_V1_5,
+    RSA_PAD_OAEP: c_RSA_PAD_OAEP,
+    RSA_PAD_PSS : c_RSA_PAD_PSS,
 }
 
 
 RSA_FORMAT_PEM = 'pem'
 RSA_FORMAT_DER = 'der'
+
 
 RSA_DEFAULT_ENC_HASH = 'sha1'
 RSA_DEFAULT_SIG_HASH = 'sha512'
@@ -49,13 +46,20 @@ RSA_DEFAULT_PRNG = 'sprng'
 
 
 cdef int rsa_conform_padding(padding):
+    """Turn a user supplied padding constant into the C variant."""
     if padding not in _rsa_pad_map:
-        raise ValueError('unknown rsa padding %r' % padding)
+        raise ValueError('unknown RSA padding %r' % padding)
     padding = _rsa_pad_map[padding]
     return padding
 
 
 cdef PRNG rsa_conform_prng(prng):
+    """Turn a user supplied PRNG into an actual PRNG.
+    
+    If only a name or idx is supplied, it is autoseeded from the system rng.
+    None defaults to the system rng (ie /dev/random).
+    
+    """
     if isinstance(prng, PRNG):
         return prng
     if prng is None:
@@ -64,6 +68,7 @@ cdef PRNG rsa_conform_prng(prng):
 
 
 cdef HashDescriptor rsa_conform_hash(hash, default):
+    """Turn a user supplied hash into a HashDescriptor."""
     if isinstance(hash, HashDescriptor):
         return hash
     if hash is None:
@@ -142,10 +147,12 @@ cdef class RSAKey(object):
 
         if type is None:
             type = self.key.type
-        if type not in _rsa_type_map:
+        elif type in _rsa_type_map:
+            type = _rsa_type_map[type]
+        else:
             raise ValueError('unknown key type %r' % type)
-        type = _rsa_type_map[type]
-        if self.key.type == _RSA_TYPE_PUBLIC and type == RSA_TYPE_PRIVATE:
+        
+        if self.key.type == c_RSA_TYPE_PUBLIC and type == c_RSA_TYPE_PRIVATE:
             raise ValueError('cant get private key from public key')
 
         if format not in (RSA_FORMAT_DER, RSA_FORMAT_PEM):
@@ -198,15 +205,15 @@ cdef class RSAKey(object):
 
     @property
     def type(self):
-        return self.key.type
+        return RSA_TYPE_PRIVATE if self.is_private else RSA_TYPE_PUBLIC
 
     @property
     def is_private(self):
-        return self.key.type == _RSA_TYPE_PRIVATE
+        return self.key.type == c_RSA_TYPE_PRIVATE
 
     @property
     def is_public(self):
-        return self.key.type == _RSA_TYPE_PUBLIC
+        return self.key.type == c_RSA_TYPE_PUBLIC
 
     @property
     def bits(self):
@@ -225,31 +232,20 @@ cdef class RSAKey(object):
         hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
         return 8 * (size + 2 + 2 * hash.digest_size)
 
-
-
-    cdef RSAKey copy(self):
+    cdef RSAKey public_copy(self):
         cdef RSAKey copy = rsa_new_key(self.__class__)
-        copy.key.type = self.key.type
-
-        % for x in key_parts:
-        check_for_error(mp.init_copy(&copy.key.${x}, self.key.${x}))
-        % endfor
-
-        return copy
-
-    cdef RSAKey copy_public(self):
-        cdef RSAKey copy = rsa_new_key(self.__class__)
-        copy.key.type = _RSA_TYPE_PUBLIC
-
-        % for x in 'Ne':
-        check_for_error(mp.init_copy(&copy.key.${x}, self.key.${x}))
-        % endfor
-
-        # Just need to initialize these parts, which sets them to zero.
-        % for x in set(key_parts) - set('Ne'):
-        check_for_error(mp.init(&copy.key.${x}))
-        % endfor
-
+        copy.key.type = c_RSA_TYPE_PUBLIC
+        try:
+            % for x in 'Ne':
+            check_for_error(mp.init_copy(&copy.key.${x}, self.key.${x}))
+            % endfor
+            # Just need to init these parts, which zeros them automatically.
+            % for x in set(key_parts) - set('Ne'):
+            check_for_error(mp.init(&copy.key.${x}))
+            % endfor
+        except:
+            copy.nullify()
+            raise
         return copy
 
     @property
@@ -264,7 +260,7 @@ cdef class RSAKey(object):
             if self.is_public:
                 self._public = self
             else:
-                self._public = self.copy_public()
+                self._public = self.public_copy()
         return self._public
 
     cdef str raw_crypt(self, int mode, str input):
@@ -280,7 +276,7 @@ cdef class RSAKey(object):
     cpdef encrypt(self, str input, prng=None, hash=None, padding=RSA_PAD_OAEP):
 
         padding = rsa_conform_padding(padding)
-        if padding == RSA_PAD_NONE:
+        if padding == c_RSA_PAD_NONE:
             return self.raw_crypt(RSA_TYPE_PUBLIC, input)
 
         cdef PRNG c_prng = rsa_conform_prng(prng)
@@ -302,7 +298,7 @@ cdef class RSAKey(object):
     cpdef decrypt(self, str input, hash=None, padding=RSA_PAD_OAEP):
 
         padding = rsa_conform_padding(padding)
-        if padding == RSA_PAD_NONE:
+        if padding == c_RSA_PAD_NONE:
             return self.raw_crypt(RSA_TYPE_PRIVATE, input)
 
         cdef HashDescriptor c_hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
@@ -320,13 +316,13 @@ cdef class RSAKey(object):
             &self.key
         ))
         if not status:
-            raise Error('invalid padding')
+            raise Error('Invalid padding.')
         return out[:out_length]
 
     cpdef sign(self, str input, prng=None, hash=None, padding=RSA_PAD_PSS, saltlen=None):
 
         padding = rsa_conform_padding(padding)
-        if padding == RSA_PAD_NONE:
+        if padding == c_RSA_PAD_NONE:
             return self.raw_crypt(RSA_TYPE_PRIVATE, input)
         
         cdef PRNG c_prng = rsa_conform_prng(prng)
@@ -350,7 +346,7 @@ cdef class RSAKey(object):
         """This will throw an exception if the signature could not possibly be valid."""
 
         padding = rsa_conform_padding(padding)
-        if padding == RSA_PAD_NONE:
+        if padding == c_RSA_PAD_NONE:
             return self.raw_crypt(RSA_TYPE_PUBLIC, input)
 
         cdef HashDescriptor c_hash = rsa_conform_hash(hash, RSA_DEFAULT_SIG_HASH)

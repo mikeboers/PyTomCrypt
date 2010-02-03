@@ -1,8 +1,8 @@
 
 cdef extern from "tomcrypt.h" nogil:
 
-    cdef int _RSA_TYPE_PUBLIC  "PK_PUBLIC"
-    cdef int _RSA_TYPE_PRIVATE "PK_PRIVATE"
+    cdef int c_RSA_TYPE_PUBLIC  "PK_PUBLIC"
+    cdef int c_RSA_TYPE_PRIVATE "PK_PRIVATE"
     
     ctypedef struct rsa_key:
         int type # One of PK_PUBLIC or PK_PRIVATE
@@ -31,9 +31,9 @@ cdef extern from "tomcrypt.h" nogil:
     int rsa_export(unsigned char *out, unsigned long *outlen, int type, rsa_key *key)
     
     
-    cdef int _RSA_PAD_V1_5 "LTC_PKCS_1_V1_5"
-    cdef int _RSA_PAD_OAEP "LTC_PKCS_1_OAEP"
-    cdef int _RSA_PAD_PSS  "LTC_PKCS_1_PSS"
+    cdef int c_RSA_PAD_V1_5 "LTC_PKCS_1_V1_5"
+    cdef int c_RSA_PAD_OAEP "LTC_PKCS_1_OAEP"
+    cdef int c_RSA_PAD_PSS  "LTC_PKCS_1_PSS"
     
     int rsa_exptmod(
         unsigned char *input, unsigned long inlen,

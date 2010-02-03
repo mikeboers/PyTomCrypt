@@ -1,22 +1,17 @@
 
-from ._main import (
-    RSAKey as _Key,
-    
-    RSA_TYPE_PRIVATE as TYPE_PRIVATE,
-    RSA_TYPE_PUBLIC as TYPE_PUBLIC,
-    
-    RSA_PAD_NONE as PAD_NONE,
-    RSA_PAD_V1_5 as PAD_V1_5,
-    RSA_PAD_OAEP as PAD_OAEP,
-    RSA_PAD_PSS as PAD_PSS,
-    
-    RSA_FORMAT_PEM as FORMAT_PEM,
-    RSA_FORMAT_DER as FORMAT_DER,
-    
-    rsa_bitlen_for_payload as bitlen_for_payload,
-)
+import sys
 
-class Key(_Key):
+from . import _main
+
+
+self = sys.modules[__name__]
+
+for k in dir(_main):
+    if k.lower().startswith('rsa_'):
+        setattr(self, k[4:], getattr(_main, k))
+
+
+class Key(_main.RSAKey):
     
     def __repr__(self):
         return '<%s.%s(%s) at 0x%x>' % (self.__class__.__module__, 

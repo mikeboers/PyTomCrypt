@@ -239,7 +239,7 @@ cdef class RSAKey(object):
 
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long length = 4096
-        check_for_error(rsa_export(out, &length, _rsa_type_map[type], &self.key))
+        check_for_error(rsa_export(out, &length, type, &self.key))
 
         if format == RSA_FORMAT_DER:
             return out[:length]

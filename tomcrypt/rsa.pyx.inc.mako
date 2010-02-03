@@ -40,8 +40,8 @@ RSA_DEFAULT_ENC_HASH = 'sha1'
 RSA_DEFAULT_SIG_HASH = 'sha512'
 RSA_DEFAULT_PRNG = 'sprng'
 
-
-
+RSA_DEFAULT_SIZE = 1024 / 8
+RSA_DEFAULT_E = 65537
 
 
 
@@ -83,12 +83,33 @@ cdef unsigned long rsa_conform_saltlen(self, saltlen, HashDescriptor hash):
     
     """
     if saltlen is None:
-        return (self.size / 8) - hash.digest_size - 2
+        return self.size - hash.digest_size - 2
     return saltlen
 
 
 def rsa_max_payload(int key_size, padding=RSA_PAD_OAEP, hash=None):
-    """Determine the maximum length of the payload for a given keysize.
+    """Find the maximum length of the payload that is safe to encrypt/sign.
+    
+    Params:
+        padding -- The padding that will be used.
+        hash -- The hash that will be used.
+    
+    """    
+    padding = rsa_conform_padding(padding)
+    hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
+    if padding == c_RSA_PAD_NONE:
+        return key_size
+    elif padding == c_RSA_PAD_OAEP:
+        return key_size - 2 * hash.digest_size - 2
+    elif padding == c_RSA_PAD_PSS:
+        return key_size - hash.digest_size - 2
+    else:
+        # RSA_PAD_V1_5 - I'm not too sure about this one.
+        return key_size - 2
+
+
+def rsa_key_size_for_payload(int length, padding=RSA_PAD_OAEP, hash=None):
+    """Determine the min keysize for a payload of a given length.
     
     This is for OAEP padding with the given (or default) hash.
     
@@ -96,24 +117,14 @@ def rsa_max_payload(int key_size, padding=RSA_PAD_OAEP, hash=None):
     padding = rsa_conform_padding(padding)
     hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
     if padding == c_RSA_PAD_NONE:
-        return key_size / 8
+        return length
     elif padding == c_RSA_PAD_OAEP:
-        return (key_size / 8) - 2 * hash.digest_size - 2
+        return length + 2 * hash.digest_size + 2
     elif padding == c_RSA_PAD_PSS:
-        return (key_size / 8) - hash.digest_size - 2
+        return length + hash.digest_size + 2
     else:
         # RSA_PAD_V1_5 - I'm not too sure about this one.
-        return (key_size / 8) - 2
-
-
-def rsa_key_size_for_payload(int payload_length, hash=None):
-    """Determine the min bitlen of a key for a payload of a given size.
-    
-    This is for OAEP padding with the given (or default) hash.
-    
-    """
-    hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
-    return 8 * (payload_length + 2 + 2 * hash.digest_size)
+        return length + 2
         
         
 # This object must be passed to the RSAKey constructor in order for an
@@ -163,26 +174,56 @@ cdef class RSAKey(object):
             rsa_free(&self.key)
 
     cdef nullify(self):
+        """Mark the key as not needing to be freed.
+        
+        Use this after an error has occurred and the key automatically freed,
+        but the pointers have not been reset to null.
+        
+        """
         self.key.N = NULL
 
     cdef _generate(self, int size, long e, PRNG prng):
+        """The guts of the generate class method.
+        
+        This modifies the key in place. Be careful.
+        
+        """
         self._public = None
         if prng is None:
             prng = PRNG('sprng')
         try:
-            check_for_error(rsa_make_key(&prng.state, prng.idx, size / 8, e, &self.key))
+            check_for_error(rsa_make_key(&prng.state, prng.idx, size, e, &self.key))
         except:
             self.nullify()
             raise
 
     @classmethod
-    def generate(cls, int size=1024, long e=65537, PRNG prng=None):
+    def generate(cls, int size=RSA_DEFAULT_SIZE, long e=RSA_DEFAULT_E, PRNG prng=None):
+        """Generate a new, random key.
+        
+        Params:
+            size -- The size (in chars) of the key to generate. Ie. 128 for
+                    1024 bit key.
+            e -- The public exponent. Usually 32767.
+            prng -- The prng to use. Defaults to the system rng.
+        
+        """
         cdef RSAKey key = rsa_new_key(cls)
         key._generate(size, e, prng)
         return key
 
     def as_string(self, type=None, format=RSA_FORMAT_PEM):
-
+        """Build the string representation of a key.
+        
+        Both the availible formats are compatible with OpenSSL. We default to
+        the same one that OpenSSL does (PEM).
+        
+        Params:
+            type -- None (as is), 'private' or 'public'.
+            format -- 'pem' (default), or 'der'.
+        
+        """
+        
         if type is None:
             type = self.key.type
         elif type in _rsa_type_map:
@@ -208,6 +249,11 @@ cdef class RSAKey(object):
         }
 
     cdef _from_string(self, str input, format):
+        """The guts of the from_string method.
+        
+        This modifies the key in place. Be careful.
+        
+        """
         self._public = None
         if format not in (None, RSA_FORMAT_DER, RSA_FORMAT_PEM):
             raise ValueError('unknown RSA key format %r' % format)
@@ -225,6 +271,13 @@ cdef class RSAKey(object):
 
     @classmethod
     def from_string(cls, str input, format=None):
+        """Rebuild a key from it's string representation.
+        
+        Params:
+            input -- The key.
+            format -- One of the FORMAT_* constants, or None to deduce it.
+        
+        """
         cdef RSAKey key = rsa_new_key(cls)
         key._from_string(input, format)
         return key
@@ -248,24 +301,54 @@ cdef class RSAKey(object):
 
     @property
     def type(self):
+        """'private' or 'public'"""
         return RSA_TYPE_PRIVATE if self.is_private else RSA_TYPE_PUBLIC
 
     @property
     def is_private(self):
+        """True if this is a private key."""
         return self.key.type == c_RSA_TYPE_PRIVATE
 
     @property
     def is_public(self):
+        """True if this is a public key."""
         return self.key.type == c_RSA_TYPE_PUBLIC
-
+        
+    @property
+    def bitlen(self):
+        """The bit length of the modulus of the key.
+        
+        This will be a multiple of 8 for any key generated with this library,
+        but that is not a requirement for others. (It is easy to make any
+        size key with openssl, for instance.)
+        
+        """
+        return mp.count_bits(self.key.N)
+    
     @property
     def size(self):
-        return mp.count_bits(self.key.N)
+        """The number of characters in the modulus of the key.
+        
+        This is the minumum number of characters required to represent the
+        modulus in binary form. If the bit length of the modulus is not evenly
+        divisible by 8 then this will round up.
+        
+        """
+        cdef int bits = mp.count_bits(self.key.N)
+        return (bits / 8) + (1 if bits % 8 else 0)
 
     def max_payload(self, padding=RSA_PAD_OAEP, hash=None):
-        return rsa_max_payload(self.size, padding, hash)
+        """The maximum length of the payload that is safe to encrypt/sign.
+        
+        Params:
+            padding -- The padding that will be used.
+            hash -- The hash that will be used.
+        
+        """
+        return rsa_max_payload(self.bitlen / 8, padding, hash)
 
     cdef RSAKey public_copy(self):
+        """Get a copy of this key with only the public parts."""
         cdef RSAKey copy = rsa_new_key(self.__class__)
         copy.key.type = c_RSA_TYPE_PUBLIC
         try:
@@ -283,12 +366,11 @@ cdef class RSAKey(object):
 
     @property
     def public(self):
-        """Return a key with only the public part.
+        """A view of this key with only the public part.
 
         If this is already a public key, this will be the same object.
 
         """
-
         if self._public is None:
             if self.is_public:
                 self._public = self

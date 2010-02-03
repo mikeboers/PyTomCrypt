@@ -83,28 +83,37 @@ cdef unsigned long rsa_conform_saltlen(self, saltlen, HashDescriptor hash):
     
     """
     if saltlen is None:
-        return (self.bits / 8) - hash.digest_size - 2
+        return (self.size / 8) - hash.digest_size - 2
     return saltlen
 
 
-def rsa_max_payload(bitlen, hash=None):
+def rsa_max_payload(int key_size, padding=RSA_PAD_OAEP, hash=None):
     """Determine the maximum length of the payload for a given keysize.
     
     This is for OAEP padding with the given (or default) hash.
     
     """
+    padding = rsa_conform_padding(padding)
     hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
-    return (bitlen / 8) - 2 * hash.digest_size - 2
+    if padding == c_RSA_PAD_NONE:
+        return key_size / 8
+    elif padding == c_RSA_PAD_OAEP:
+        return (key_size / 8) - 2 * hash.digest_size - 2
+    elif padding == c_RSA_PAD_PSS:
+        return (key_size / 8) - hash.digest_size - 2
+    else:
+        # RSA_PAD_V1_5 - I'm not too sure about this one.
+        return (key_size / 8) - 2
 
 
-def rsa_bitlen_for_payload(size, hash=None):
+def rsa_key_size_for_payload(int payload_length, hash=None):
     """Determine the min bitlen of a key for a payload of a given size.
     
     This is for OAEP padding with the given (or default) hash.
     
     """
     hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
-    return 8 * (size + 2 + 2 * hash.digest_size)
+    return 8 * (payload_length + 2 + 2 * hash.digest_size)
         
         
 # This object must be passed to the RSAKey constructor in order for an
@@ -156,20 +165,20 @@ cdef class RSAKey(object):
     cdef nullify(self):
         self.key.N = NULL
 
-    cdef _generate(self, int bitlen, long e, PRNG prng):
+    cdef _generate(self, int size, long e, PRNG prng):
         self._public = None
         if prng is None:
             prng = PRNG('sprng')
         try:
-            check_for_error(rsa_make_key(&prng.state, prng.idx, bitlen / 8, e, &self.key))
+            check_for_error(rsa_make_key(&prng.state, prng.idx, size / 8, e, &self.key))
         except:
             self.nullify()
             raise
 
     @classmethod
-    def generate(cls, int bitlen=1024, long e=65537, PRNG prng=None):
+    def generate(cls, int size=1024, long e=65537, PRNG prng=None):
         cdef RSAKey key = rsa_new_key(cls)
-        key._generate(bitlen, e, prng)
+        key._generate(size, e, prng)
         return key
 
     def as_string(self, type=None, format=RSA_FORMAT_PEM):
@@ -198,11 +207,16 @@ cdef class RSAKey(object):
             'type': 'RSA PRIVATE' if type == RSA_TYPE_PRIVATE else 'PUBLIC'
         }
 
-    cdef _from_string(self, str input):
+    cdef _from_string(self, str input, format):
         self._public = None
-        m = _rsa_pem_re.match(input)
-        if m:
-            input = m.group(2).decode('base64')
+        if format not in (None, RSA_FORMAT_DER, RSA_FORMAT_PEM):
+            raise ValueError('unknown RSA key format %r' % format)
+        if format != RSA_FORMAT_DER:
+            m = _rsa_pem_re.match(input)
+            if m:
+                input = m.group(2).decode('base64')
+            elif format == RSA_FORMAT_PEM:
+                raise ValueError('bad PEM format')
         try:
             check_for_error(rsa_import(input, len(input), &self.key))
         except:
@@ -210,9 +224,9 @@ cdef class RSAKey(object):
             raise
 
     @classmethod
-    def from_string(cls, str input):
+    def from_string(cls, str input, format=None):
         cdef RSAKey key = rsa_new_key(cls)
-        key._from_string(input)
+        key._from_string(input, format)
         return key
 
     def as_dict(self, int radix=16):
@@ -245,11 +259,11 @@ cdef class RSAKey(object):
         return self.key.type == c_RSA_TYPE_PUBLIC
 
     @property
-    def bitlen(self):
+    def size(self):
         return mp.count_bits(self.key.N)
 
-    def max_payload(self, hash=None):
-        return rsa_max_payload(self.bitlen, hash)
+    def max_payload(self, padding=RSA_PAD_OAEP, hash=None):
+        return rsa_max_payload(self.size, padding, hash)
 
     cdef RSAKey public_copy(self):
         cdef RSAKey copy = rsa_new_key(self.__class__)

@@ -12,12 +12,15 @@ class MAC(_MAC):
 	pass
 
 
+DEFAULT_HASH = 'sha256'
+DEFAULT_CIPHER = 'aes'
+
 def make_mac_constructor(name):
 	if name in hash_macs:
-		def mac_constructor(key, hash, input=''):
+		def mac_constructor(key, hash=DEFAULT_HASH, input=''):
 			return MAC(name, hash, key, input)
 	else:
-		def mac_constructor(key, cipher, input=''):
+		def mac_constructor(key, cipher=DEFAULT_CIPHER, input=''):
 			return MAC(name, cipher, key, input='')
 	mac_constructor.__name__ = name
 	return mac_constructor

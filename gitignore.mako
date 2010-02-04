@@ -13,17 +13,14 @@ from os.path import exists
 /bin
 /build
 /dist
-/include
-/lib
+/include/python2.6
+/lib/python2.6
 /pip-log.txt
 /MANIFEST
 
+/src/libtomcrypt-1.16/doc/crypt.pdf
 *.o
 *.a
-
-/libtomcrypt-1.16
-/libtommath-0.39
-/tomsfastmath-0.10
 
 /gitignore
 /Makefile.sub

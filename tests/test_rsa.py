@@ -17,11 +17,11 @@ if __name__ == '__main__':
 	start_time = time.time()
 	
 	size = key_size_for_payload(100)
-	k = Key.generate(size)
+	k = generate_key(size)
 	print size, k.size
 	print 100, k.max_payload()
 	
-	print '1028?', Key.from_string('''-----BEGIN RSA PRIVATE KEY-----
+	print '1028?', Key('''-----BEGIN RSA PRIVATE KEY-----
     MIICXwIBAAKBgQv9V1DrxfhDt56rC1/i18HJE6x/SLs2xu5IDySxI0xhme8U6T6w
     Ess275MacdQMSZh5MJl+8YRErwx6zOilDz8y2GDqKrsuMgAodkvfKAeQlQZp+IPZ
     dJlRhoE1Lk/aHBOiqRGR75LufiTAbaDMG3NWM1SidE9qVZv3HsWJqQU7ywIDAQAB
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     ioKaum9hlRf3nuXxmSfqv7iXozX6xfrYncjLKbBn/hPhWp8=
     -----END RSA PRIVATE KEY-----''').bitlen
     
-	private = Key.from_string('''-----BEGIN RSA PRIVATE KEY-----
+	private = Key('''-----BEGIN RSA PRIVATE KEY-----
     MIICXQIBAAKBgQC9mcyIFoka73NeECWjCHxr5ssMU5MBPpV2AMYHmtB8qiO5gmiU
     qVjSZGdtHUAUdzigQsguKmihSaJGBctUPwdRaQY+CGj2zkIj+yEWPb/ieGAtA5XP
     YDPzhc43SY//N8dlFme4s3zjjNrUcuMhy4hsmv4p35DXKfa6sB0V5EXVzwIDAQAB
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     -----END RSA PRIVATE KEY-----
     ''')
 	
-	public = Key.from_string('''-----BEGIN PUBLIC KEY-----
+	public = Key('''-----BEGIN PUBLIC KEY-----
     MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC9mcyIFoka73NeECWjCHxr5ssM
     U5MBPpV2AMYHmtB8qiO5gmiUqVjSZGdtHUAUdzigQsguKmihSaJGBctUPwdRaQY+
     CGj2zkIj+yEWPb/ieGAtA5XPYDPzhc43SY//N8dlFme4s3zjjNrUcuMhy4hsmv4p
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	print public.verify(pt, sig)
 	
 	print 'bad - pre'
-	bad = Key.from_string('bad')
+	bad = Key('bad')
 	print 'bad - post'
 	
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

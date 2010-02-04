@@ -10,8 +10,10 @@
 - decide if the RSAKey constructor will take a bit size or byte size.
 	for bit size:
 		This is what everyone thinks in.
+		Makes it easier for us to work with non mod 8 keys. (Because we aren't
+		 lulled into a false sense of security)
 	for byte size:
-		This is what tomcrypt actually works with.
+		This is what tomcrypt actually works with internally.
 
 - RSAKey constructor should take the string version.
 

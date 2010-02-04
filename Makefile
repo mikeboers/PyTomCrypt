@@ -32,10 +32,11 @@ test: build
 cleanbuild:	
 	- rm -rf build
 
-clean:
+clean: submake
 	- rm *.o
 	- rm *.so
 	- rm *.pyc
+	- rm src/_main.c
 	- rm tomcrypt/*.c
 	- rm tomcrypt/*.so
 	- rm tomcrypt/*.pyc

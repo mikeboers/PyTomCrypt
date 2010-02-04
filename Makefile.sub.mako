@@ -3,7 +3,7 @@
 from os.path import exists
 
 from setup import ext_names
-from tomcrypt import meta
+import meta
 
 exts = ('pyx', 'pxd', 'pxi')
 
@@ -30,7 +30,7 @@ PREPROCESS = ./preprocess
 % for name in ext_names:
  % for i, source in enumerate(sources[name]):
   % if exists(source + '.mako'):
-build/${source}: ${source}.mako tomcrypt/meta.py
+build/${source}: ${source}.mako meta.py
 	$(PREPROCESS) -D ext_name=${name} $< > $@
   % else:
 build/${source}: ${source}
@@ -52,7 +52,6 @@ build: ${' '.join('tomcrypt/%s.so' % name for name in ext_names)}
 
 
 clean:
-	- rm src/_main.c
 % for name in ext_names:
  % for source in all_sources.get(name, []):
   % if exists(source) or exists(source + '.mako'):

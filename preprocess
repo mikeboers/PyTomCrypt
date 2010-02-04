@@ -9,7 +9,7 @@ from mako.exceptions import text_error_template
 from mako.lookup import TemplateLookup
 from mako.template import Template
 
-from tomcrypt import meta
+import meta
 	
 	
 if __name__ == '__main__':

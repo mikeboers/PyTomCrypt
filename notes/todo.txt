@@ -6,3 +6,15 @@
 
 - write documentation
 	- with doctest!
+
+- decide if the RSAKey constructor will take a bit size or byte size.
+	for bit size:
+		This is what everyone thinks in.
+	for byte size:
+		This is what tomcrypt actually works with.
+
+- RSAKey constructor should take the string version.
+
+- Figure out what is up with the constant which contols error handling. See
+if I can get it to just error and not throw anything.
+	setting ARGTYPE to 4 SHOULD result in errors being returned.

@@ -3,20 +3,16 @@
 mp = tfm_desc
 
 
-cdef str error_to_string(int err):
+cpdef str error_to_string(int err):
+    # We need to deal with libtomcrypt not defining this error message.
     if err == CRYPT_PK_INVALID_PADDING:
         return "Invalid padding mode."
     return raw_error_to_string(err)
 
 
-class Error(Exception):
-    def __init__(self, err):
-        if isinstance(err, int):
-            Exception.__init__(self, error_to_string(err))
-        else:
-            Exception.__init__(self, err)
+from tomcrypt import Error, LibError
 
 
 cdef inline check_for_error(int res):
     if res != CRYPT_OK:
-        raise Error(res)
+        raise LibError(error_to_string(res), code=res)

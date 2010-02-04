@@ -24,7 +24,7 @@ def get_hash_idx(input):
 	elif isinstance(input, HashDescriptor):
 		idx = input.idx
 	if idx < 0 or idx > max_hash_idx:
-		raise ValueError('could not find hash %r' % input)
+		raise Error('could not find hash %r' % input)
 	return idx
 	
 	
@@ -44,7 +44,7 @@ cdef class HashDescriptor(object):
 		self.idx = get_hash_idx(hash)
 		self.desc = hash_descriptors[self.idx]
 		if not isinstance(self, CHC) and self.name == 'chc_hash':
-			raise ValueError('cannot build chc descriptor')
+			raise Error('cannot build chc descriptor')
 
 	% for name in hash_properties:
 	@property

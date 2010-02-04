@@ -17,7 +17,7 @@ def get_prng_idx(input):
 	# elif isinstance(input, HashDescriptor):
 	# 	idx = input.idx
 	if idx < 0 or idx > max_prng_idx:
-		raise ValueError('could not find prng %r' % input)
+		raise Error('could not find prng %r' % input)
 	return idx
 
 cpdef register_all_prngs():

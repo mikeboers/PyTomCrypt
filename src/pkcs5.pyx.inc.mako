@@ -2,7 +2,7 @@
 
 cpdef str pkcs5_alg1(str password, str salt, int iteration_count, hash):
 	if len(salt) != 8:
-		raise ValueError('salt must be length 8')
+		raise Error('salt must be length 8')
 	cdef HashDescriptor desc = HashDescriptor(hash)
 	cdef unsigned long outlen = desc.digest_size
 	out = PyString_FromStringAndSize(NULL, outlen)

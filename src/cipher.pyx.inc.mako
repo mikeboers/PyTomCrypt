@@ -27,7 +27,7 @@ def get_cipher_idx(input):
 	elif isinstance(input, CipherDescriptor):
 		idx = input.idx
 	if idx < 0 or idx > max_cipher_idx:
-		raise ValueError('could not find cipher %r' % input)
+		raise Error('could not find cipher %r' % input)
 	return idx
 
 

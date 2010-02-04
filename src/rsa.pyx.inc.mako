@@ -48,7 +48,7 @@ RSA_DEFAULT_E = 65537
 cdef int rsa_conform_padding(padding):
     """Turn a user supplied padding constant into the C variant."""
     if padding not in _rsa_pad_map:
-        raise ValueError('unknown RSA padding %r' % padding)
+        raise Error('unknown RSA padding %r' % padding)
     padding = _rsa_pad_map[padding]
     return padding
 
@@ -163,7 +163,7 @@ cdef class RSAKey(object):
         if isinstance(input, basestring):
             format = kwargs.pop('format', None)
             if kwargs:
-                raise ValueError('too many kwargs')
+                raise Error('too many kwargs')
             self._from_string(input, format)
 
         elif 'size' in kwargs or isinstance(input, int):
@@ -173,10 +173,10 @@ cdef class RSAKey(object):
             self._generate(size, e, prng)
 
         elif input is None:
-            raise ValueError('must supply input')
+            raise Error('must supply input')
 
         elif input is not _rsa_key_init_sentinel:
-            raise ValueError('unknown key input')
+            raise Error('unknown key input')
 
     def __dealloc__(self):
         # It has been my experience that I must manually check to make sure
@@ -233,13 +233,13 @@ cdef class RSAKey(object):
         elif type in _rsa_type_map:
             type = _rsa_type_map[type]
         else:
-            raise ValueError('unknown key type %r' % type)
+            raise Error('unknown key type %r' % type)
 
         if self.key.type == c_RSA_TYPE_PUBLIC and type == c_RSA_TYPE_PRIVATE:
-            raise ValueError('cant get private key from public key')
+            raise Error('cant get private key from public key')
 
         if format not in (RSA_FORMAT_DER, RSA_FORMAT_PEM):
-            raise ValueError('unknown RSA key format %r' % format)
+            raise Error('unknown RSA key format %r' % format)
 
         # TODO: determine what size this really needs to be.
         out = PyString_FromStringAndSize(NULL, 4096)
@@ -261,13 +261,13 @@ cdef class RSAKey(object):
         """
         self._public = None
         if format not in (None, RSA_FORMAT_DER, RSA_FORMAT_PEM):
-            raise ValueError('unknown RSA key format %r' % format)
+            raise Error('unknown RSA key format %r' % format)
         if format != RSA_FORMAT_DER:
             m = _rsa_pem_re.match(input)
             if m:
                 input = m.group(2).decode('base64')
             elif format == RSA_FORMAT_PEM:
-                raise ValueError('bad PEM format')
+                raise Error('bad PEM format')
         try:
             check_for_error(rsa_import(input, len(input), &self.key))
         except:

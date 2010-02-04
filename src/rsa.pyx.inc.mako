@@ -40,7 +40,7 @@ RSA_DEFAULT_ENC_HASH = 'sha1'
 RSA_DEFAULT_SIG_HASH = 'sha512'
 RSA_DEFAULT_PRNG = 'sprng'
 
-RSA_DEFAULT_SIZE = 1024 / 8
+RSA_DEFAULT_SIZE = 2048
 RSA_DEFAULT_E = 65537
 
 
@@ -83,7 +83,7 @@ cdef unsigned long rsa_conform_saltlen(self, saltlen, HashDescriptor hash):
 
     """
     if saltlen is None:
-        return self.size - hash.digest_size - 2
+        return self.size / 8 - hash.digest_size - 2
     return saltlen
 
 
@@ -98,14 +98,14 @@ def rsa_max_payload(int key_size, padding=RSA_PAD_OAEP, hash=None):
     padding = rsa_conform_padding(padding)
     hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
     if padding == c_RSA_PAD_NONE:
-        return key_size
+        return key_size / 8
     elif padding == c_RSA_PAD_OAEP:
-        return key_size - 2 * hash.digest_size - 2
+        return key_size / 8 - 2 * hash.digest_size - 2
     elif padding == c_RSA_PAD_PSS:
-        return key_size - hash.digest_size - 2
+        return key_size / 8 - hash.digest_size - 2
     else:
         # RSA_PAD_V1_5 - I'm not too sure about this one.
-        return key_size - 2
+        return key_size / 8 - 2
 
 
 def rsa_key_size_for_payload(int length, padding=RSA_PAD_OAEP, hash=None):
@@ -117,14 +117,14 @@ def rsa_key_size_for_payload(int length, padding=RSA_PAD_OAEP, hash=None):
     padding = rsa_conform_padding(padding)
     hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
     if padding == c_RSA_PAD_NONE:
-        return length
+        return 8 * length
     elif padding == c_RSA_PAD_OAEP:
-        return length + 2 * hash.digest_size + 2
+        return 8 * (length + 2 * hash.digest_size + 2)
     elif padding == c_RSA_PAD_PSS:
-        return length + hash.digest_size + 2
+        return 8 * (length + hash.digest_size + 2)
     else:
         # RSA_PAD_V1_5 - I'm not too sure about this one.
-        return length + 2
+        return 8 * (length + 2)
 
 
 # This object must be passed to the RSAKey constructor in order for an
@@ -207,11 +207,13 @@ cdef class RSAKey(object):
         This modifies the key in place. Be careful.
 
         """
+        if size % 8:
+            raise Error('can only generate keysizes in multiples of 8')
         self._public = None
         if prng is None:
             prng = PRNG('sprng')
         try:
-            check_for_error(rsa_make_key(&prng.state, prng.idx, size, e, &self.key))
+            check_for_error(rsa_make_key(&prng.state, prng.idx, size / 8, e, &self.key))
         except:
             self.nullify()
             raise
@@ -307,7 +309,7 @@ cdef class RSAKey(object):
         return self.key.type == c_RSA_TYPE_PUBLIC
 
     @property
-    def bitlen(self):
+    def size(self):
         """The bit length of the modulus of the key.
 
         This will be a multiple of 8 for any key generated with this library,
@@ -317,18 +319,6 @@ cdef class RSAKey(object):
         """
         return mp.count_bits(self.key.N)
 
-    @property
-    def size(self):
-        """The number of characters in the modulus of the key.
-
-        This is the minumum number of characters required to represent the
-        modulus in binary form. If the bit length of the modulus is not evenly
-        divisible by 8 then this will round up.
-
-        """
-        cdef int bits = mp.count_bits(self.key.N)
-        return (bits / 8) + (1 if bits % 8 else 0)
-
     def max_payload(self, padding=RSA_PAD_OAEP, hash=None):
         """The maximum length of the payload that is safe to encrypt/sign.
 
@@ -337,7 +327,7 @@ cdef class RSAKey(object):
             hash -- The hash that will be used.
 
         """
-        return rsa_max_payload(self.bitlen / 8, padding, hash)
+        return rsa_max_payload(self.size, padding, hash)
 
     cdef RSAKey public_copy(self):
         """Get a copy of this key with only the public parts."""

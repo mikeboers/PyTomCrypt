@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	print size, k.size
 	print 100, k.max_payload()
 	
-	print '1028?', Key('''-----BEGIN RSA PRIVATE KEY-----
+	key = Key('''-----BEGIN RSA PRIVATE KEY-----
     MIICXwIBAAKBgQv9V1DrxfhDt56rC1/i18HJE6x/SLs2xu5IDySxI0xhme8U6T6w
     Ess275MacdQMSZh5MJl+8YRErwx6zOilDz8y2GDqKrsuMgAodkvfKAeQlQZp+IPZ
     dJlRhoE1Lk/aHBOiqRGR75LufiTAbaDMG3NWM1SidE9qVZv3HsWJqQU7ywIDAQAB
@@ -35,7 +35,10 @@ if __name__ == '__main__':
     419G7tj/a1dJv6EPW82TNYl+FIdtlrRSMCAmZZkJCLAQ3O65kx7mr6kY1MHV0dSp
     nQQW0dg9JGjuwZcILuNsZQJBAk1MSHz9q4Azr5F3y9gaKyPNJBVpqAyI8acQRoJF
     ioKaum9hlRf3nuXxmSfqv7iXozX6xfrYncjLKbBn/hPhWp8=
-    -----END RSA PRIVATE KEY-----''').bitlen
+    -----END RSA PRIVATE KEY-----''')
+    
+	print '1028?', key.size
+	print key.encrypt('hello').encode('base64')
     
 	private = Key('''-----BEGIN RSA PRIVATE KEY-----
     MIICXQIBAAKBgQC9mcyIFoka73NeECWjCHxr5ssMU5MBPpV2AMYHmtB8qiO5gmiU

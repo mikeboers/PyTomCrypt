@@ -236,7 +236,8 @@ cdef class RSAKey(object):
 
         if format not in (RSA_FORMAT_DER, RSA_FORMAT_PEM):
             raise ValueError('unknown RSA key format %r' % format)
-
+        
+        # TODO: determine what size this really needs to be.
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long length = 4096
         check_for_error(rsa_export(out, &length, type, &self.key))
@@ -397,8 +398,8 @@ cdef class RSAKey(object):
         cdef PRNG c_prng = rsa_conform_prng(prng)
         cdef HashDescriptor c_hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
 
-        out = PyString_FromStringAndSize(NULL, 4096)
-        cdef unsigned long out_length = 4096
+        out = PyString_FromStringAndSize(NULL, 512)
+        cdef unsigned long out_length = 512
         check_for_error(rsa_encrypt_key_ex(
             input, len(input),
             out, &out_length,
@@ -418,8 +419,8 @@ cdef class RSAKey(object):
 
         cdef HashDescriptor c_hash = rsa_conform_hash(hash, RSA_DEFAULT_ENC_HASH)
 
-        out = PyString_FromStringAndSize(NULL, 4096)
-        cdef unsigned long out_length = 4096
+        out = PyString_FromStringAndSize(NULL, 512)
+        cdef unsigned long out_length = 512
         cdef int status = 0
         check_for_error(rsa_decrypt_key_ex(
             input, len(input),
@@ -444,8 +445,8 @@ cdef class RSAKey(object):
         cdef HashDescriptor c_hash = rsa_conform_hash(hash, RSA_DEFAULT_SIG_HASH)
         cdef unsigned long c_saltlen = rsa_conform_saltlen(self, saltlen, c_hash)
 
-        out = PyString_FromStringAndSize(NULL, 4096)
-        cdef unsigned long out_length = 4096
+        out = PyString_FromStringAndSize(NULL, 512)
+        cdef unsigned long out_length = 512
         check_for_error(rsa_sign_hash_ex(
             input, len(input),
             out, &out_length,
@@ -467,8 +468,8 @@ cdef class RSAKey(object):
         cdef HashDescriptor c_hash = rsa_conform_hash(hash, RSA_DEFAULT_SIG_HASH)
         cdef unsigned long c_saltlen = rsa_conform_saltlen(self, saltlen, c_hash)
 
-        out = PyString_FromStringAndSize(NULL, 4096)
-        cdef unsigned long out_length = 4096
+        out = PyString_FromStringAndSize(NULL, 512)
+        cdef unsigned long out_length = 512
         cdef int status = 0
         check_for_error(rsa_verify_hash_ex(
             sig, len(sig),

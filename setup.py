@@ -422,7 +422,7 @@ sources = [x.strip() for x in sources if x.strip() and not x.lstrip().startswith
 
 # Define the extensions
 ext_modules = [Extension(
-    'tomcrypt.%s' % name, ["tomcrypt/%s.c" % name] + sources,
+    'tomcrypt.%s' % name, ["src/%s.c" % name] + sources,
     include_dirs=[
                 './src',
                 './src/libtomcrypt-1.16/src/headers',

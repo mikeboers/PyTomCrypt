@@ -15,10 +15,8 @@ submake: Makefile.sub
 preprocess: submake
 	$(SUBMAKE) preprocess
 
-.gitignore: gitignore.mako
-	$(PREPROCESS) gitignore.mako > .gitignore
-
 build: submake
+	mkdir -p build/src
 	$(SUBMAKE) build
 
 tomcrypt/_main.c: submake

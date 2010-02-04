@@ -1,5 +1,3 @@
-
-
 # General
 *.pyc
 .DS_Store
@@ -21,21 +19,5 @@
 /gitignore
 /Makefile.sub
 
-# Build
-/tomcrypt/_main.so
-/tomcrypt/_main.c
-
-/tomcrypt/_main.pyx
-/tomcrypt/_main.pxd
-/tomcrypt/cipher.pyx.inc
-/tomcrypt/cipher.pxd.inc
-/tomcrypt/hash.pyx.inc
-/tomcrypt/hash.pxd.inc
-/tomcrypt/mac.pyx.inc
-/tomcrypt/mac.pxd.inc
-/tomcrypt/pkcs5.pyx.inc
-/tomcrypt/pkcs5.pxd.inc
-/tomcrypt/prng.pyx.inc
-/tomcrypt/prng.pxd.inc
-/tomcrypt/rsa.pyx.inc
-
+/tomcrypt/*.so
+/src/_main.c

@@ -34,6 +34,9 @@ cdef extern from "tomcrypt.h" nogil:
 		int block_size "block_length"
 		int default_rounds
 		int key_size "keysize" (int *key_size)
+		
+		# There are a bunch of encrypt/decrypt functions here as well that we
+		# really don't care about.
 	
 	# The array which contains the descriptors once setup.
 	cipher_desc cipher_descriptors "cipher_descriptor" []

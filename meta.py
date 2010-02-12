@@ -1,7 +1,18 @@
 
 # For each actual extension, what are the base names that are included into it?
 ext_includes = {
-	'_main': 'common cipher hash mac pkcs5 prng rsa'.split()
+	'_main': '''
+	    common
+	    
+	    cipher
+	    hash
+	    mac
+	    prng
+	    pkcs1
+	    pkcs5
+	    rsa
+	    
+	'''.split()
 }
 
 
@@ -36,12 +47,14 @@ if ALL_CIPHERS:
 		rijndael_enc
 		saferp
 		twofish
-		xtea'''.strip().split())
+		xtea
+	'''.strip().split())
 else:
 	cipher_names = tuple('''
 		aes
 		blowfish
-		des'''.strip().split())
+		des
+	'''.strip().split())
 
 cipher_properties = 'name min_key_size max_key_size block_size default_rounds'.split()
 

@@ -142,7 +142,7 @@ cdef class Cipher(CipherDescriptor):
 			raise Error('iv must be %d bytes' % self.desc.block_size)
 		
 		% for mode, i in cipher_mode_items:
-		${'el' if i else ''}if self.mode_i == ${i}:
+		${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
 			% if mode == 'ecb':
 			check_for_error(ecb_start(self.idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
 			

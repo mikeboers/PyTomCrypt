@@ -21,3 +21,6 @@
 
 /tomcrypt/*.so
 /src/_main.c
+
+# docs
+/doc/build

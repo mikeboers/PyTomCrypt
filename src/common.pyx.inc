@@ -1,6 +1,6 @@
 
 # Setup TomsFastMath for use.
-mp = tfm_desc
+mp = ltm_desc
 
 
 cpdef str error_to_string(int err):

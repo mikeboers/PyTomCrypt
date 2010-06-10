@@ -39,7 +39,7 @@ build/${source}: ${source}
  % endfor
 
 src/${name}.c: ${' '.join('build/' + x for x in sources[name])}
-	bin/cython -o src/${name}.c build/src/${name}.pyx
+	cython -o src/${name}.c build/src/${name}.pyx
 
 tomcrypt/${name}.so: src/${name}.c
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace

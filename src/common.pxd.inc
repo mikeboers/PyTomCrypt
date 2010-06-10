@@ -56,7 +56,7 @@ cdef extern from "tomcrypt.h" nogil:
         
     
     # math_desc ltm_desc
-    cdef extern math_desc tfm_desc
+    cdef extern math_desc ltm_desc
     # math_desc gmp_desc
     
     cdef extern math_desc mp "ltc_mp"

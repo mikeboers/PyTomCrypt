@@ -19,8 +19,9 @@ build: submake
 	mkdir -p build/src
 	$(SUBMAKE) build
 
-tomcrypt/_main.c: submake
-	$(SUBMAKE) tomcrypt/_main.c
+src/_main.c: submake
+	mkdir -p build/src
+	$(SUBMAKE) src/_main.c
 
 test: build
 	$(PYTHON) tests/test_cipher.py

@@ -79,8 +79,8 @@ if __name__ == '__main__':
 	print repr(sig)
 	print public.verify(pt, sig)
 	
-	print 'bad - pre'
-	bad = Key('bad')
-	print 'bad - post'
+	# print 'bad - pre'
+	#  bad = Key('bad')
+	#  print 'bad - post'
 	
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

@@ -40,6 +40,8 @@ internal_tests = (
     )
 )
 
+def test_tomcrypt():
+    test()
 
 def test_internal():
 	for keysize, key, pt, ct in internal_tests:

@@ -1,3 +1,9 @@
 
+# PyTomCrypt
+
 This project is a Python wrapper around LibTomCrypt.
 
+# Installation
+
+See the INSTALL file for help installing either from the source distribution
+(ie. from PyPi) or from the raw source distribution (ie. from GitHub).

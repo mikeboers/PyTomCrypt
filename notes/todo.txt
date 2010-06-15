@@ -74,9 +74,6 @@
 
 - Consider adding a copy() method to ciphers.
 
-
-- Version number to 0.1, with a description as to why
-
 - cleanup the test output so it is easier to see at a glance what is going on
 	- consider using unittest module
 
@@ -91,13 +88,20 @@
 	for byte size:
 		This is what tomcrypt actually works with internally.
 
-- RSAKey constructor should take the string version.
 
-- Figure out what is up with the constant which contols error handling. See
-if I can get it to just error and not throw anything.
-	setting ARGTYPE to 4 SHOULD result in errors being returned.
+- Figure out what is up with the constant which controls error handling.
+	See if I can get it to just error and not throw anything. setting ARGTYPE
+	to 4 SHOULD result in errors being returned.
 
 - implement the rest of the rsa functions
 	- padding / unpadding
+
 - implement ecc and dsa
 	- just do it with whatever tom gives me... openssl doesnt do it
+
+
+
+- figure out which parts actually need to be bundled together
+	1: rsa / math / prng
+	2: cipher / hash / mac / pkcs5
+

@@ -1,4 +1,6 @@
 
+- Figure out why I had to use "int" type instead of "bool" in the Mac class.
+
 - Make notes that this is for Python2.X, not 3, which uses byte arrays.
 
 - Things to add:

@@ -51,8 +51,8 @@ cdef class MAC(object):
 	
 	cdef readonly object mode
 	cdef int mode_i
-	cdef readonly bool uses_hash
-	cdef readonly bool uses_cipher
+	cdef readonly int uses_hash
+	cdef readonly int uses_cipher
 	
 	cdef readonly object desc
 	

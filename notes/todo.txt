@@ -1,5 +1,14 @@
 
 - Figure out why I had to use "int" type instead of "bool" in the Mac class.
+    I think I have to use "bint" as there is no bool.
+
+- We can actually split everything into modules, if we do all the cdef extern
+  declarations in a single module. could have mac-core.xd.inc.mako which is
+  the Mako template for the pxd include for the core.
+
+  The easy part is rearranging the existing files so all the extern defs are
+  in the core. The hard part is importing everything that we want back into
+  the modules.
 
 - Make notes that this is for Python2.X, not 3, which uses byte arrays.
 

@@ -43,9 +43,6 @@ cpdef register_all_ciphers():
 
 cdef class CipherDescriptor(object):
 	
-	cdef readonly int idx
-	cdef cipher_desc desc
-	
 	def __init__(self, cipher):
 		self.idx = get_cipher_idx(cipher)
 		self.desc = cipher_descriptors[self.idx]

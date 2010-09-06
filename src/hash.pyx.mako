@@ -1,3 +1,10 @@
+
+from tomcrypt._core cimport *
+from tomcrypt._core import Error
+
+from tomcrypt.cipher cimport CipherDescriptor
+from tomcrypt.cipher import get_cipher_idx
+
 def test_hash():
 	"""Run the internal tests."""
 	register_all_hashes()

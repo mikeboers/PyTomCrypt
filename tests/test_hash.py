@@ -13,7 +13,7 @@ from tomcrypt.hash import *
 
 
 def test_hashlib():
-	for name in hashes:
+	for name in hash_names:
 		if name == 'chc':
 			continue
 		print name, 
@@ -37,7 +37,7 @@ def test_hashlib():
 if __name__ == '__main__':
 	start_time = time.time()
 	print 'Running internal tests...'
-	test()
+	test_hash()
 	print 'Running against hashlib...'
 	test_hashlib()
 	print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))

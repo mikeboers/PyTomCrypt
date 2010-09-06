@@ -1,3 +1,5 @@
+
+
 cdef extern from "stdlib.h" nogil:
 
     void * malloc(int size)
@@ -60,4 +62,7 @@ cdef extern from "tomcrypt.h" nogil:
     # math_desc gmp_desc
     
     cdef extern math_desc mp "ltc_mp"
-    
+
+
+
+include "cipher-core.pxd"

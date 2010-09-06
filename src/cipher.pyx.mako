@@ -1,4 +1,6 @@
 
+from tomcrypt._core import *
+
 def test_cipher():
 	"""Run internal cipher tests."""
 	cdef int res

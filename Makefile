@@ -7,7 +7,7 @@ SUBMAKE = make -f $(SUB)
 
 default : build
 
-% : %.mako
+% : %.mako meta.py setup.py
 	$(PREPROCESS) $< > $@
 
 submake: Makefile.sub

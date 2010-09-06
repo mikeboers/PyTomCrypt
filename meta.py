@@ -1,16 +1,8 @@
 
 # For each actual extension, what are the base names that are included into it?
 ext_includes = {
-	'_main': '''
-	    common
-	    
-	    cipher
-	    hash
-	    mac
-	    prng
-	    pkcs1
-	    pkcs5
-	    rsa
+	'_core': '''
+	    cipher-core
 	    
 	'''.split()
 }

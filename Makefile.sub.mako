@@ -11,12 +11,12 @@ all_sources = {}
 sources = {}
 for name in ext_names:
 	file_names = [name] + list(meta.ext_includes.get(name) or [])
-	all_sources[name] = ['src/%s.%s' % (name, ext) for ext in exts]
+	all_sources[name] = ['%s.%s' % (name, ext) for ext in exts]
 	for file_name in file_names:
 		for ext in exts:
-			all_sources[name].append('src/%s.%s' % (file_name, ext))
+			all_sources[name].append('%s.%s' % (file_name, ext))
 			# all_sources[name].append('src/%s.%s.inc' % (file_name, ext))
-	sources[name] = [x for x in all_sources[name] if exists(x) or exists(x + '.mako')]
+	sources[name] = [x for x in all_sources[name] if exists('src/' + x) or exists('src/' + x + '.mako')]
 			
 	all_sources[name] = sorted(set(all_sources[name]))
 	sources[name]	  = sorted(set(sources[name]))
@@ -30,21 +30,21 @@ PREPROCESS = ./preprocess
 % for name in ext_names:
 # Prep sources for "${name}".
  % for i, source in enumerate(sources[name]):
-  % if exists(source + '.mako'):
-build/${source}: ${source}.mako meta.py setup.py
+  % if exists('src/' + source + '.mako'):
+build/src/tomcrypt.${source}: src/${source}.mako meta.py setup.py
 	$(PREPROCESS) -D ext_name=${name} $< > $@
   % else:
-build/${source}: ${source}
+build/src/tomcrypt.${source}: src/${source}
 	cat $< > $@
   % endif
  % endfor
 
 # Cross-compile "${name}".
-src/${name}.c: ${' '.join('build/' + x for x in sources[name])}
+src/tomcrypt.${name}.c: ${' '.join('build/src/tomcrypt.' + x for x in sources[name])}
 	cython -o src/${name}.c build/src/${name}.pyx
 
 # Compile "${name}".
-tomcrypt/${name}.so: src/${name}.c
+tomcrypt/${name}.so: src/tomcrypt.${name}.c
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
 
 % endfor

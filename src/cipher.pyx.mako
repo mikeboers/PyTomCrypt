@@ -1,5 +1,6 @@
 
-from tomcrypt._core import *
+from tomcrypt._core cimport *
+from tomcrypt._core import Error
 
 def test_cipher():
 	"""Run internal cipher tests."""
@@ -73,7 +74,7 @@ ctypedef int (*cipher_crypt_pt)(unsigned char *, unsigned char *, unsigned long,
 ctypedef cipher_crypt_pt cipher_encrypt_pt
 ctypedef cipher_crypt_pt cipher_decrypt_pt
 ctypedef int (*cipher_getiv_pt)(unsigned char *, unsigned long *, void *)
-ctypedef int (*cipher_setiv_pt)(unsigned char *, unsigned long  , void *)
+ctypedef int (*cipher_setiv_pt)(unsigned char *, unsigned long	, void *)
 ctypedef int (*cipher_done_pt)(void *)
 
 # Setup arrays to hold the all the function pointers.
@@ -181,7 +182,7 @@ cdef class Cipher(CipherDescriptor):
 		check_for_error(cipher_getiv[self.mode_i](iv, &length, &self.state))
 		return iv
 	
-	cpdef set_iv(self, iv):	
+	cpdef set_iv(self, iv): 
 		if cipher_getiv[self.mode_i] == NULL:
 			raise Error('%r mode does not use an IV' % self.mode)
 		check_for_error(cipher_setiv[self.mode_i](iv, len(iv), &self.state))

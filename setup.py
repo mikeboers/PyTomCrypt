@@ -489,6 +489,7 @@ sources = [x.strip() for x in sources if x.strip() and not x.lstrip().startswith
 ext_modules = [Extension(
     'tomcrypt.%s' % name, ["src/%s.c" % name] + sources,
     include_dirs=[
+                '.', # Buh?
                 './src',
                 './src/libtomcrypt-1.16/src/headers',
                 './src/libtommath-0.41',

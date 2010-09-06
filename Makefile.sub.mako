@@ -40,11 +40,11 @@ build/src/tomcrypt.${source}: src/${source}
  % endfor
 
 # Cross-compile "${name}".
-src/tomcrypt.${name}.c: ${' '.join('build/src/tomcrypt.' + x for x in sources[name])}
-	cython -o src/${name}.c build/src/${name}.pyx
+src/${name}.c: ${' '.join('build/src/tomcrypt.' + x for x in sources[name])}
+	cython -o src/${name}.c build/src/tomcrypt.${name}.pyx
 
 # Compile "${name}".
-tomcrypt/${name}.so: src/tomcrypt.${name}.c
+tomcrypt/${name}.so: src/${name}.c
 	env PyTomCrypt_ext_name=${name} $(PYTHON) setup.py build_ext --inplace
 
 % endfor
@@ -57,8 +57,11 @@ build: ${' '.join('tomcrypt/%s.so' % name for name in ext_names)}
 clean:
 % for name in ext_names:
  % for source in all_sources.get(name, []):
-  % if exists(source) or exists(source + '.mako'):
-	- rm build/${source}
+  % for prefix in 'build/', 'build/tomcrypt.':
+  <% path = prefix + source %>
+  % if exists(path) or exists(path + '.mako'):
+	- rm ${path}
   % endif
+  % endfor
  % endfor
 % endfor

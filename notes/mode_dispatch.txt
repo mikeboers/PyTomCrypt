@@ -8,6 +8,7 @@ There are several methods that we can take to dispatch to these various methods.
 
 2. Build a class for each of the modes. Every class is completely seperate and only uses the proper functions.
 	- Takes about 292-294 ns per block.
+	- This should severely increase compile times.
 
 3. Reference all the functions with a void* state type, and save pointers to the en/decrypt functions in the Cipher class.
 	- This relies upon the compiler automatically casting from void* to
@@ -17,7 +18,8 @@ There are several methods that we can take to dispatch to these various methods.
 
 4. Build array of pointer functions and store the index into that array in the class.
     - Same issue with the types as 3.
-    - Takes about 305ns per block.
+    - Takes about 305ns per block. I'm not sure if this timing is with or
+      without the inline wrapper functions
 
 	Compile times (via `make clean && make preprocess && time make build`):
 		real	0m9.629s
@@ -28,4 +30,5 @@ There are several methods that we can take to dispatch to these various methods.
 		user	0m8.870s
 		sys		0m0.413s
 		
-		
+
+5. (Not attempted.) Each mode gets it's own class, which inherit from a master class which handles all the common code, using pointers to methods. I think that this will require the descriptor to actually be a metaclass, which is somewhat problematic given that I don't think we can do that with Cython.

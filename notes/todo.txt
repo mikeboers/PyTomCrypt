@@ -2,9 +2,23 @@
 - Figure out why I had to use "int" type instead of "bool" in the Mac class.
     I think I have to use "bint" as there is no bool.
 
+- The Python side should not expose the actual descriptor ids; we should only
+  ever accept the cannonical names (ie. strings: "aes", "cbc", "prng", etc.).
+  Perhaps we can take upper case too, but that isn't a big deal.
+
+- Don't need to bother pre-making constructors for the various modes or
+  ciphers.
+  
+- Should consider making the descriptors into singletons. This isn't all that
+  nessesary, really. If they are not singletons that someone can go and extend
+  it later.
+
 - We can actually split everything into modules, if we do all the cdef extern
   declarations in a single module. could have mac-core.xd.inc.mako which is
   the Mako template for the pxd include for the core.
+  
+  Modules:
+    - _core: this one handles all the cdef externs, and all common code.
 
   The easy part is rearranging the existing files so all the extern defs are
   in the core. The hard part is importing everything that we want back into

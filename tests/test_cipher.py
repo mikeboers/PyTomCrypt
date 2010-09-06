@@ -9,6 +9,7 @@ import time
 from subprocess import Popen, PIPE
 
 from tomcrypt.cipher import *
+Descriptor = CipherDescriptor
 
 internal_tests = (
     ( 16,
@@ -41,7 +42,7 @@ internal_tests = (
 )
 
 def test_tomcrypt():
-    test()
+    test_cipher()
 
 def test_internal():
 	for keysize, key, pt, ct in internal_tests:
@@ -132,7 +133,7 @@ def test_external():
 if __name__ == '__main__':
 	start_time = time.time()
 	print 'Running internal tests...'
-	test()
+	test_tomcrypt()
 	print 'Running cython tests...'
 	test_internal()
 	print 'Running external tests...'

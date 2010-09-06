@@ -6,3 +6,6 @@ class Error(ValueError):
 
 class LibError(Error):
     pass
+
+# Just so it gets loaded before anything that depends on it.
+import tomcrypt._core

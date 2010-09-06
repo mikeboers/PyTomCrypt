@@ -69,4 +69,4 @@ cdef extern from "tomcrypt.h" nogil:
 cdef check_for_error(int res)
 
 
-include "cipher-core.pxd"
+include "tomcrypt.cipher-core.pxd"

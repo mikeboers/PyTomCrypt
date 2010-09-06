@@ -14,8 +14,7 @@ if ext_name:
         raise ValueError('unknown extension %r' % ext_name)
     ext_names = [ext_name]
 
-
-sources = '''
+ext_sources = {'_core': '''
 
 ### LIBTOMCRYPT
 # src/libtomcrypt-1.16/demos/encrypt.c
@@ -479,15 +478,16 @@ src/libtommath-0.41/bncore.c
 ### CUSTOM
 src/aes_enc.c
 
-'''.strip().splitlines()
+'''.strip().splitlines()}
 
-sources = [x.strip() for x in sources if x.strip() and not x.lstrip().startswith('#')]
+for name, sources in ext_sources.items():
+	ext_sources[name] = [x.strip() for x in sources if x.strip() and not x.lstrip().startswith('#')]
 
 # print '\n'.join(sources)
 
 # Define the extensions
 ext_modules = [Extension(
-    'tomcrypt.%s' % name, ["src/%s.c" % name] + sources,
+    'tomcrypt.%s' % name, ["src/%s.c" % name] + ext_sources.get(name, []),
     include_dirs=[
                 '.', # Buh?
                 './src',

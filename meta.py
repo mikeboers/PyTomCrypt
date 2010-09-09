@@ -4,6 +4,7 @@ ext_includes = {
 	'_core': '''
 	    cipher-core
 	    hash-core
+	    mac-core
 	    
 	'''.split()
 }

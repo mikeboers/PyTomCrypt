@@ -44,9 +44,6 @@ cpdef register_all_hashes():
 
 cdef class HashDescriptor(object):
 	
-	cdef readonly int idx
-	cdef hash_desc desc
-	
 	def __init__(self, hash):
 		self.idx = get_hash_idx(hash)
 		self.desc = hash_descriptors[self.idx]

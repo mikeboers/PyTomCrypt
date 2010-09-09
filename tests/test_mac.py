@@ -10,13 +10,13 @@ from subprocess import Popen, PIPE
 import hmac
 
 from tomcrypt import mac
-from tomcrypt._main import Error as TomCryptError
+from tomcrypt import Error as TomCryptError
 
 def test_py_hmac_oneshot():
 	for i in range(1, 10):
 		key = os.urandom(8 * i)
 		x = hmac.new(key)
-		y = mac.hmac(key, hash='md5')
+		y = mac.MAC('hmac', key, hash='md5')
 		for j in range(1, 10):
 			v = os.urandom(j * 8)
 			x.update(v)
@@ -30,7 +30,7 @@ def test_py_hmac_multi():
 			j = -1
 			key = os.urandom(8 * i)
 			x = hmac.new(key)
-			y = mac.hmac(key, hash='md5')
+			y = mac.MAC('hmac', key, hash='md5')
 			for j in range(1, 10):
 				v = os.urandom(j * 8)
 				x.update(v)
@@ -45,7 +45,7 @@ def test_py_hmac_copy():
 		for i in range(1, 10):
 			j = -1
 			key = os.urandom(8 * i)
-			x = mac.hmac(key, hash='md5')
+			x = mac.MAC('hmac', key, hash='md5')
 			for j in range(1, 10):
 				v = os.urandom(j * 8)
 				y = x.copy()
@@ -63,7 +63,7 @@ def test_py_hmac_copy():
 if __name__ == '__main__':
 	start_time = time.time()
 	print 'Running internal tests...'
-	mac.test()
+	mac.test_mac()
 	print 'Running against hmac module...'
 	test_py_hmac_oneshot()
 	test_py_hmac_multi()

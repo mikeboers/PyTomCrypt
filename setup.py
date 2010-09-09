@@ -7,7 +7,7 @@ from distutils.extension import Extension
 
 
 # Allow us to specify a single extension to build.
-ext_names = ['_core', 'cipher', 'hash']
+ext_names = ['_core', 'cipher', 'hash', 'mac']
 ext_name = os.environ.get('PyTomCrypt_ext_name')
 if ext_name:
     if ext_name not in ext_names:

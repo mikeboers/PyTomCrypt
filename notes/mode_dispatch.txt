@@ -32,3 +32,34 @@ There are several methods that we can take to dispatch to these various methods.
 		
 
 5. (Not attempted.) Each mode gets it's own class, which inherit from a master class which handles all the common code, using pointers to methods. I think that this will require the descriptor to actually be a metaclass, which is somewhat problematic given that I don't think we can do that with Cython.
+
+-----
+
+Note that libtomcrypt is able to encrypt more than a single block at once,
+passing the dispatching from Python to the C code, which is MUCH faster. Timings change drastically when you let the C code dispatch, as seen in this
+example where we encrypt 65536 bytes of random text in different sized chunks.
+
+	 1/4 blocks: 2009.04ns each
+	 1/2 blocks: 1072.77ns each
+	   1 blocks: 637.96ns each
+	   2 blocks: 408.44ns each
+	   4 blocks: 259.02ns each
+	   8 blocks: 201.22ns each
+	  16 blocks: 191.39ns each
+	  32 blocks: 167.70ns each
+	  64 blocks: 155.76ns each
+	 128 blocks: 156.29ns each
+	 256 blocks: 144.76ns each
+	 512 blocks: 143.31ns each
+	1024 blocks: 142.32ns each
+	2048 blocks: 141.39ns each
+	4096 blocks: 141.62ns each
+
+As you can see, if we encrypt it all in one go then we are virtually only
+limited by the raw speed of libtomcrypt, which processes one block of AES in CFB mode in 141ns. Back up to doing a single block at a time we are at approx 4 times that duration. Clearly, arguing about the various dispatch methods describes above for ~10ns per dispatch (not block) is rather trivial. Ergo we are no longer going to so highly prioritize dispatch speed.
+
+
+
+
+
+

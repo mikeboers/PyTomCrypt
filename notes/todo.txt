@@ -24,6 +24,8 @@
   in the core. The hard part is importing everything that we want back into
   the modules.
 
+- The memory encrypt/decrypt/hash functions can be methods of the descriptors.
+
 - Make notes that this is for Python2.X, not 3, which uses byte arrays.
 
 - Things to add:
@@ -125,8 +127,4 @@
 	- just do it with whatever tom gives me... openssl doesnt do it
 
 
-
-- figure out which parts actually need to be bundled together
-	1: rsa / math / prng
-	2: cipher / hash / mac / pkcs5
 

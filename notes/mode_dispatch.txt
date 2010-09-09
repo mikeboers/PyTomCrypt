@@ -56,7 +56,7 @@ example where we encrypt 65536 bytes of random text in different sized chunks.
 	4096 blocks: 141.62ns each
 
 As you can see, if we encrypt it all in one go then we are virtually only
-limited by the raw speed of libtomcrypt, which processes one block of AES in CFB mode in 141ns. Back up to doing a single block at a time we are at approx 4 times that duration. Clearly, arguing about the various dispatch methods describes above for ~10ns per dispatch (not block) is rather trivial. Ergo we are no longer going to so highly prioritize dispatch speed.
+limited by the raw speed of libtomcrypt, which processes one block of AES in CFB mode in 141ns. Back up to doing a single block at a time we are at approx 4 times that duration. Clearly, arguing about the various dispatch methods describes above for ~10ns per dispatch (not block) is rather trivial. Ergo we are no longer going to so highly prioritize dispatch speed. I'm leaning towards method 1 (ie. big switch statements).
 
 
 

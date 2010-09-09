@@ -7,7 +7,7 @@ import fractions
 from tomcrypt.cipher import Cipher
 
 
-chunk_len = 4
+chunk_len = 16
 max_len = chunk_len * 2**14
 
 print 'Testing on %d bytes of random content.' % max_len
@@ -16,7 +16,7 @@ print
 while chunk_len <= max_len:
     
     chunks = [os.urandom(chunk_len) for i in xrange(max_len // chunk_len)]
-    cipher = Cipher(cipher='aes', mode='cfb', key='0123456789abcdef')
+    cipher = Cipher(cipher='aes', mode='ecb', key='0123456789abcdef')
     start_time = time.time()
     while chunks:
         out = cipher.encrypt(chunks.pop())

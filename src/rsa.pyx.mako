@@ -4,6 +4,10 @@ key_parts = 'e d N p q qP dP dQ'.split()
 
 %>
 
+from tomcrypt._core cimport *
+from tomcrypt.hash cimport HashDescriptor
+from tomcrypt import Error
+
 import re
 import base64
 from math import ceil
@@ -87,7 +91,7 @@ cdef unsigned long rsa_conform_saltlen(self, saltlen, HashDescriptor hash):
     return saltlen
 
 
-def rsa_max_payload(int key_size, padding=RSA_PAD_OAEP, hash=None):
+def max_payload(int key_size, padding=RSA_PAD_OAEP, hash=None):
     """Find the maximum length of the payload that is safe to encrypt/sign.
 
     Params:
@@ -108,7 +112,7 @@ def rsa_max_payload(int key_size, padding=RSA_PAD_OAEP, hash=None):
         return key_size / 8 - 2
 
 
-def rsa_key_size_for_payload(int length, padding=RSA_PAD_OAEP, hash=None):
+def key_size_for_payload(int length, padding=RSA_PAD_OAEP, hash=None):
     """Determine the min keysize for a payload of a given length.
 
     This is for OAEP padding with the given (or default) hash.
@@ -327,7 +331,7 @@ cdef class RSAKey(object):
             hash -- The hash that will be used.
 
         """
-        return rsa_max_payload(self.size, padding, hash)
+        return max_payload(self.size, padding, hash)
 
     cdef RSAKey public_copy(self):
         """Get a copy of this key with only the public parts."""
@@ -462,3 +466,13 @@ cdef class RSAKey(object):
             &self.key
         ))
         return bool(status)
+
+
+Key = RSAKey
+
+def generate_key(size=RSA_DEFAULT_SIZE, e=RSA_DEFAULT_E, prng=None):
+    return Key(size=size, e=e, prng=prng)
+
+def key_from_string(input, format=None):
+    return Key(input, format=format)
+

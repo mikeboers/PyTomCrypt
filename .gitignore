@@ -23,6 +23,12 @@
 /src/_main.c
 /src/_core.c
 /src/cipher.c
+/src/hash.c
+/src/mac.c
+/src/prng.c
+/src/rsa.c
+/src/pkcs1.c
+/src/pkcs5.c
 
 # docs
 /doc/build

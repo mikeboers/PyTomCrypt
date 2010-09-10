@@ -6,6 +6,9 @@ ext_includes = {
 	    hash-core
 	    mac-core
 	    prng-core
+	    pkcs1-core
+	    rsa-core
+	    pkcs5-core
 	    
 	'''.split()
 }

@@ -1,4 +1,7 @@
 
+from tomcrypt._core cimport *
+from tomcrypt.hash cimport HashDescriptor
+from tomcrypt import Error
 
 cpdef str pkcs5_alg1(str password, str salt, int iteration_count, hash):
 	if len(salt) != 8:

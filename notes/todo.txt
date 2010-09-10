@@ -1,6 +1,8 @@
 
 - Make sure we have all of the internal tests in there.
 
+- Restore all of the constructor functions.
+
 - Auto register all descriptors. Registering seems to copy the entire
   descriptor into a table somewhere, but they don't take up too much space.
   Could do some fancy code to track to see if they have been registered, but

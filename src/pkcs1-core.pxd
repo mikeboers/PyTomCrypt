@@ -1,4 +1,3 @@
-
 cdef extern from "tomcrypt.h" nogil:
     
     int LTC_PKCS_1_EME

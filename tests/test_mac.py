@@ -16,7 +16,7 @@ def test_py_hmac_oneshot():
 	for i in range(1, 10):
 		key = os.urandom(8 * i)
 		x = hmac.new(key)
-		y = mac.MAC('hmac', key, hash='md5')
+		y = mac.MAC('hmac', 'md5', key)
 		for j in range(1, 10):
 			v = os.urandom(j * 8)
 			x.update(v)
@@ -30,7 +30,7 @@ def test_py_hmac_multi():
 			j = -1
 			key = os.urandom(8 * i)
 			x = hmac.new(key)
-			y = mac.MAC('hmac', key, hash='md5')
+			y = mac.MAC('hmac', 'md5', key)
 			for j in range(1, 10):
 				v = os.urandom(j * 8)
 				x.update(v)
@@ -45,7 +45,7 @@ def test_py_hmac_copy():
 		for i in range(1, 10):
 			j = -1
 			key = os.urandom(8 * i)
-			x = mac.MAC('hmac', key, hash='md5')
+			x = mac.MAC('hmac', 'md5', key)
 			for j in range(1, 10):
 				v = os.urandom(j * 8)
 				y = x.copy()

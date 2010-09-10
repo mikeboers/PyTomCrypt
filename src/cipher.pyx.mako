@@ -24,8 +24,6 @@ def get_cipher_idx(input):
 		idx = find_cipher(input)
 	elif isinstance(input, Descriptor):
 		idx = input.idx
-	else:
-		raise TypeError('could not id cipher with %r' % input)
 	if idx < 0 or idx > max_cipher_idx:
 		raise Error('could not find cipher %r' % input)
 	return idx

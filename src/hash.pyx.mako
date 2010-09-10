@@ -23,8 +23,6 @@ def get_hash_idx(input):
 		idx = find_hash(input)
 	elif isinstance(input, Descriptor):
 		idx = input.idx
-	else:
-		raise TypeError('could not id hash with %r' % input)
 	if idx < 0 or idx > max_hash_idx:
 		raise Error('could not find hash %r' % input)
 	return idx

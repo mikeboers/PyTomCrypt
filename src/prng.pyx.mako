@@ -12,20 +12,11 @@ max_prng_idx = max(max_prng_idx, register_prng(&${name}_desc))
 % endfor
 
 def get_prng_idx(input):
-	global max_prng_idx
 	idx = -1
-	if isinstance(input, int):
-		idx = input
-	elif isinstance(input, basestring):
+	if isinstance(input, basestring):
 		idx = find_prng(input)
-		if idx == -1:
-			% for i, name in enumerate(prng_names):
-			${'el' if i else ''}if input == ${repr(name)}:
-				idx = register_prng(&${name}_desc)
-			% endfor	
-			max_prng_idx = max(idx, max_prng_idx)
-	# elif isinstance(input, HashDescriptor):
-	# 	idx = input.idx
+	elif isinstance(input, PRNG):
+		idx = input.idx
 	if idx < 0 or idx > max_prng_idx:
 		raise Error('could not find prng %r' % input)
 	return idx

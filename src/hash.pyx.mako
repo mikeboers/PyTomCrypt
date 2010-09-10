@@ -19,9 +19,7 @@ max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
 	
 def get_hash_idx(input):
 	idx = -1
-	if isinstance(input, int):
-		idx = input
-	elif isinstance(input, basestring):
+	if isinstance(input, basestring):
 		idx = find_hash(input)
 	elif isinstance(input, Descriptor):
 		idx = input.idx
@@ -98,7 +96,7 @@ cdef class Hash(Descriptor):
 		return self.digest().encode('hex')
 	
 	cpdef copy(self):
-		cdef Hash copy = self.__class__(self.idx)
+		cdef Hash copy = self.__class__(self.name)
 		memcpy(&copy.state, &self.state, sizeof(hash_state))
 		return copy
 	

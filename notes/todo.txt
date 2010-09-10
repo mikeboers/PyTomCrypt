@@ -3,11 +3,6 @@
 
 - Restore all of the constructor functions.
 
-- Auto register all descriptors. Registering seems to copy the entire
-  descriptor into a table somewhere, but they don't take up too much space.
-  Could do some fancy code to track to see if they have been registered, but
-  it is likely that the Python code to do this will take up MORE memory.
-
 - Figure out why I had to use "int" type instead of "bool" in the Mac class.
     I think I have to use "bint" as there is no bool.
 
@@ -21,17 +16,6 @@
 - Should consider making the descriptors into singletons. This isn't all that
   nessesary, really. If they are not singletons that someone can go and extend
   it later.
-
-- We can actually split everything into modules, if we do all the cdef extern
-  declarations in a single module. could have mac-core.xd.inc.mako which is
-  the Mako template for the pxd include for the core.
-  
-  Modules:
-    - _core: this one handles all the cdef externs, and all common code.
-
-  The easy part is rearranging the existing files so all the extern defs are
-  in the core. The hard part is importing everything that we want back into
-  the modules.
 
 - The memory encrypt/decrypt/hash functions can be methods of the descriptors.
 

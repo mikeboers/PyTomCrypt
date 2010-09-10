@@ -7,14 +7,17 @@ from tomcrypt.cipher import get_cipher_idx
 
 def test_hash():
 	"""Run the internal tests."""
-	register_all_hashes()
 	get_cipher_idx('aes') # Register AES for the CHC hash.
 	% for name in hash_names:
 	check_for_error(${name}_desc.test())
 	% endfor
 
 
-cdef int max_hash_idx = -1
+cdef int max_hash_idx = -1    
+% for name in hash_names:
+max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
+% endfor
+	
 def get_hash_idx(input):
 	global max_hash_idx
 	idx = -1
@@ -34,12 +37,6 @@ def get_hash_idx(input):
 		raise Error('could not find hash %r' % input)
 	return idx
 	
-	
-cpdef register_all_hashes():
-	global max_hash_idx
-	% for name in hash_names:
-	max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
-	% endfor
 
 
 cdef class HashDescriptor(object):

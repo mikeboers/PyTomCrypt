@@ -2,10 +2,15 @@
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
-from tomcrypt.cipher import register_all_ciphers
-from tomcrypt.hash import register_all_hashes
+# Just to make sure everything is registered.
+import tomcrypt.cipher
+import tomcrypt.hash
 
 cdef int max_prng_idx = -1
+% for name in prng_names:
+max_prng_idx = max(max_prng_idx, register_prng(&${name}_desc))
+% endfor
+
 def get_prng_idx(input):
 	global max_prng_idx
 	idx = -1
@@ -25,18 +30,9 @@ def get_prng_idx(input):
 		raise Error('could not find prng %r' % input)
 	return idx
 
-cpdef register_all_prngs():
-	global max_prng_idx
-	% for name in prng_names:
-	max_prng_idx = max(max_prng_idx, register_prng(&${name}_desc))
-	% endfor
 
 def test_library():
-	"""Run the internal tests."""
-	register_all_hashes()
-	register_all_ciphers()
-	register_all_prngs()
-	
+	"""Run the internal tests."""	
 	% for name in prng_names:
 	check_for_error(${name}_desc.test())
 	% endfor

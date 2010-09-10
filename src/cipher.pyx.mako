@@ -5,7 +5,6 @@ from tomcrypt._core import Error
 def test_cipher():
 	"""Run internal cipher tests."""
 	cdef int res
-	register_all_ciphers()
 	% for name in cipher_names:
 	% if not name.endswith('_enc'):
 	check_for_error(${name}_test())
@@ -14,6 +13,10 @@ def test_cipher():
 		
 
 cdef int max_cipher_idx = -1
+% for name in cipher_names:
+max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
+% endfor
+
 def get_cipher_idx(input):
 	global max_cipher_idx
 	idx = -1
@@ -34,11 +37,6 @@ def get_cipher_idx(input):
 	return idx
 
 
-cpdef register_all_ciphers():
-	global max_cipher_idx
-	% for name in cipher_names:
-	max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
-	% endfor
 
 
 cdef class CipherDescriptor(object):

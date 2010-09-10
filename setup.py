@@ -473,11 +473,6 @@ src/libtommath-0.41/bncore.c
 # src/libtommath-0.41/pre_gen/mpi.c
 
 
-
-
-### CUSTOM
-# src/aes_enc.c
-
 '''.strip().splitlines()}
 
 for name, sources in ext_sources.items():
@@ -499,7 +494,6 @@ ext_modules = [Extension(
         # These macros are needed for the math library.
         LTM_DESC=None,
         LTC_SOURCE=None,
-        LTC_YARROW_AES=3,
         # TFM_NO_ASM=None,
     
     ).items(),

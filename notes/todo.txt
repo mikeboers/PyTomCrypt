@@ -2,7 +2,10 @@
 - Plan out the full API:
 	tomcrypt.cipher:
 		Descriptor
-		
+
+
+- Look into the Cython optimization configuration options.
+
 - Restore all of the constructor functions.
 
 - Should consider making the descriptors into singletons. This isn't all that

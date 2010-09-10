@@ -1,4 +1,3 @@
-##
 cdef extern from "tomcrypt.h" nogil:
 
 	ctypedef struct prng_state:

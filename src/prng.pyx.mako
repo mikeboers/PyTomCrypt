@@ -1,4 +1,9 @@
 
+from tomcrypt._core cimport *
+from tomcrypt._core import Error
+
+from tomcrypt.cipher import register_all_ciphers
+from tomcrypt.hash import register_all_hashes
 
 cdef int max_prng_idx = -1
 def get_prng_idx(input):
@@ -26,7 +31,7 @@ cpdef register_all_prngs():
 	max_prng_idx = max(max_prng_idx, register_prng(&${name}_desc))
 	% endfor
 
-def test_prng():
+def test_library():
 	"""Run the internal tests."""
 	register_all_hashes()
 	register_all_ciphers()

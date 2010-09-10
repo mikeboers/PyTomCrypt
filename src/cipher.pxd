@@ -5,3 +5,5 @@ cdef class CipherDescriptor(object):
 	
 	cdef readonly int idx
 	cdef cipher_desc desc
+
+cpdef register_all_ciphers()

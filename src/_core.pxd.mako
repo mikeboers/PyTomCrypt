@@ -72,3 +72,4 @@ cdef check_for_error(int res)
 include "tomcrypt.cipher-core.pxd"
 include "tomcrypt.hash-core.pxd"
 include "tomcrypt.mac-core.pxd"
+include "tomcrypt.prng-core.pxd"

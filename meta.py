@@ -5,6 +5,7 @@ ext_includes = {
 	    cipher-core
 	    hash-core
 	    mac-core
+	    prng-core
 	    
 	'''.split()
 }

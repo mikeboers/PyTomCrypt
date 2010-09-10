@@ -1,7 +1,7 @@
 
 from tomcrypt._core cimport cipher_desc
 
-cdef class CipherDescriptor(object):
+cdef class Descriptor(object):
 	
 	cdef readonly int idx
 	cdef cipher_desc desc

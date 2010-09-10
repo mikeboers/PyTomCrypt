@@ -9,7 +9,7 @@ import time
 from subprocess import Popen, PIPE
 
 from tomcrypt.cipher import *
-Descriptor = CipherDescriptor
+Descriptor = Descriptor
 
 def test_speed():
 	cipher = Cipher('0123456789abcdef', cipher='aes', mode='ecb')

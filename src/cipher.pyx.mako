@@ -29,7 +29,7 @@ def get_cipher_idx(input):
 				idx = register_cipher(&${name}_desc)
 			% endfor	
 			max_cipher_idx = max(idx, max_cipher_idx)
-	elif isinstance(input, CipherDescriptor):
+	elif isinstance(input, Descriptor):
 		idx = input.idx
 	if idx < 0 or idx > max_cipher_idx:
 		raise Error('could not find cipher %r' % input)
@@ -38,7 +38,7 @@ def get_cipher_idx(input):
 
 
 
-cdef class CipherDescriptor(object):
+cdef class Descriptor(object):
 	
 	def __init__(self, cipher):
 		self.idx = get_cipher_idx(cipher)
@@ -105,7 +105,7 @@ cdef union symmetric_all:
 	% endfor
 
 
-cdef class Cipher(CipherDescriptor):
+cdef class Cipher(Descriptor):
 	
 	cdef symmetric_all state
 	cdef readonly object mode
@@ -121,7 +121,7 @@ cdef class Cipher(CipherDescriptor):
 		}.get(self.mode, -1)
 		if self.mode_i < 0:
 			raise Error('no mode %r' % mode)
-		CipherDescriptor.__init__(self, cipher)
+		Descriptor.__init__(self, cipher)
 		self.start(key, iv, **kwargs)
 	
 	def __repr__(self):

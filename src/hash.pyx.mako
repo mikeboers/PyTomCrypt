@@ -62,18 +62,22 @@ cdef class Descriptor(object):
 cdef class Hash(Descriptor):
 	
 	cdef hash_state state
+	cdef bint allocated
 	
 	def __init__(self, hash, input=''):
+		self.allocated = False
 		Descriptor.__init__(self, hash)
+		self.allocated = True
 		# This does not return an error value, so we don't check.
 		self.desc.init(&self.state)
 		self.update(input)
 	
 	def __dealloc__(self):
-		cdef unsigned char *out = <unsigned char *> malloc(MAXBLOCKSIZE)
-		# Not checking for errors in the deallocator...
-		self.desc.done(&self.state, out)
-		free(out)
+		cdef unsigned char *out
+		if self.allocated:
+			out = <unsigned char *> malloc(MAXBLOCKSIZE)
+			self.desc.done(&self.state, out)
+			free(out)
 		
 	def __repr__(self):
 		return ${repr('<%s.%s of %s at 0x%x>')} % (

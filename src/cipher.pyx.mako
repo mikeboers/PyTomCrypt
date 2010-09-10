@@ -18,7 +18,7 @@ max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 % endfor
 
 
-def get_cipher_idx(input):
+cdef get_cipher_idx(input):
 	idx = -1
 	if isinstance(input, basestring):
 		idx = find_cipher(input)

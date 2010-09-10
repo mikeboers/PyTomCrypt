@@ -2,10 +2,13 @@
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 from tomcrypt.cipher cimport Descriptor as CipherDescriptor
-from tomcrypt.cipher import get_cipher_idx
+from tomcrypt.cipher cimport get_cipher_idx
 from tomcrypt.hash cimport Descriptor as HashDescriptor
-from tomcrypt.hash import get_hash_idx
+from tomcrypt.hash cimport get_hash_idx
 
+# Just making sure that everything is registered.
+import tomcrypt.cipher
+import tomcrypt.hash
 
 def test_library():
 	"""Run internal libtomcrypt mac tests."""

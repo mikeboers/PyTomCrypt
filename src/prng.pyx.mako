@@ -1,4 +1,3 @@
-
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
@@ -11,7 +10,7 @@ cdef int max_prng_idx = -1
 max_prng_idx = max(max_prng_idx, register_prng(&${name}_desc))
 % endfor
 
-def get_prng_idx(input):
+cdef get_prng_idx(input):
 	idx = -1
 	if isinstance(input, basestring):
 		idx = find_prng(input)

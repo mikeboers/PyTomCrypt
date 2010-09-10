@@ -3,7 +3,10 @@ from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
 from tomcrypt.cipher cimport Descriptor as CipherDescriptor
-from tomcrypt.cipher import get_cipher_idx
+from tomcrypt.cipher cimport get_cipher_idx
+
+# Just making sure everything is registered.
+import tomcrypt.cipher
 
 def test_library():
 	"""Run internal libtomcrypt hash tests."""
@@ -16,8 +19,9 @@ cdef int max_hash_idx = -1
 % for name in hash_names:
 max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
 % endfor
-	
-def get_hash_idx(input):
+
+
+cdef get_hash_idx(input):
 	idx = -1
 	if isinstance(input, basestring):
 		idx = find_hash(input)
@@ -27,7 +31,6 @@ def get_hash_idx(input):
 		raise Error('could not find hash %r' % input)
 	return idx
 	
-
 
 cdef class Descriptor(object):
 	

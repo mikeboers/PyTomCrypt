@@ -11,10 +11,6 @@ from subprocess import Popen, PIPE
 from tomcrypt.cipher import *
 Descriptor = CipherDescriptor
 
-
-def test_tomcrypt():
-    test_cipher()
-
 def test_speed():
 	cipher = Cipher('0123456789abcdef', cipher='aes', mode='ecb')
 	start_time = time.time()
@@ -91,7 +87,7 @@ def test_external():
 if __name__ == '__main__':
 	start_time = time.time()
 	print 'Running tomcrypt tests...'
-	test_tomcrypt()
+	test_library()
 	print 'Running known tests...'
 	test_external()
 	print 'Running against OpenSSL...'

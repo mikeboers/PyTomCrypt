@@ -7,10 +7,8 @@ from tomcrypt.hash cimport HashDescriptor
 from tomcrypt.hash import get_hash_idx
 
 
-def test_mac():
-	get_hash_idx('md5')
-	get_hash_idx('sha1')
-	get_cipher_idx('aes')
+def test_library():
+	"""Run internal libtomcrypt mac tests."""
 	% for mac in mac_names:
 	check_for_error(${mac}_test())
 	% endfor

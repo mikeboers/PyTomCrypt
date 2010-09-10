@@ -32,7 +32,7 @@ def get_prng_idx(input):
 
 
 def test_library():
-	"""Run the internal tests."""	
+	"""Run internal libtomcrypt prng tests."""	
 	% for name in prng_names:
 	check_for_error(${name}_desc.test())
 	% endfor

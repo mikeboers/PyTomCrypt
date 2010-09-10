@@ -63,7 +63,7 @@ def test_py_hmac_copy():
 if __name__ == '__main__':
 	start_time = time.time()
 	print 'Running internal tests...'
-	mac.test_mac()
+	mac.test_library()
 	print 'Running against hmac module...'
 	test_py_hmac_oneshot()
 	test_py_hmac_multi()

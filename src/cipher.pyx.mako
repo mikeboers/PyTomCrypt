@@ -2,9 +2,8 @@
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
-def test_cipher():
-	"""Run internal cipher tests."""
-	cdef int res
+def test_library():
+	"""Run internal libtomcrypt cipher tests."""
 	% for name in cipher_names:
 	% if not name.endswith('_enc'):
 	check_for_error(${name}_test())

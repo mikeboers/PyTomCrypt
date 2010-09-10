@@ -5,9 +5,8 @@ from tomcrypt._core import Error
 from tomcrypt.cipher cimport CipherDescriptor
 from tomcrypt.cipher import get_cipher_idx
 
-def test_hash():
-	"""Run the internal tests."""
-	get_cipher_idx('aes') # Register AES for the CHC hash.
+def test_library():
+	"""Run internal libtomcrypt hash tests."""
 	% for name in hash_names:
 	check_for_error(${name}_desc.test())
 	% endfor

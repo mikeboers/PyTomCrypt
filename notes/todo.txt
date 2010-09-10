@@ -1,6 +1,4 @@
 
-- Make sure we have all of the internal tests in there.
-
 - Restore all of the constructor functions.
 
 - Figure out why I had to use "int" type instead of "bool" in the Mac class.

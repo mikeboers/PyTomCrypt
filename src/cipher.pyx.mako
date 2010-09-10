@@ -11,24 +11,18 @@ def test_library():
 	% endfor
 		
 
+# Register all the ciphers.
 cdef int max_cipher_idx = -1
 % for name in cipher_names:
 max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 % endfor
 
+
 def get_cipher_idx(input):
 	global max_cipher_idx
 	idx = -1
-	if isinstance(input, int):
-		idx = input
-	elif isinstance(input, basestring):
+	if isinstance(input, basestring):
 		idx = find_cipher(input)
-		if idx == -1:
-			% for i, name in enumerate(cipher_names):
-			${'el' if i else ''}if input == ${repr(name)}:
-				idx = register_cipher(&${name}_desc)
-			% endfor	
-			max_cipher_idx = max(idx, max_cipher_idx)
 	elif isinstance(input, Descriptor):
 		idx = input.idx
 	if idx < 0 or idx > max_cipher_idx:

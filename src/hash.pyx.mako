@@ -18,20 +18,15 @@ max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
 % endfor
 	
 def get_hash_idx(input):
-	global max_hash_idx
 	idx = -1
 	if isinstance(input, int):
 		idx = input
 	elif isinstance(input, basestring):
 		idx = find_hash(input)
-		if idx == -1:
-			% for i, name in enumerate(hash_names):
-			${'el' if i else ''}if input == ${repr(name)}:
-				idx = register_hash(&${name}_desc)
-			% endfor	
-			max_hash_idx = max(idx, max_hash_idx)
 	elif isinstance(input, Descriptor):
 		idx = input.idx
+	else:
+		raise TypeError('could not id hash with %r' % input)
 	if idx < 0 or idx > max_hash_idx:
 		raise Error('could not find hash %r' % input)
 	return idx

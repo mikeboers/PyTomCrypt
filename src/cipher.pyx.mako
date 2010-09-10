@@ -19,12 +19,15 @@ max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 
 
 def get_cipher_idx(input):
-	global max_cipher_idx
 	idx = -1
+	if isinstance(input, int):
+		idx = input
 	if isinstance(input, basestring):
 		idx = find_cipher(input)
 	elif isinstance(input, Descriptor):
 		idx = input.idx
+	else:
+		raise TypeError('could not id cipher with %r' % input)
 	if idx < 0 or idx > max_cipher_idx:
 		raise Error('could not find cipher %r' % input)
 	return idx

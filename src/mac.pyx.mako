@@ -73,6 +73,7 @@ cdef class MAC(object):
 		% endfor
 		else:
 			raise Error('no MAC mode %r' % mode)
+		
 		self.uses_hash = self.mode in ${repr(hash_macs)}
 		self.uses_cipher = not self.uses_hash
 		

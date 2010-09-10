@@ -21,6 +21,12 @@ max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 cdef get_cipher_idx(input):
     idx = -1
     if isinstance(input, basestring):
+        input = {
+            'des3': '3des',
+            'kseed': 'seed',
+            'rijndael': 'aes', # This one is not cool.
+            'saferp': 'safer+',
+        }.get(input, input)
         idx = find_cipher(input)
     elif isinstance(input, Descriptor):
         idx = input.idx
@@ -188,5 +194,10 @@ cdef class Cipher(Descriptor):
     % endfor
 
 
-cipher_names = ${repr(set(cipher_names))}
-cipher_modes = ${repr(set(cipher_modes.keys()))}
+all_names = ${repr(set(cipher_names))}
+all_modes = ${repr(set(cipher_modes.keys()))}
+
+% for name in cipher_names:
+${name} = Descriptor(${repr(name)})
+% endfor
+

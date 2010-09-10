@@ -2,7 +2,12 @@
 - Plan out the full API:
 	tomcrypt.cipher:
 		Descriptor
+			call -> Cipher
+		Cipher
+			done
+		create all the descriptors upfront
 
+- Standardize on *_length vs *_len vs *_size
 
 - Look into the Cython optimization configuration options.
 

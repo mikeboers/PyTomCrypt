@@ -35,7 +35,7 @@ cdef class PRNG(object):
 	
 	def __init__(self, prng, int auto_seed=0):
 		self.idx = get_prng_idx(prng)
-		self.desc = prng_descriptors[self.idx]
+		self.desc = &prng_descriptors[self.idx]
 		self.start()
 		if auto_seed > 0:
 			self.auto_seed(auto_seed)

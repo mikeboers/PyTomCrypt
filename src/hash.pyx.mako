@@ -36,7 +36,7 @@ cdef class Descriptor(object):
 	
 	def __init__(self, hash):
 		self.idx = get_hash_idx(hash)
-		self.desc = hash_descriptors[self.idx]
+		self.desc = &hash_descriptors[self.idx]
 		if not isinstance(self, CHC) and self.name == 'chc_hash':
 			raise Error('cannot build chc descriptor')
 

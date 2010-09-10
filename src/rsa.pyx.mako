@@ -5,7 +5,7 @@ key_parts = 'e d N p q qP dP dQ'.split()
 %>
 
 from tomcrypt._core cimport *
-from tomcrypt.hash cimport HashDescriptor
+from tomcrypt.hash cimport Descriptor as HashDescriptor
 from tomcrypt import Error
 
 import re

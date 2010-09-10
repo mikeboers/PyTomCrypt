@@ -30,7 +30,7 @@ def get_hash_idx(input):
 				idx = register_hash(&${name}_desc)
 			% endfor	
 			max_hash_idx = max(idx, max_hash_idx)
-	elif isinstance(input, HashDescriptor):
+	elif isinstance(input, Descriptor):
 		idx = input.idx
 	if idx < 0 or idx > max_hash_idx:
 		raise Error('could not find hash %r' % input)
@@ -38,7 +38,7 @@ def get_hash_idx(input):
 	
 
 
-cdef class HashDescriptor(object):
+cdef class Descriptor(object):
 	
 	def __init__(self, hash):
 		self.idx = get_hash_idx(hash)
@@ -64,12 +64,12 @@ cdef class HashDescriptor(object):
 		return self(input).hexdigest()
 
 
-cdef class Hash(HashDescriptor):
+cdef class Hash(Descriptor):
 	
 	cdef hash_state state
 	
 	def __init__(self, hash, input=''):
-		HashDescriptor.__init__(self, hash)
+		Descriptor.__init__(self, hash)
 		# This does not return an error value, so we don't check.
 		self.desc.init(&self.state)
 		self.update(input)

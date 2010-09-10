@@ -3,7 +3,7 @@ from tomcrypt._core cimport *
 from tomcrypt._core import Error
 from tomcrypt.cipher cimport Descriptor as CipherDescriptor
 from tomcrypt.cipher import get_cipher_idx
-from tomcrypt.hash cimport HashDescriptor
+from tomcrypt.hash cimport Descriptor as HashDescriptor
 from tomcrypt.hash import get_hash_idx
 
 

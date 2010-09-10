@@ -35,7 +35,7 @@ cdef class Descriptor(object):
 	
 	def __init__(self, cipher):
 		self.idx = get_cipher_idx(cipher)
-		self.desc = cipher_descriptors[self.idx]
+		self.desc = &cipher_descriptors[self.idx]
 		
 	def __repr__(self):
 		return ${repr('<%s.%s of %s>')} % (

@@ -22,33 +22,6 @@ cdef union mac_state:
     % for mac in mac_names:
     ${mac}_state ${mac}
     % endfor
-    
-
-    
-# Define function pointer types for each of the functions that have common
-# signatures, except they take a null pointer to the symmetric state.
-ctypedef int (*mac_init_pt)(mac_state *, int, unsigned char *, unsigned long)
-ctypedef int (*mac_process_pt)(mac_state *, unsigned char *, unsigned long)
-ctypedef int (*mac_done_pt)(mac_state *, unsigned char *, unsigned long *)
-
-# Setup arrays to hold the all the function pointers.
-% for name in 'init process done'.split():
-cdef mac_${name}_pt mac_${name}[${len(mac_names)}]
-% endfor
-
-# Define a inline wrapper function for each that properly casts the symmetric
-# state to the right type. Then set these wrappers into the arrays.
-% for mac, i in mac_items:
-cdef inline int wrapped_${mac}_init(mac_state * state, int idx, unsigned char * key, unsigned long keylen):
-    return ${mac}_init(<${mac}_state *> state, idx, key, keylen)
-mac_init[${i}] = wrapped_${mac}_init
-cdef inline int wrapped_${mac}_process(mac_state * state, unsigned char * key, unsigned long keylen):
-    return ${mac}_process(<${mac}_state *> state, key, keylen)
-mac_process[${i}] = wrapped_${mac}_process
-cdef inline int wrapped_${mac}_done(mac_state * state, unsigned char * key, unsigned long *keylen):
-    return ${mac}_done(<${mac}_state *> state, key, keylen)
-mac_done[${i}] = wrapped_${mac}_done
-% endfor
 
 
 hash_macs = ${repr(hash_macs)}
@@ -86,7 +59,14 @@ cdef class MAC(object):
             self.desc = CipherDescriptor(idx)
         
         self.key = key
-        check_for_error(mac_init[self.mode_i](&self.state, self.desc.idx, key, len(key)))
+        
+        
+        % for mac, i in mac_items:
+        ${'el' if i else ''}if self.mode_i == ${i}: # ${mac}
+            check_for_error(${mac}_init(<${mac}_state *>&self.state, self.desc.idx, key, len(key)))
+        % endfor
+        
+        
         self.update(input)
     
     def __dealloc__(self):
@@ -99,7 +79,10 @@ cdef class MAC(object):
             self.desc.name, id(self))
     
     cpdef update(self, str input):
-        check_for_error(mac_process[self.mode_i](&self.state, input, len(input)))
+        % for mac, i in mac_items:
+        ${'el' if i else ''}if self.mode_i == ${i}: # ${mac}
+            check_for_error(${mac}_process(<${mac}_state *>&self.state, input, len(input)))
+        % endfor
     
     cpdef digest(self, length=None):
         if length is None:
@@ -120,7 +103,12 @@ cdef class MAC(object):
             memcpy(state.hmac.key, self.state.hmac.key, self.desc.block_size)
         
         out = PyString_FromStringAndSize(NULL, c_length)
-        check_for_error(mac_done[self.mode_i](&state, out, &c_length))
+        
+        % for mac, i in mac_items:
+        ${'el' if i else ''}if self.mode_i == ${i}: # ${mac}
+            check_for_error(${mac}_done(<${mac}_state *>&state, out, &c_length))
+        % endfor
+        
         return out[:c_length]
     
     cpdef hexdigest(self, length=None):

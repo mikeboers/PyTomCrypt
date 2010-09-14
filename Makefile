@@ -24,11 +24,7 @@ src/_main.c: submake
 	$(SUBMAKE) src/_main.c
 
 test: build
-	$(PYTHON) tests/test_cipher.py
-	$(PYTHON) tests/test_hash.py
-	$(PYTHON) tests/test_mac.py
-	$(PYTHON) tests/test_prng.py
-	$(PYTHON) tests/test_rsa.py
+	nosetests -sv
 
 cleanbuild:	
 	- rm -rf build

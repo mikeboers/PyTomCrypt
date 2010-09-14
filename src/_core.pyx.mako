@@ -15,6 +15,6 @@ cpdef str error_to_string(int err):
 from tomcrypt import Error, LibError
 
 
-cdef inline void check_for_error(int res):
+cdef inline void check_for_error(int res) except *:
     if res != CRYPT_OK:
         raise LibError(error_to_string(res), code=res)

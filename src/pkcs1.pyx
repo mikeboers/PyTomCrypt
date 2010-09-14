@@ -1,7 +1,7 @@
 
 from tomcrypt._core cimport *
 from tomcrypt.prng cimport PRNG
-from tomcrypt.rsa cimport rsa_conform_prng
+from tomcrypt.rsa cimport conform_prng
 from tomcrypt import Error
 
 cpdef pkcs1_v1_5_encode(str message, block_type, int modulus_bitlen, prng=None):
@@ -13,7 +13,7 @@ cpdef pkcs1_v1_5_encode(str message, block_type, int modulus_bitlen, prng=None):
     else:
         raise Error('unknown block_type %r' % block_type)
     
-    cdef PRNG c_prng = rsa_conform_prng(prng)
+    cdef PRNG c_prng = conform_prng(prng)
     
     cdef unsigned long outlen = modulus_bitlen / 8 + 1
     out = PyString_FromStringAndSize(NULL, outlen)

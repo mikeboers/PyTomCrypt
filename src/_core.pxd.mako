@@ -66,7 +66,7 @@ cdef extern from "tomcrypt.h" nogil:
 
 
 # Prototypes
-cdef check_for_error(int res)
+cdef void check_for_error(int res)
 
 
 include "tomcrypt.cipher-core.pxd"

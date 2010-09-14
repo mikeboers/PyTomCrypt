@@ -49,12 +49,11 @@ DEFAULT_E = 65537
 
 
 
-cdef int conform_padding(padding):
+cdef int conform_padding(padding) except -1:
     """Turn a user supplied padding constant into the C variant."""
     if padding not in padding_map:
         raise Error('unknown RSA padding %r' % padding)
-    padding = padding_map[padding]
-    return padding
+    return padding_map[padding]
 
 
 cdef PRNG conform_prng(prng):
@@ -80,14 +79,14 @@ cdef HashDescriptor conform_hash(hash, default):
     return HashDescriptor(hash)
 
 
-cdef unsigned long conform_saltlen(self, saltlen, HashDescriptor hash):
+cdef unsigned long conform_saltlen(key, saltlen, HashDescriptor hash, padding) except? 0:
     """Turn a user supplied saltlen into an appropriate object.
 
     Defaults to as long a salt as possible if not supplied.
 
     """
     if saltlen is None:
-        return self.size / 8 - hash.digest_size - 2
+        return max_payload(key.size, padding, hash)
     return saltlen
 
 
@@ -113,11 +112,7 @@ def max_payload(int key_size, padding=PAD_OAEP, hash=None):
 
 
 def key_size_for_payload(int length, padding=PAD_OAEP, hash=None):
-    """Determine the min keysize for a payload of a given length.
-
-    This is for OAEP padding with the given (or default) hash.
-
-    """
+    """Determine the min keysize for a payload of a given length."""
     padding = conform_padding(padding)
     hash = conform_hash(hash, DEFAULT_ENC_HASH)
     if padding == c_RSA_PAD_NONE:
@@ -131,31 +126,31 @@ def key_size_for_payload(int length, padding=PAD_OAEP, hash=None):
         return 8 * (length + 2)
 
 
-# This object must be passed to the RSAKey constructor in order for an
+# This object must be passed to the Key constructor in order for an
 # instance to be created. This is to assert that keys can only be created by
 # the C code. This is a BAD idea.
-cdef object _rsa_key_init_sentinel = object()
+cdef object blank_key_sentinel = object()
 
-cdef class RSAKey
+cdef class Key
 
-cdef RSAKey rsa_new_key(cls):
+cdef Key blank_key(cls):
     """Create a new uninitialized key object.
 
     This must be used as we do not allow one to create a key with the normal
     constructor (to make sure we don't have any keys in an undefined state).
 
     """
-    return cls(_rsa_key_init_sentinel)
+    return cls(blank_key_sentinel)
 
 
 # Regular expression for determining and extracting PEM data.
-cdef object _rsa_pem_re = re.compile(r'^\s*-----BEGIN ((?:RSA )?(?:PRIVATE|PUBLIC)) KEY-----(.+)-----END \1 KEY-----', re.DOTALL)
+cdef object pem_re = re.compile(r'^\s*-----BEGIN ((?:RSA )?(?:PRIVATE|PUBLIC)) KEY-----(.+)-----END \1 KEY-----', re.DOTALL)
 
 
-cdef class RSAKey(object):
+cdef class Key(object):
 
     cdef rsa_key key
-    cdef RSAKey _public
+    cdef Key _public
 
     # The sentinel checking code is in the cinit because I believe it is the
     # only place that it cannot be overidden.
@@ -176,11 +171,8 @@ cdef class RSAKey(object):
             prng = kwargs.pop('prng', None)
             self._generate(size, e, prng)
 
-        elif input is None:
-            raise Error('must supply input')
-
-        elif input is not _rsa_key_init_sentinel:
-            raise Error('unknown key input')
+        elif input is not blank_key_sentinel:
+            raise Error('must supply encoded key, or new key size')
 
     def __dealloc__(self):
         # It has been my experience that I must manually check to make sure
@@ -195,6 +187,13 @@ cdef class RSAKey(object):
         # nullify method.
         if self.key.N != NULL:
             rsa_free(&self.key)
+    
+    def __repr__(self):
+        return '${'<' + '%'}s.%s %s/%s at 0x%X>' % (__name__, self.__class__.__name__,
+            'private' if self.is_private else 'public',
+            self.size,
+            id(self),
+        )
 
     cdef nullify(self):
         """Mark the key as not needing to be freed.
@@ -269,7 +268,7 @@ cdef class RSAKey(object):
         if format not in (None, FORMAT_DER, FORMAT_PEM):
             raise Error('unknown RSA key format %r' % format)
         if format != FORMAT_DER:
-            m = _rsa_pem_re.match(input)
+            m = pem_re.match(input)
             if m:
                 input = m.group(2).decode('base64')
             elif format == FORMAT_PEM:
@@ -333,9 +332,9 @@ cdef class RSAKey(object):
         """
         return max_payload(self.size, padding, hash)
 
-    cdef RSAKey public_copy(self):
+    cdef Key public_copy(self):
         """Get a copy of this key with only the public parts."""
-        cdef RSAKey copy = rsa_new_key(self.__class__)
+        cdef Key copy = blank_key(self.__class__)
         copy.key.type = c_RSA_TYPE_PUBLIC
         try:
             % for x in 'Ne':
@@ -422,20 +421,20 @@ cdef class RSAKey(object):
 
     cpdef sign(self, str input, prng=None, hash=None, padding=PAD_PSS, saltlen=None):
 
-        padding = conform_padding(padding)
-        if padding == c_RSA_PAD_NONE:
+        cdef unsigned long c_padding = conform_padding(padding)
+        if c_padding == c_RSA_PAD_NONE:
             return self.raw_crypt(TYPE_PRIVATE, input)
 
         cdef PRNG c_prng = conform_prng(prng)
         cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_SIG_HASH)
-        cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash)
+        cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 
         out = PyString_FromStringAndSize(NULL, 512)
         cdef unsigned long out_length = 512
         check_for_error(rsa_sign_hash_ex(
             input, len(input),
             out, &out_length,
-            padding,
+            c_padding,
             &c_prng.state, c_prng.idx,
             c_hash.idx,
             c_saltlen,
@@ -446,12 +445,12 @@ cdef class RSAKey(object):
     cpdef verify(self, str input, str sig, hash=None, padding=PAD_PSS, saltlen=None):
         """This will throw an exception if the signature could not possibly be valid."""
 
-        padding = conform_padding(padding)
-        if padding == c_RSA_PAD_NONE:
+        cdef unsigned long c_padding = conform_padding(padding)
+        if c_padding == c_RSA_PAD_NONE:
             return self.raw_crypt(TYPE_PUBLIC, input)
 
         cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_SIG_HASH)
-        cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash)
+        cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 
         out = PyString_FromStringAndSize(NULL, 512)
         cdef unsigned long out_length = 512
@@ -459,7 +458,7 @@ cdef class RSAKey(object):
         check_for_error(rsa_verify_hash_ex(
             sig, len(sig),
             input, len(input),
-            padding,
+            c_padding,
             c_hash.idx,
             c_saltlen,
             &status,
@@ -468,7 +467,6 @@ cdef class RSAKey(object):
         return bool(status)
 
 
-Key = RSAKey
 
 def generate_key(size=DEFAULT_SIZE, e=DEFAULT_E, prng=None):
     return Key(size=size, e=e, prng=prng)

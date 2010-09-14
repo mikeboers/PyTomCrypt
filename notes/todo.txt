@@ -1,13 +1,20 @@
 
-- Plan out the full API:
-	tomcrypt.cipher:
-		Descriptor
-			call -> Cipher
-		Cipher
-			done
-		create all the descriptors upfront
+- Start a README.markdown:
+	- basic examples
+	- things that are missing
+	- things that I have purposefully omitted:
+		- memory functions
+	- things that I have changed
+	- build instructions (for installation and development)
+	- bits vs bytes for asymmetric key sizes.
 
-- Standardize on *_length vs *_len vs *_size
+- Standardize on *_length vs *_len vs *_size. The problem with this is that
+sometimes it feels more natural to use one than the other. While there may be
+value in trying to make it uniform, the purpose of this project is not to get
+the API to the point where it is trivially memorizable. There is also, perhaps,
+value in refactoring the original API to something more Python like, but
+keeping naming schemes exactly the way they are to the original documentation
+still applies.
 
 - Look into the Cython optimization configuration options.
 
@@ -18,6 +25,8 @@
   it later.
 
 - The memory encrypt/decrypt/hash functions can be methods of the descriptors.
+I actually don't think I'm even going to bother implementing them for the
+moment.
 
 - Make notes that this is for Python2.X, not 3, which uses byte arrays.
 
@@ -37,7 +46,12 @@
 		- EAX on pdf page 46
 			- has extra nonce and header in init call
 			- extra eax_addheader function
-			- the done call has a length for the eax tag.
+			- the done call has a length for the tag, and returns the tag.
+			Perhaps I should standardize that the done call returns a string
+			but for nearly everything it will return an empty string. Since
+			done currently returns nothing, all this does is unify the API so
+			that code simply have to concat everything together, regardless
+			of the type of value this returns.
 		- OCB on pdf page 50
 			- has extra nonce in the init (same length as block size)
 			- ocb_encrypt/decrypt assume the length to be the block size.
@@ -45,7 +59,10 @@
 			- the done does different things for encrypt/decrypt... nasty
 			- has convenient functions to do all of this
 		- CCM on pdf page 53
-			- it is only for packet mode, so only the memory function exists
+			- it is only for packet mode, so only the memory function exists.
+			I would still have this expose exactly the same API, however. The
+			constructor would simply hold onto the key and cipher, while the
+			encrypt/decrypt methods would use this special function.
 		- GCM on pdf page 56
 			- init is the same
 			- adds a `gcm_add_iv` function which should be called as the step

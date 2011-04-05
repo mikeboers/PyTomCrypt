@@ -1,4 +1,11 @@
 
+- Really need to improve on the readme.
+
+- write a timing-attack-safe string comparison function
+
+- descriptors should be singletons
+- descriptors for PRNGs?
+
 - Start a README.markdown:
 	- basic examples
 	- things that are missing

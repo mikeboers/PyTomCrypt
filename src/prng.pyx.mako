@@ -28,7 +28,6 @@ def test_library():
     % endfor
 
 
-prng_names = ${repr(set(prng_names))}
 
 
 cdef class PRNG(object):
@@ -61,10 +60,16 @@ cdef class PRNG(object):
         return out[:len_read]
     
     def get_state(self):
-        pass
+        raise NotImplementedError()
     
     def set_state(self, input):
-        pass
+        raise NotImplementedError()
     
     
+
+names = ${repr(set(prng_names))}
+% for name in prng_names:
+def ${name}(*args, **kwargs): return PRNG(${repr(name)}, *args, **kwargs)
+% endfor
+
         

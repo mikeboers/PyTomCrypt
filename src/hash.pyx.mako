@@ -51,6 +51,11 @@ cdef class Descriptor(object):
         return ${repr('<%s.%s of %s>')} % (
             self.__class__.__module__, self.__class__.__name__, self.desc.name)
     
+    def __call__(self, *args, **kwargs):
+        if self.name == 'chc':
+            return CHC(*args, **kwargs)
+        return Hash(self.name, *args, **kwargs)
+    
     def digest(self, input):
         return self(input).digest()
     
@@ -150,5 +155,11 @@ cdef class CHC(Hash):
         return out
                 
 
-hash_names = ${repr(set(hash_names))}
+names = ${repr(set(hash_names))}
 
+% for name in hash_names:
+% if name != 'chc':
+${name} = Descriptor(${repr(name)})
+% endif
+% endfor
+chc = CHC

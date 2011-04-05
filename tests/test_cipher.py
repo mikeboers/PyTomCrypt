@@ -82,6 +82,11 @@ def check_vectors(filename):
         k, v = line.lower().split(' = ')
         data[k] = v
 
-
+def test_api():
+    assert 'aes' in cipher.names
+    key = '0123456789abcdef'
+    msg = 'hello, world'
+    enc = cipher.aes(key).encrypt(msg)
+    assert cipher.aes(key).decrypt(enc) == msg
 
 

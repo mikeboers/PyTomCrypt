@@ -4,10 +4,10 @@ import os
 import hashlib
 
 from tomcrypt.hash import *
-
+from tomcrypt import hash
 
 def test_against_hashlib():
-    for name in hash_names:
+    for name in hash.names:
         if name == 'chc':
             continue
         try:
@@ -28,3 +28,8 @@ def check_hashlib(name):
     x2.update('something else')
     assert x.digest() == y.digest()
     assert x2.digest() != y.digest()
+
+def test_api():
+    assert 'sha256' in hash.names
+    msg = 'hello, world'
+    assert hash.sha256(msg).hexdigest() == '09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b'

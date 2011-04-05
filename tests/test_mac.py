@@ -53,4 +53,10 @@ def test_copy():
                 assert x.digest() == d
     except (AssertionError, TomCryptError) as e:
         assert False, 'failed on %d-%d: %r' % (i, j, e)
-                    
+
+
+def test_api():
+    assert 'hmac' in mac.names
+    msg = 'hello, world'
+    assert mac.hmac('sha256', msg).hexdigest() == 'bf9498672a3fc6c06a7b13f7b0a7c24d2c9aeb8f797dbfc00cb4e1a1ab5cb420'
+         

@@ -60,6 +60,9 @@ cdef class Descriptor(object):
         check_for_error(self.desc.key_size(&out))
         return out
     
+    def __call__(self, *args, **kwargs):
+        return Cipher(*args, cipher=self.name, **kwargs)
+    
 
 
 
@@ -76,7 +79,7 @@ cdef class Cipher(Descriptor):
     cdef readonly object mode
     cdef int mode_i
     
-    def __init__(self, key, iv=None, cipher='aes', mode='ecb', **kwargs):
+    def __init__(self, key, iv=None, cipher='aes', mode='ctr', **kwargs):
         self.mode = mode
         ## We must keep these indices as magic numbers in the source.
         self.mode_i = {
@@ -169,8 +172,8 @@ cdef class Cipher(Descriptor):
     % endfor
 
 
-all_names = ${repr(set(cipher_names))}
-all_modes = ${repr(set(cipher_modes.keys()))}
+names = ${repr(set(cipher_names))}
+modes = ${repr(set(cipher_modes.keys()))}
 
 % for name in cipher_names:
 ${name} = Descriptor(${repr(name)})

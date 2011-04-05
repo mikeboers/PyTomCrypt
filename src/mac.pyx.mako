@@ -24,11 +24,6 @@ cdef union mac_state:
     % endfor
 
 
-hash_macs = ${repr(hash_macs)}
-cipher_macs = ${repr(cipher_macs)}
-mac_names = ${repr(set(mac_names))}
-
-
 cdef class MAC(object):
     
     cdef readonly object mode
@@ -123,3 +118,12 @@ cdef class MAC(object):
             memcpy(copy.state.hmac.key, self.state.hmac.key, self.desc.block_size)
         
         return copy
+
+
+hash_macs = ${repr(hash_macs)}
+cipher_macs = ${repr(cipher_macs)}
+names = ${repr(set(mac_names))}
+
+% for name in mac_names:
+def ${name}(*args, **kwargs): return MAC(${repr(name)}, *args, **kwargs)
+% endfor

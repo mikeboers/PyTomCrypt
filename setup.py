@@ -506,27 +506,29 @@ if __name__ == '__main__':
 
         name='PyTomCrypt',
             description='Python+Cython wrapper around LibTomCrypt',
-            # version='1.0a.dev%s' % datetime.datetime.utcnow().strftime('%Y%m%dT%H%M'),
-            version='0.5.1b',
-            license='New BSD',
+            version='0.5.2',
+            license='BSD-3',
             platforms=['any'],
+            packages=['tomcrypt'],
+            
             author='Mike Boers',
             author_email='pytomcrypt@mikeboers.com',
             maintainer='Mike Boers',
             maintainer_email='pytomcrypt@mikeboers.com',
-            packages=['tomcrypt'],
-    url='http://github.com/mikeboers/PyTomCrypt',
+            url='http://github.com/mikeboers/PyTomCrypt',
+            
 
             classifiers = [
-                'Development Status :: 3 - Alpha',
+                'Development Status :: 4 - Beta',
                 'Intended Audience :: Developers',
+                'License :: OSI Approved :: BSD License',
+                'Natural Language :: English',
                 'Operating System :: OS Independent',
                 'Programming Language :: C',
-                'Programming Language :: Python',
+                'Programming Language :: Python :: 2',
                 'Topic :: Security :: Cryptography',
                 'Topic :: Software Development :: Libraries :: Python Modules',
             ],
 
-        # cmdclass = {'build_ext': build_ext},
         ext_modules=ext_modules,
     )

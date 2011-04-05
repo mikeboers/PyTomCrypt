@@ -35,9 +35,13 @@ cdef get_cipher_idx(input):
     return idx
 
 
-
-
 cdef class Descriptor(object):
+    """LibTomCrypt descriptor of a symmetric cipher.
+    
+    Can be called as convenience to calling Cipher, passing the cipher name
+    via kwargs.
+    
+    """
     
     def __init__(self, cipher):
         self.idx = get_cipher_idx(cipher)
@@ -74,6 +78,19 @@ cdef union symmetric_all:
 
 
 cdef class Cipher(Descriptor):
+    """All state required to encrypt/decrypt with a symmetric cipher.
+    
+    Parameters:
+        key: Symmetric key.
+        iv: IV; None is treated as all null bytes.
+        cipher: The name of the cipher to use; defaults to "aes".
+        mode: Cipher block chaining more to use; defaults to "ctr".
+    
+    Mode Specific Parameters:
+        tweak: Only for "lrw" mode.
+        salt_key: Only for "f8" mode.
+    
+    """
     
     cdef symmetric_all state
     cdef readonly object mode

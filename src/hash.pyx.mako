@@ -163,3 +163,6 @@ ${name} = Descriptor(${repr(name)})
 % endif
 % endfor
 chc = CHC
+
+# For drop-in compatibility with hashlib.
+new = Hash

@@ -2,6 +2,7 @@
 - Really need to improve on the readme.
 
 - explicit PRNG.done()
+- PRNG descriptors
 
 - add Cipher.copy ?
 - add tests for everything in the readme
@@ -30,9 +31,6 @@ still applies.
 
 - Restore all of the constructor functions.
 
-- Should consider making the descriptors into singletons. This isn't all that
-  nessesary, really. If they are not singletons that someone can go and extend
-  it later.
 
 - The memory encrypt/decrypt/hash functions can be methods of the descriptors.
 I actually don't think I'm even going to bother implementing them for the

@@ -497,6 +497,7 @@ ext_modules = [Extension(
         # TFM_NO_ASM=None,
     
     ).items(),
+    extra_link_args=['-rdynamic'],
 ) for name in ext_names]
 
 

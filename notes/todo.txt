@@ -11,18 +11,19 @@
 
 
 - options for fixing the linking issues:
+
 	1) Use this trick, but it won't ever work with Windows and I feel that 
 	there could be symbol collisions in the future unless I prefix all my 
-	variables names, etc. 
+	variables names, etc.
+	
 	2) Develop more specific platform-dependent fixes (special linking per 
 	platform, etc) 
+	
 	3) Jam everything together into the one main core module, and write 
 	pure Python modules to import the right parts and provide tiny 
-	wrappers to restore the class naming, etc. 
-	I'm going to leave it at option 1 for today because it is working on 
-	the two platforms that I absolutely need it to. Do you feel that 
-	option 2 is a viable alternative or will I eventually have to go to 
-	option 3?
+	wrappers to restore the class naming, etc.
+	
+	4) Wrap all of the C functions in cdef wrappers which are importable. All global state would also need to have functions which return pointers to them.
 
 - Start a README.markdown:
 	- basic examples

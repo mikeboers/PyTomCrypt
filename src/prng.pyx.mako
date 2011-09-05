@@ -38,9 +38,7 @@ cdef class PRNG(object):
         check_for_error(self.desc.start(&self.state))
         self.ready = False
         if isinstance(entropy, int):
-            # We want this to input bytes.
-            check_for_error(rng_make_prng(entropy, self.idx, &self.state, NULL))
-            self.ready = True
+            self.auto_seed(entropy)
         elif isinstance(entropy, str):
             self.add_entropy(entropy)
         elif entropy is not None:
@@ -49,6 +47,13 @@ cdef class PRNG(object):
     def __dealloc__(self):
         self.desc.done(&self.state)
     
+    def auto_seed(self, length):
+        entropy = PyString_FromStringAndSize(NULL, length)
+        read_len = rng_get_bytes(entropy, length, NULL)
+        if read_len != length:
+            raise Error('only read %d of requested %d' % (read_len, length))
+        self.add_entropy(entropy)
+        
     def add_entropy(self, input):
         check_for_error(self.desc.add_entropy(input, len(input), &self.state))
         self.ready = False

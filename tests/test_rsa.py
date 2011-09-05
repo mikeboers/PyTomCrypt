@@ -12,13 +12,31 @@ import hashlib
 
 from tomcrypt import prng
 from tomcrypt.rsa import *
+from unittest import TestCase, main
+
+
+class TestRSA(TestCase):
     
+    def test_key_size_for_payload(self):
+        payload = 100
+        size = key_size_for_payload(payload)
+        key = generate_key(size)
+        self.assertEqual(size, key.size)
+        self.assertEqual(payload, key.max_payload())
+        
+    def test_as_string(self):
+        key = Key(1024)
+        self.assertTrue('BEGIN RSA PRIVATE' in key.as_string())
+        self.assertTrue('BEGIN PUBLIC' in key.as_string('public'))
+        self.assertTrue('BEGIN PUBLIC' in key.public.as_string())
+
+        
 if __name__ == '__main__':
+    
+    main()
+    
     start_time = time.time()
     
-    size = key_size_for_payload(100)
-    k = generate_key(size)
-    print size, k.size
     print 100, k.max_payload()
     
     key = Key('''-----BEGIN RSA PRIVATE KEY-----

@@ -66,7 +66,7 @@ class CipherTests(TestCase):
                 cipher = Cipher(key=key, iv=iv or None, cipher='aes', mode=mode)
                 if type == 'encrypt':
                     res = cipher.encrypt(pt)
-                    self.assertEqual(res, ct, '%s #%s: %s != %s' % (name, data['count'], res.encode('hex'), data['ciphertext']))
+                    self.assertEqual(res, ct, '%s #%s: %s != %s' % (filename, data['count'], res.encode('hex'), data['ciphertext']))
                 data = {}
             if ' = ' not in line:
                 continue

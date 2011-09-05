@@ -51,6 +51,8 @@ DEFAULT_E = 65537
 
 cdef int conform_padding(padding) except -1:
     """Turn a user supplied padding constant into the C variant."""
+    if isinstance(padding, basestring):
+        padding = padding.lower()
     if padding not in padding_map:
         raise Error('unknown RSA padding %r' % padding)
     return padding_map[padding]

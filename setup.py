@@ -497,7 +497,6 @@ ext_modules = [Extension(
         # TFM_NO_ASM=None,
     
     ).items(),
-    extra_link_args=['-rdynamic'],
 ) for name in ext_names]
 
 
@@ -507,7 +506,7 @@ if __name__ == '__main__':
 
         name='PyTomCrypt',
             description='Python+Cython wrapper around LibTomCrypt',
-            version='0.5.5',
+            version='0.5.6',
             license='BSD-3',
             platforms=['any'],
             packages=['tomcrypt'],

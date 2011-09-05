@@ -52,16 +52,16 @@ Symmetric Ciphers
 
     >>> from tomcrypt import cipher
 
-All symmetric ciphers operations are in the `tomcrypt.cipher` module. This module contains a `Descriptor` class which describes a given cipher, a `Cipher` class which contains all state required for a cipher (eg. keys, IVs, etc.), and a pre-made `Descriptor` for every cipher provided.
+This module contains a `Descriptor` class which describes a cipher, and a `Cipher` class for using a cipher (eg. keys, IVs, etc.). As a convenience there is a pre-made `Descriptor` for every cipher provided.
 
 The module also contains a list of the names of all ciphers provided, and the modes that they can operate in:
 
-    >>> print sorted(cipher.names)
+    >>> sorted(cipher.names)
     ['aes', 'anubis', 'blowfish', 'cast5', 'des', 'des3', 'kasumi', 'khazad', 'kseed', 'noekeon', 'rc2', 'rc5', 'rc6', 'rijndael', 'saferp', 'twofish', 'xtea']
-    >>> print sorted(cipher.modes)
+    >>> sorted(cipher.modes)
     ['cbc', 'cfb', 'ctr', 'ecb', 'f8', 'lrw', 'ofb']
     
-We can inspect some of the properties of a cipher via attributes on a `Descriptor` (or `Cipher`):
+We can inspect some of the properties of a cipher via attributes on a `Descriptor` or `Cipher`:
 
     >>> cipher.aes.block_size
     16
@@ -75,7 +75,7 @@ We can inspect some of the properties of a cipher via attributes on a `Descripto
     >>> cipher.aes.key_size(18)
     16
 
-We can construct a `Cipher` object directly (and pass a cipher name via the `cipher` kwarg) or, as a shortcut, call a `Descriptor` directly. You can pass a `key`, `iv`, `cipher` (if calling `Cipher`; defaults to "aes"), `mode` (defaults to "ctr"), `tweak` (only for "lrw" mode), and `salt_key` (only for "f8" mode).
+We can construct a `Cipher` object directly (and pass a cipher name via the `cipher` kwarg) or, as a shortcut, use an instantiated `Descriptor` as a factory. You can pass a `key`, `iv`, `cipher` (if calling `Cipher`; defaults to "aes"), `mode` (defaults to "ctr"), `tweak` (only for "lrw" mode), and `salt_key` (only for "f8" mode).
 
     >>> encryptor = cipher.Cipher(key='0123456789abcdef', iv='0123456789abcdef', cipher='aes', mode='ctr')
     >>> # OR
@@ -97,7 +97,7 @@ Hashes
 
     >>> from tomcrypt import hash
 
-All hash operations are in the `tomcrypt.hash` module. This module contains a `Descriptor` class which describes a given hash, a `Hash` class which contains all state required for a hash, and a pre-made `Descriptor` for every hash provided.
+This module contains a `Descriptor` class which describes a hash, and a `Hash` class for using a hash. As a convenience there is a pre-made `Descriptor` for every hash provided.
 
     >>> hasher = hash.Hash('sha256')
     >>> # OR:
@@ -146,7 +146,7 @@ Message Authentication Codes (MACs)
 
     >>> from tomcrypt import mac
 
-All MAC operations are in the `tomcrypt.mac` module. This module contains a `MAC` class which contains all state required for a MAC, and a convenience function for every MAC provided.
+This module contains a `MAC` class, and a convenience function for every MAC provided.
 
     >>> mymac = mac.MAC('hmac', 'sha256', 'secret')
     >>> # OR
@@ -161,9 +161,10 @@ The module also contains a list of the names of all MACS provided, and lists of 
     >>> sorted(mac.cipher_macs)
     ['omac', 'pmac', 'xcbc']
 
-The `MAC` will accept either a hash/cipher name, or a `hash.Descriptor`, or a `cipher.Descriptor` to specify which algorithm to use.
+The `MAC` will accept either a name or a `Descriptor` to specify which hash/cipher algorithm to use.
 
     >>> mac.hmac('md5', 'secret', 'content').hexdigest()
+    '97e5f3684213a40aaaa9ef31f9f4b1a7'
     >>> mac.hmac(hash.md5, 'secret', 'content').hexdigest()
     '97e5f3684213a40aaaa9ef31f9f4b1a7'
     
@@ -180,7 +181,7 @@ Pseudo Random Number Generators (PRNGs)
 
     >>> from tomcrypt import prng
 
-All PRNG operations are in the `tomcrypt.prng` module. This module contains a `PRNG` class which contains all state required for a PRNG, and a convenience function for every PRNG provided.
+This module contains a `PRNG` class which contains all state required for a PRNG, and a convenience function for every PRNG provided.
 
     >>> myrng = prng.PRNG('yarrow')
     >>> # OR
@@ -190,5 +191,27 @@ The module also contains a list of the names of all PRNGs provided:
 
     >>> sorted(prng.names)
     ['fortuna', 'rc4', 'sober128', 'sprng', 'yarrow']
+
+You can add entropy via the add_entropy method:
+
+    >>> myrng = prng.yarrow()
+    >>> myrng.add_entropy('hello')
+    >>> myrng.read(8).encode('hex')
+    'f34a113448ead699'
+
+You can use the system `PRNG` (eg. `/dev/urandom`) to auto-seed your `PRNG`, either at construction or any time afterwards:
+
+    >>> # Seed with 1024 bytes from system PRNG.
+    >>> myrng = prng.yarrow(1024)
+    >>> myrng.read(8).encode('hex')
+    <will always be different>
+    >>> # Add another 1024 bytes from system PRNG.
+    >>> myrng.auto_seed(1024)
+    >>> myrng.read(8).encode('hex')
+    <will always be different>
+
+The system PRNG is also directly available via the same API as the "sprng" object.
+
+
     
 

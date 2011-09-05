@@ -26,7 +26,12 @@ src/_main.c: submake
 test: build
 	nosetests -sv
 
-cleanbuild:	
+readme: README.html
+
+README.html: README.md
+	markdown $< > $@
+
+cleanbuild: 
 	- rm -rf build
 
 clean: submake

@@ -257,7 +257,7 @@ cdef class Key(object):
             return out[:length]
         return '-----BEGIN %(type)s KEY-----\n%(key)s-----END %(type)s KEY-----\n' % {
             'key': out[:length].encode('base64'),
-            'type': 'RSA PRIVATE' if type == TYPE_PRIVATE else 'PUBLIC'
+            'type': 'RSA PRIVATE' if type == c_RSA_TYPE_PRIVATE else 'PUBLIC'
         }
 
     cdef _from_string(self, str input, format):

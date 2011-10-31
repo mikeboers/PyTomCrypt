@@ -76,3 +76,5 @@ include "tomcrypt.prng-core.pxd"
 include "tomcrypt.rsa-core.pxd"
 include "tomcrypt.pkcs1-core.pxd"
 include "tomcrypt.pkcs5-core.pxd"
+include "tomcrypt.ecc-core.pxd"
+

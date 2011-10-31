@@ -1,8 +1,6 @@
 
 
 
-
-
 cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8'.split()))
 cipher_no_iv_modes = dict((k, cipher_modes[k]) for k in 'ecb'.split())
 cipher_iv_modes = dict((k, cipher_modes[k]) for k in cipher_modes if k not in cipher_no_iv_modes)

@@ -64,10 +64,10 @@ cdef class Key(object):
 
     def __cinit__(self, input, **kwargs):
         if isinstance(input, Curve):
-            self.curve = input
             self._make_key(input, kwargs.get('prng'))
+            self.curve = input
         elif input is not sentinel:
-            raise ValueError('cannot make ECC key from %r' % input)
+            raise Error('cannot make ECC key from %r' % input)
 
     def __dealloc__(self):
         ecc_free(&self.key)
@@ -139,6 +139,25 @@ cdef class Key(object):
             else:
                 self._public = self.public_copy()
         return self._public
+
+    def shared_secret(self, Key other):
+        cdef Key private = self
+        cdef Key public = other
+
+        if not private.is_private:
+            private, public = public, private
+        if not private.is_private:
+            raise Error('one of the keys must be private')
+
+        cdef unsigned long length = 1024
+        output = PyString_FromStringAndSize(NULL, length)
+        check_for_error(ecc_shared_secret(
+            &private.key,
+            &public.key,
+            output,
+            &length
+        ))
+        return output[:length]
 
     def encrypt(self, message, hash=None, prng=None):
         cdef HashDescriptor c_hash = conform_hash(hash, 'sha256')

@@ -36,6 +36,13 @@ cdef extern from "tomcrypt.h" nogil:
 
     int ecc_export(unsigned char *out, unsigned long *outlen, int type, ecc_key *key)
     int ecc_import_ex(unsigned char *input, unsigned long inlen, ecc_key *key, ecc_curve *dp)
+
+    int ecc_shared_secret(
+        ecc_key *private_key,
+        ecc_key *public_key,
+        unsigned char *out,
+        unsigned long *outlen
+    )
     
     int ecc_encrypt_key(
         unsigned char *input, unsigned long inlen,

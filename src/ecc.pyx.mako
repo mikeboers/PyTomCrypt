@@ -182,6 +182,31 @@ cdef class Key(object):
             &self.key
         ))
         return output[:length]
+
+    def sign(self, message, prng=None):
+        cdef PRNG c_prng = conform_prng(prng)
+        cdef unsigned long length = 1024 + self.curve.size
+        output = PyString_FromStringAndSize(NULL, length)
+        check_for_error(ecc_sign_hash(
+            message, len(message),
+            output, &length,
+            &c_prng.state, c_prng.idx,
+            &self.key
+        ))
+        return output[:length]
+
+    def verify(self, message, sig):
+        cdef int stat
+        check_for_error(ecc_verify_hash(
+            sig, len(sig),
+            message, len(message),
+            &stat,
+            &self.key
+        ))
+        return bool(stat)
+
+
+
         
 
 

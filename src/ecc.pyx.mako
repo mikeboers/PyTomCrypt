@@ -220,6 +220,7 @@ _curve = Curve(
 )
 % for attr in 'name size'.split():
 _curve.${attr} = ecc_curves[${i}].${attr}
+_curve.curve.${attr} = _curve.${attr}
 % endfor
 P${size} = _curve
 

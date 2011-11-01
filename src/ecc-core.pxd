@@ -26,7 +26,7 @@ cdef extern from "tomcrypt.h" nogil:
     ctypedef struct ecc_key:
         int type
         int idx
-        ecc_curve *curve
+        ecc_curve *curve "dp"
         ecc_point public "pubkey"
         void *private "k"
 

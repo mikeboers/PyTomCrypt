@@ -8,3 +8,7 @@ cdef class PRNG(object):
     cdef prng_state state
     
 cdef get_prng_idx(input)
+
+cdef PRNG conform_prng(prng)
+
+

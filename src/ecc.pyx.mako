@@ -1,12 +1,25 @@
+# vim: set syntax=pyrex
+
+from __future__ import division
+
+import math
 
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
-from tomcrypt.prng import get_prng_idx
+from tomcrypt.prng cimport PRNG, conform_prng
+
+
+TYPE_PRIVATE = 'private'
+TYPE_PUBLIC  = 'public'
+
 
 cdef class Curve(object):
 
     cdef ecc_curve curve
-
+    
+    cdef readonly object name
+    cdef readonly object bits
+    cdef readonly object size
     cdef readonly object prime
     cdef readonly object B
     cdef readonly object order
@@ -14,30 +27,85 @@ cdef class Curve(object):
     cdef readonly object Gy
 
     def __cinit__(self, prime, B, order, Gx, Gy):
+        self.name  = 'curve'
+        self.bits  = int(math.log(int(prime), 2))
+        self.size  = int(math.ceil(self.bits / 8))
         self.prime = '%X' % int(prime)
         self.B     = '%X' % int(B)
         self.order = '%X' % int(order)
         self.Gx    = '%X' % int(Gx)
         self.Gy    = '%X' % int(Gy)
-
+    
+        self.curve.name = self.name
+        self.curve.size = self.size
         self.curve.prime = self.prime
         self.curve.B = self.B
         self.curve.order = self.order
         self.curve.Gx = self.Gx
         self.curve.Gy = self.Gy
 
-    @property
-    def size(self):
-        return len(self.prime) / 2
-
 
 cdef class Key(object):
 
     cdef ecc_key key
 
-    def __cinit__(self, input):
+    def __cinit__(self, input, **kwargs):
         if isinstance(input, Curve):
-            pass
+            self._make_key(input, kwargs.get('prng'))
+        else:
+            raise ValueError('cannot make key from %r' % type(input))
+
+    cdef _make_key(self, Curve curve, raw_prng):
+        cdef PRNG prng = conform_prng(raw_prng)
+        check_for_error(ecc_make_key_ex(&prng.state, prng.idx, &self.key, &curve.curve))
+
+    def as_dict(self, int radix=16):
+        """Return a dict of all of the key parts encoded into strings.
+
+        Params:
+            radix -- The base into which to convert the bignum. From 2-64.
+
+        """
+
+        # TODO: Figure out the best size for this buffer.
+        cdef char buf[1024]
+        out = {}
+        <% key_parts = 'public.x', 'public.y', 'public.z', 'private' %>
+        % for x in key_parts:
+        if self.key.${x} != NULL:
+            check_for_error(mp.write_radix(self.key.${x}, buf, radix))
+            out[${repr(x)}] = buf
+        % endfor
+        return out
+
+    @property
+    def type(self):
+        """'private' or 'public'"""
+        return TYPE_PRIVATE if self.is_private else TYPE_PUBLIC
+
+    @property
+    def is_private(self):
+        """True if this is a private key."""
+        return self.key.type == PK_PRIVATE
+
+    @property
+    def is_public(self):
+        """True if this is a public key."""
+        return self.key.type == PK_PUBLIC
+
+    @property
+    def size(self):
+        """The bit length of the modulus of the key.
+
+        This will be a multiple of 8 for any key generated with this library,
+        but that is not a requirement for others. (It is easy to make any
+        size key with openssl, for instance.)
+
+        """
+        return 1
+        # return mp.count_bits(self.key.curve.prime)
+
+
 
 
 P112 = Curve(

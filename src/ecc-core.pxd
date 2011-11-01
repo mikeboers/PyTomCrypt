@@ -13,6 +13,8 @@ cdef extern from "tomcrypt.h" nogil:
         char *Gx
         char *Gy
 
+    ecc_curve ecc_curves "ltc_ecc_sets" []
+
     ctypedef struct ecc_point:
         void *x
         void *y
@@ -28,6 +30,7 @@ cdef extern from "tomcrypt.h" nogil:
         ecc_point public "pubkey"
         void *private "k"
 
+    int ecc_make_key(prng_state *prng, int wprng, int keysize, ecc_key *key)
     int ecc_make_key_ex(prng_state *prng, int wprng, ecc_key *key, ecc_curve *dp)
     void ecc_free(ecc_key *key)
 

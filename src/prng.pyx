@@ -1,3 +1,5 @@
+# vim: set syntax=pyrex
+
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
@@ -78,5 +80,19 @@ names = ${repr(set(prng_names))}
 % for name in prng_names:
 def ${name}(*args, **kwargs): return PRNG(${repr(name)}, *args, **kwargs)
 % endfor
+
+
+cdef PRNG conform_prng(prng):
+    """Turn a user supplied PRNG into an actual PRNG.
+
+    If only a name or idx is supplied, it is autoseeded from the system rng.
+    None defaults to the system rng (ie /dev/random).
+
+    """
+    if isinstance(prng, PRNG):
+        return prng
+    if prng is None:
+        return PRNG('sprng')
+    return PRNG(prng, auto_seed=1024)
 
         

@@ -6,3 +6,6 @@ cdef class Descriptor(object):
     cdef hash_desc *desc
 
 cdef get_hash_idx(input)
+
+cdef Descriptor conform_hash(input, default)
+

@@ -1,3 +1,4 @@
+# vim: set syntax=pyrex
 
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
@@ -166,3 +167,14 @@ chc = CHC
 
 # For drop-in compatibility with hashlib.
 new = Hash
+
+
+cdef Descriptor conform_hash(hash, default):
+    """Turn a user supplied hash into a HashDescriptor."""
+    if isinstance(hash, Descriptor):
+        return hash
+    if hash is None:
+        return Descriptor(default)
+    return Descriptor(hash)
+
+

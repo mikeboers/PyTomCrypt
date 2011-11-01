@@ -1,3 +1,4 @@
+# vim: set syntax=pyrex
 <%!
 
 key_parts = 'e d N p q qP dP dQ'.split()
@@ -5,8 +6,10 @@ key_parts = 'e d N p q qP dP dQ'.split()
 %>
 
 from tomcrypt._core cimport *
-from tomcrypt.hash cimport Descriptor as HashDescriptor
 from tomcrypt import Error
+from tomcrypt.prng cimport conform_prng
+from tomcrypt.hash cimport conform_hash, Descriptor as HashDescriptor
+from tomcrypt.prng cimport PRNG
 
 import re
 import base64
@@ -42,7 +45,6 @@ FORMAT_DER = 'der'
 
 DEFAULT_ENC_HASH = 'sha1'
 DEFAULT_SIG_HASH = 'sha512'
-DEFAULT_PRNG = 'sprng'
 
 DEFAULT_SIZE = 2048
 DEFAULT_E = 65537
@@ -56,29 +58,6 @@ cdef int conform_padding(padding) except -1:
     if padding not in padding_map:
         raise Error('unknown RSA padding %r' % padding)
     return padding_map[padding]
-
-
-cdef PRNG conform_prng(prng):
-    """Turn a user supplied PRNG into an actual PRNG.
-
-    If only a name or idx is supplied, it is autoseeded from the system rng.
-    None defaults to the system rng (ie /dev/random).
-
-    """
-    if isinstance(prng, PRNG):
-        return prng
-    if prng is None:
-        return PRNG(DEFAULT_PRNG)
-    return PRNG(prng, auto_seed=1024)
-
-
-cdef HashDescriptor conform_hash(hash, default):
-    """Turn a user supplied hash into a HashDescriptor."""
-    if isinstance(hash, HashDescriptor):
-        return hash
-    if hash is None:
-        return HashDescriptor(default)
-    return HashDescriptor(hash)
 
 
 cdef unsigned long conform_saltlen(key, saltlen, HashDescriptor hash, padding) except? 0:

@@ -7,6 +7,7 @@
 /dist
 /include/python*
 /lib/python*
+/man
 /pip-log.txt
 /MANIFEST
 /doc/build

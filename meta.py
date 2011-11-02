@@ -1,22 +1,7 @@
 
-# For each actual extension, what are the base names that are included into it?
-ext_includes = {
-	'_core': '''
-	    cipher-core
-	    hash-core
-	    mac-core
-	    prng-core
-	    pkcs1-core
-	    rsa-core
-	    pkcs5-core
-	    
-	'''.split()
-}
 
 
 
-
-ALL_CIPHERS = True
 
 cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8'.split()))
 cipher_no_iv_modes = dict((k, cipher_modes[k]) for k in 'ecb'.split())
@@ -25,7 +10,7 @@ cipher_simple_modes = dict((k, cipher_modes[k]) for k in 'cbc cfb ofb'.split())
 
 cipher_mode_items = list(sorted(cipher_modes.items(), key=lambda x: x[1]))
 
-if ALL_CIPHERS:
+if True:
 	cipher_names = tuple('''
 		aes
 		anubis

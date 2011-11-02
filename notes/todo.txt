@@ -6,7 +6,16 @@
     - name it better
 
 - utils.is_pem_encoded, pem_encode, pem_decode -> headers, body
+       The PEM private key format uses the header and footer lines:
 
+        -----BEGIN EC PRIVATE KEY-----
+        -----END EC PRIVATE KEY-----
+
+       The PEM public key format uses the header and footer lines:
+
+        -----BEGIN PUBLIC KEY-----
+        -----END PUBLIC KEY-----
+    
 - replace insantiation sentinels with Class.__new__(Class)
     - see "Can Cython create objects [...] as pure C?" from http://wiki.cython.org/FAQ
 

@@ -91,7 +91,7 @@ cdef PRNG conform_prng(prng):
     """
     if isinstance(prng, PRNG):
         return prng
-    if prng is None:
+    if prng is None or prng == 'sprng':
         return PRNG('sprng')
     return PRNG(prng, auto_seed=1024)
 

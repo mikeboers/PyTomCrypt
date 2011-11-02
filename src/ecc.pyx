@@ -25,8 +25,8 @@ cdef class Curve(object):
     cdef ecc_curve curve
     
     cdef readonly object name
-    cdef readonly object bits
     cdef readonly object size
+    cdef readonly object bytes
     cdef readonly object prime
     cdef readonly object B
     cdef readonly object order
@@ -40,11 +40,11 @@ cdef class Curve(object):
         % endfor
 
         self.name  = ''
-        self.bits  = int(math.log(prime, 2))
-        self.size  = int(math.ceil(self.bits / 8))
+        self.size  = int(math.log(prime, 2))
+        self.bytes = int(math.ceil(self.size / 8))
         
         self.curve.name = self.name
-        self.curve.size = self.size
+        self.curve.size = self.bytes
         
         % for attr in 'prime B order Gx Gy'.split():
         self.${attr} = '%X' % int(${attr})
@@ -245,9 +245,9 @@ _curve = Curve(
     ecc_nist_curves[${i}].${attr},
     % endfor
 )
-% for attr in 'name size'.split():
-_curve.${attr} = ecc_nist_curves[${i}].${attr}
-_curve.curve.${attr} = _curve.${attr}
+% for cattr, attr in dict(name='name', size='bytes').iteritems():
+_curve.${attr} = ecc_nist_curves[${i}].${cattr}
+_curve.curve.${cattr} = _curve.${attr}
 % endfor
 P${size} = _curve
 curves_by_size.append((${size}, P${size}))

@@ -357,8 +357,8 @@ cdef class Key(object):
             str input -- The text to process.
         
         """
-        out = PyString_FromStringAndSize(NULL, 4096)
-        cdef unsigned long out_length = 4096
+        cdef unsigned long out_length = self.size / 8 + 1
+        out = PyString_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_exptmod(
             input, len(input),
             out, &out_length,
@@ -375,8 +375,8 @@ cdef class Key(object):
         cdef PRNG c_prng = conform_prng(prng)
         cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_ENC_HASH)
 
-        out = PyString_FromStringAndSize(NULL, 512)
-        cdef unsigned long out_length = 512
+        cdef unsigned long out_length = self.size / 8 + 1
+        out = PyString_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_encrypt_key_ex(
             input, len(input),
             out, &out_length,
@@ -396,8 +396,8 @@ cdef class Key(object):
 
         cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_ENC_HASH)
 
-        out = PyString_FromStringAndSize(NULL, 512)
-        cdef unsigned long out_length = 512
+        cdef unsigned long out_length = self.size / 8 + 1
+        out = PyString_FromStringAndSize(NULL, out_length)
         cdef int status = 0
         check_for_error(rsa_decrypt_key_ex(
             input, len(input),
@@ -416,14 +416,14 @@ cdef class Key(object):
 
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:
-            return self.raw_crypt(TYPE_PRIVATE, input)
+            return self.raw_crypt(PK_PRIVATE, input)
 
         cdef PRNG c_prng = conform_prng(prng)
         cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_SIG_HASH)
         cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 
-        out = PyString_FromStringAndSize(NULL, 512)
-        cdef unsigned long out_length = 512
+        cdef unsigned long out_length = self.size / 8 + 1
+        out = PyString_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_sign_hash_ex(
             input, len(input),
             out, &out_length,
@@ -440,13 +440,13 @@ cdef class Key(object):
 
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:
-            return self.raw_crypt(TYPE_PUBLIC, input)
+            return self.raw_crypt(PK_PUBLIC, input)
 
         cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_SIG_HASH)
         cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 
-        out = PyString_FromStringAndSize(NULL, 512)
-        cdef unsigned long out_length = 512
+        cdef unsigned long out_length = self.size / 8 + 1
+        out = PyString_FromStringAndSize(NULL, out_length)
         cdef int status = 0
         check_for_error(rsa_verify_hash_ex(
             sig, len(sig),

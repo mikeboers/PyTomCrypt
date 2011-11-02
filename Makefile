@@ -1,7 +1,7 @@
 PYTHON = bin/python
 PREPROCESS = ./preprocess
 
-MOD_NAMES = _core cipher hash mac pkcs1 pkcs5 prng rsa
+MOD_NAMES = _core cipher ecc hash mac pkcs1 pkcs5 prng rsa
 SO_NAMES = $(MOD_NAMES:%=tomcrypt/%.so)
 C_NAMES = $(MOD_NAMES:%=build/src/tomcrypt.%.c)
 

@@ -1,6 +1,19 @@
 
 - Really need to improve on the readme.
 
+- hash.Descriptor.factory(user_input) and prng.PRNG.factory(user_input)
+    - instead of conform_hash and conform_prng
+    - name it better
+
+- utils.is_pem_encoded, pem_encode, pem_decode -> headers, body
+
+- replace insantiation sentinels with Class.__new__(Class)
+    - see "Can Cython create objects [...] as pure C?" from http://wiki.cython.org/FAQ
+
+- signature verification should accept message and signature in any
+  order
+    - if an exception is thrown then try the second ordering
+
 - explicit PRNG.done()
 - PRNG descriptors
 
@@ -9,6 +22,7 @@
 
 - write a timing-attack-safe string comparison function
 
+- test with Python 3
 
 - options for fixing the linking issues:
 

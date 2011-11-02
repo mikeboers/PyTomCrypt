@@ -461,9 +461,3 @@ cdef class Key(object):
 
 
 
-def generate_key(size=DEFAULT_SIZE, e=DEFAULT_E, prng=None):
-    return Key(size=size, e=e, prng=prng)
-
-def key_from_string(input, format=None):
-    return Key(input, format=format)
-

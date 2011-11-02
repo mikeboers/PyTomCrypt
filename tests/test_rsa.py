@@ -20,7 +20,7 @@ class TestRSA(TestCase):
     def test_key_size_for_payload(self):
         payload = 100
         size = key_size_for_payload(payload)
-        key = generate_key(size)
+        key = Key(size)
         self.assertEqual(size, key.size)
         self.assertEqual(payload, key.max_payload())
         
@@ -37,6 +37,23 @@ class TestRSA(TestCase):
         pt = key.decrypt(ct1, padding="none").lstrip('\0')
         self.assertEqual(ct1, ct2)
         self.assertEqual(pt, "hello")
+
+    def test_encrypt(self):
+        key = Key(1024)
+        pt1 = "hello world"
+        ct1 = key.encrypt(pt1)
+        ct2 = key.encrypt(pt1)
+        pt2 = key.decrypt(ct1)
+
+        self.assertEqual(pt1, pt2)
+        self.assertNotEqual(ct1, ct2)
+
+    def test_sign(self):
+        key = Key(1024)
+        msg = "hello world"
+        sig = key.sign(msg)
+        self.assertTrue(key.verify(msg, sig))
+        # Not testing failure.
 
         
 if __name__ == '__main__':

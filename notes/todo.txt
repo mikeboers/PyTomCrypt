@@ -15,7 +15,12 @@
 
         -----BEGIN PUBLIC KEY-----
         -----END PUBLIC KEY-----
-    
+
+- deal with or document the issue that ecc.Key.decrypt assumes that the
+  key is using one of the NIST curves.
+    - can potentially patch LTC to make the assumption that the public
+      key encoded in the packet is using the same curves as the key we
+      are using to decrypt.
 - replace insantiation sentinels with Class.__new__(Class)
     - see "Can Cython create objects [...] as pure C?" from http://wiki.cython.org/FAQ
 

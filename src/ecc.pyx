@@ -21,12 +21,29 @@ cdef curve_param_to_int(x):
 
 
 cdef class Curve(object):
+    """A elliptic curve for use in ECC.
+    
+    tomcrypt.ecc provides a number of NIST recommended curves as attributes
+    of the module. Alternatively you can pass an integer to the Key class
+    to select the NIST recommended curve of atleast that size (in bits).
+
+    Attributes:
+        name (blank if a custom curve)
+        size (in bits)
+        bytes (size in bytes)
+        prime, B, order, Gx, Gy
+
+    Constructor params:
+        prime, B, order, Gx, Gy -- ints (or hex-encoded ints) of the 5 curve
+            parameters, as expected by LibTomCrypt.
+    
+    """
 
     cdef ecc_curve curve
     
     cdef readonly object name
-    cdef readonly object size
-    cdef readonly object bytes
+    cdef readonly object size # In bits.
+    cdef readonly object bytes # "size" in the C struct.
     cdef readonly object prime
     cdef readonly object B
     cdef readonly object order
@@ -35,21 +52,25 @@ cdef class Curve(object):
 
     def __cinit__(self, prime, B, order, Gx, Gy):
         
+        # Convert all of the inputs into hex strings.
         % for attr in 'prime B order Gx Gy'.split():
         ${attr} = curve_param_to_int(${attr})
         % endfor
 
-        self.name  = ''
+        self.name = ''
+
+        # Calculate the size in bits and bytes.
         self.size  = int(math.log(prime, 2))
         self.bytes = int(math.ceil(self.size / 8))
         
         self.curve.name = self.name
         self.curve.size = self.bytes
         
+        # Setup Python hex encoded curve params, then set C struct attributes
+        # to point to them.
         % for attr in 'prime B order Gx Gy'.split():
         self.${attr} = '%X' % int(${attr})
         self.curve.${attr} = self.${attr}
-
         % endfor
 
 
@@ -59,30 +80,42 @@ cdef object key_init_sentinel = object()
 
 
 cdef class Key(object):
+    """An ECC key.
+
+    Attributes:
+        curve -- The Curve object used with this key.
+        public -- The public component of this key.
+
+    Constructor Params:
+        curve -- int of the minimum bit size of key to use (picks from the
+            NIST recommended curves), or a Curve to use directly.
+        prng -- The PRNG to use to generate the key; defaults to "sprng".
+
+    """
 
     cdef readonly Curve curve
     cdef ecc_key key
     cdef Key _public
 
-    def __cinit__(self, input, prng=None):
+    def __cinit__(self, curve, prng=None):
 
         # If given an int, pick a curve that is atleast that many bits.
-        if isinstance(input, int):
-            for size, curve in curves_by_size:
-                if size >= input:
+        if isinstance(curve, (int, long)):
+            for size, nist_curve in curves_by_size:
+                if size >= curve:
                     break
             else:
-                raise Error('no NIST curve at least %d bits' % input)
-            input = curve
+                raise Error('no NIST curve at least %d bits' % curve)
+            curve = nist_curve
 
         # If given a curve, make a random key for that curve.
-        if isinstance(input, Curve):
-            self._make_key(input, prng)
-            self.curve = input
+        if isinstance(curve, Curve):
+            self._make_key(curve, prng)
+            self.curve = curve
         
         # Don't let user code instantiate blank keys.
-        elif input is not key_init_sentinel:
-            raise Error('cannot make ECC key from %r' % input)
+        elif curve is not key_init_sentinel:
+            raise Error('cannot make ECC key from %r' % curve)
 
     def __dealloc__(self):
         ecc_free(&self.key)

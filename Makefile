@@ -1,27 +1,30 @@
-
 PYTHON = bin/python
 PREPROCESS = ./preprocess
-LIBTOMCRYPT = libtomcrypt-1.16
-SUB = Makefile.sub
-SUBMAKE = make -f $(SUB)
+
+MOD_NAMES = _core cipher hash mac pkcs1 pkcs5 prng rsa
+SO_NAMES = $(MOD_NAMES:%=tomcrypt/%.so)
+C_NAMES = $(MOD_NAMES:%=build/src/tomcrypt.%.c)
+
+MAKO_SRCS := $(wildcard src/*.pyx) $(wildcard src/*.pxd)
+CYTHON_SRCS = $(MAKO_SRCS:src/%=build/src/tomcrypt.%)
 
 default : build
 
-% : %.mako meta.py setup.py
-	$(PREPROCESS) $< > $@
+# Evaluating Mako templates.
+build/src/tomcrypt.%: src/%
+	@ mkdir -p build/src
+	./preprocess $< > $@
 
-submake: Makefile.sub
+# Translating Cython to C.
+build/src/%.c: build/src/%.pyx
+	cython -o $@.tmp $<
+	mv $@.tmp $@
 
-preprocess: submake
-	$(SUBMAKE) preprocess
+# Requirements for the core.
+build/src/tomcrypt._core.c: $(filter %-core.pxd,$(CYTHON_SRCS))
 
-build: submake
-	mkdir -p build/src
-	$(SUBMAKE) build
-
-src/_main.c: submake
-	mkdir -p build/src
-	$(SUBMAKE) src/_main.c
+build: $(CYTHON_SRCS) $(C_NAMES)
+	python setup.py build_ext --inplace
 
 test: build
 	nosetests -sv
@@ -31,23 +34,9 @@ readme: README.html
 README.html: README.md
 	markdown $< > $@
 
-cleanbuild: 
-	- rm -rf build
-
-clean: submake
-	- rm *.o
-	- rm *.so
-	- rm *.pyc
-	- rm src/_main.c
-	- rm tomcrypt/*.c
+clean: 
 	- rm tomcrypt/*.so
 	- rm tomcrypt/*.pyc
 	- rm -rf dist
-	- $(SUBMAKE) clean
-	- rm Makefile.sub
+	- rm -rf build
 
-cleanall: clean cleanbuild
-
-cleantest:
-	make clean
-	make test

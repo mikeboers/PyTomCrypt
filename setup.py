@@ -482,7 +482,7 @@ for name, sources in ext_sources.items():
 
 # Define the extensions
 ext_modules = [Extension(
-    'tomcrypt.%s' % name, ["src/%s.c" % name] + ext_sources.get(name, []),
+    'tomcrypt.%s' % name, ["build/src/tomcrypt.%s.c" % name] + ext_sources.get(name, []),
     include_dirs=[
                 '.', # Buh?
                 './src',

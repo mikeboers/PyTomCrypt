@@ -29,6 +29,7 @@
 /src/rsa.c
 /src/pkcs1.c
 /src/pkcs5.c
+/src/ecc.c
 
 # docs
 /doc/build

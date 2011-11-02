@@ -165,7 +165,10 @@ cdef class Key(object):
         % for x in key_parts:
         if self.key.${x} != NULL:
             check_for_error(mp.write_radix(self.key.${x}, buf, radix))
-            out[${repr(x)}] = buf
+            val = buf
+            if val != '0':
+                out[${repr(x)}] = val
+            
         % endfor
         return out
 
@@ -311,9 +314,6 @@ cdef class Key(object):
             &self.key
         ))
         return bool(stat)
-    
-    def __richcmp__(self, other, op):
-        return cmp(self.as_dict(), other.as_dict(), op)
     
 
 

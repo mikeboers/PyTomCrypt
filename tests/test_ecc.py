@@ -55,12 +55,13 @@ class TestECC(TestCase):
     def test_import_export(self):
         a = Key(128)
         b = Key(a.as_string())
-        c = Key(128)
         
-        sa = a.shared_secret(c)
-        sb = b.shared_secret(c)
-        self.assertEqual(sa, sb)
-
+        self.assertEqual(a.as_dict(), Key(a.as_string()).as_dict())
+        self.assertEqual(a.public.as_dict(),
+                Key(a.public.as_string()).as_dict())
+        self.assertEqual(a.public.as_dict(),
+                Key(a.as_string(type='public')).as_dict())
+        
 
 
         

@@ -165,7 +165,7 @@ cdef class Key(object):
         # BUT, if we tried to make a key or import one and it FAILED, this
         # will still attempt to free the key. Caution must be taken to make
         # sure that a failed key is NEVER stored in this class. Ergo, the
-        # nullify method.
+        # _nullify method.
         if self.key.N != NULL:
             rsa_free(&self.key)
     
@@ -176,7 +176,7 @@ cdef class Key(object):
             id(self),
         )
 
-    cdef nullify(self):
+    cdef _nullify(self):
         """Mark the key as not needing to be freed.
 
         Use this after an error has occurred and the key automatically freed,
@@ -199,7 +199,7 @@ cdef class Key(object):
         try:
             check_for_error(rsa_make_key(&prng.state, prng.idx, size / 8, e, &self.key))
         except:
-            self.nullify()
+            self._nullify()
             raise
 
     def as_string(self, type=None, format=FORMAT_PEM):
@@ -257,7 +257,7 @@ cdef class Key(object):
         try:
             check_for_error(rsa_import(input, len(input), &self.key))
         except:
-            self.nullify()
+            self._nullify()
             raise
 
     def as_dict(self, int radix=16):
@@ -313,7 +313,7 @@ cdef class Key(object):
         """
         return max_payload(self.size, padding, hash)
 
-    cdef Key public_copy(self):
+    cdef Key _public_copy(self):
         """Get a copy of this key with only the public parts."""
         cdef Key copy = blank_key(self.__class__)
         copy.key.type = c_RSA_TYPE_PUBLIC
@@ -326,13 +326,13 @@ cdef class Key(object):
             check_for_error(mp.init(&copy.key.${x}))
             % endfor
         except:
-            copy.nullify()
+            copy._nullify()
             raise
         return copy
 
     @property
     def public(self):
-        """A view of this key with only the public part.
+        """A view of this key with only the public parts.
 
         If this is already a public key, this will be the same object.
 
@@ -341,10 +341,22 @@ cdef class Key(object):
             if self.is_public:
                 self._public = self
             else:
-                self._public = self.public_copy()
+                self._public = self._public_copy()
         return self._public
 
     cdef str raw_crypt(self, int mode, str input):
+        """Raw RSA encryption/decryption.
+
+        Used by encrypt/decrypt/sign/verify when the user requests no padding.
+
+        Decrypted text will be left-padded with NULL bytes when returned.
+
+        Params:
+            int mode -- PK_PUBLIC for encryption/verification
+                        PK_PRIVATE for decryption/signing
+            str input -- The text to process.
+        
+        """
         out = PyString_FromStringAndSize(NULL, 4096)
         cdef unsigned long out_length = 4096
         check_for_error(rsa_exptmod(
@@ -358,7 +370,7 @@ cdef class Key(object):
 
         padding = conform_padding(padding)
         if padding == c_RSA_PAD_NONE:
-            return self.raw_crypt(TYPE_PUBLIC, input)
+            return self.raw_crypt(PK_PUBLIC, input)
 
         cdef PRNG c_prng = conform_prng(prng)
         cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_ENC_HASH)
@@ -380,7 +392,7 @@ cdef class Key(object):
 
         padding = conform_padding(padding)
         if padding == c_RSA_PAD_NONE:
-            return self.raw_crypt(TYPE_PRIVATE, input)
+            return self.raw_crypt(PK_PRIVATE, input)
 
         cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_ENC_HASH)
 

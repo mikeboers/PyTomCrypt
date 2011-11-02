@@ -30,6 +30,14 @@ class TestRSA(TestCase):
         self.assertTrue('BEGIN PUBLIC' in key.as_string('public'))
         self.assertTrue('BEGIN PUBLIC' in key.public.as_string())
 
+    def test_no_padding(self):
+        key = Key(1024)
+        ct1 = key.encrypt("hello", padding="none")
+        ct2 = key.encrypt("hello", padding="none")
+        pt = key.decrypt(ct1, padding="none").lstrip('\0')
+        self.assertEqual(ct1, ct2)
+        self.assertEqual(pt, "hello")
+
         
 if __name__ == '__main__':
     

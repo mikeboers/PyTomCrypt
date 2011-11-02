@@ -146,7 +146,7 @@ cdef class Key(object):
                 raise Error('too many kwargs')
             self._from_string(input, format)
 
-        elif 'size' in kwargs or isinstance(input, int):
+        elif 'size' in kwargs or isinstance(input, (int, long)):
             size = kwargs.pop('size', input)
             e = kwargs.pop('e', DEFAULT_E)
             prng = kwargs.pop('prng', None)

@@ -10,6 +10,7 @@ from tomcrypt import Error
 from tomcrypt.prng cimport conform_prng
 from tomcrypt.hash cimport conform_hash, Descriptor as HashDescriptor
 from tomcrypt.prng cimport PRNG
+from tomcrypt.utils import pem_encode, pem_decode
 
 import re
 import base64
@@ -124,9 +125,6 @@ cdef Key blank_key(cls):
     return cls(blank_key_sentinel)
 
 
-# Regular expression for determining and extracting PEM data.
-cdef object pem_re = re.compile(r'^\s*-----BEGIN ((?:RSA )?(?:PRIVATE|PUBLIC)) KEY-----(.+)-----END \1 KEY-----', re.DOTALL)
-
 
 cdef class Key(object):
 
@@ -141,10 +139,8 @@ cdef class Key(object):
         cdef PRNG prng
 
         if isinstance(input, basestring):
-            format = kwargs.pop('format', None)
-            if kwargs:
-                raise Error('too many kwargs')
-            self._from_string(input, format)
+            self._from_string(input)
+            return
 
         elif 'size' in kwargs or isinstance(input, (int, long)):
             size = kwargs.pop('size', input)
@@ -234,26 +230,23 @@ cdef class Key(object):
 
         if format == FORMAT_DER:
             return out[:length]
-        return '-----BEGIN %(type)s KEY-----\n%(key)s-----END %(type)s KEY-----\n' % {
-            'key': out[:length].encode('base64'),
-            'type': 'RSA PRIVATE' if type == c_RSA_TYPE_PRIVATE else 'PUBLIC'
-        }
+        return pem_encode(
+            'RSA',
+            'PRIVATE' if type == c_RSA_TYPE_PRIVATE else 'PUBLIC',
+            out[:length]
+        )
 
-    cdef _from_string(self, str input, format):
+    cdef _from_string(self, input):
         """The guts of the from_string method.
 
         This modifies the key in place. Be careful.
 
         """
         self._public = None
-        if format not in (None, FORMAT_DER, FORMAT_PEM):
-            raise Error('unknown RSA key format %r' % format)
-        if format != FORMAT_DER:
-            m = pem_re.match(input)
-            if m:
-                input = m.group(2).decode('base64')
-            elif format == FORMAT_PEM:
-                raise Error('bad PEM format')
+        try:
+            type, mode, input = pem_decode(input)
+        except Error:
+            pass
         try:
             check_for_error(rsa_import(input, len(input), &self.key))
         except:

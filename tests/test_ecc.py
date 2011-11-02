@@ -36,4 +36,33 @@ class TestECC(TestCase):
         for x in secrets[1:]:
             self.assertEqual(secrets[0], x)
 
+    def test_as_string(self):
+        key = Key(128)
+        self.assertTrue('BEGIN EC PRIVATE' in key.as_string())
+        self.assertTrue('BEGIN PUBLIC' in key.as_string('public'))
+        self.assertTrue('BEGIN PUBLIC' in key.public.as_string())
+        self.assertTrue('BEGIN PUBLIC' in key.public.as_string(ansi=True))
+        self.assertRaises(tomcrypt.Error, key.public.as_string, type='private')
+        self.assertRaises(tomcrypt.Error, key.as_string, ansi=True)
+
+    def test_equality(self):
+        a = Key(128)
+        b = Key(a.as_string())
+        self.assertEqual(a.as_dict(), b.as_dict())
+        c = Key(128)
+        self.assertNotEqual(a.as_dict(), c.as_dict())
+    
+    def test_import_export(self):
+        a = Key(128)
+        b = Key(a.as_string())
+        c = Key(128)
+        
+        sa = a.shared_secret(c)
+        sb = b.shared_secret(c)
+        self.assertEqual(sa, sb)
+
+
+
+        
+
 

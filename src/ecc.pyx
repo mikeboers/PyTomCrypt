@@ -8,7 +8,7 @@ from tomcrypt._core cimport *
 from tomcrypt._core import Error
 from tomcrypt.prng cimport PRNG, conform_prng
 from tomcrypt.hash cimport Descriptor as HashDescriptor, conform_hash
-
+from tomcrypt.utils import pem_encode, pem_decode
 
 TYPE_PRIVATE = 'private'
 TYPE_PUBLIC  = 'public'
@@ -99,6 +99,11 @@ cdef class Key(object):
 
     def __cinit__(self, curve, prng=None):
 
+        # If given a string, try to import it.
+        if isinstance(curve, basestring):
+            self._from_string(curve)
+            return
+
         # If given an int, pick a curve that is atleast that many bits.
         if isinstance(curve, (int, long)):
             for size, nist_curve in curves_by_size:
@@ -112,17 +117,38 @@ cdef class Key(object):
         if isinstance(curve, Curve):
             self._make_key(curve, prng)
             self.curve = curve
+            return
+        
         
         # Don't let user code instantiate blank keys.
         elif curve is not key_init_sentinel:
             raise Error('cannot make ECC key from %r' % curve)
 
     def __dealloc__(self):
-        ecc_free(&self.key)
+        # Need to explicitly test if it needs dealocating.
+        if self.key.public.x != NULL:
+            ecc_free(&self.key)
 
     cdef _make_key(self, Curve curve, raw_prng):
         cdef PRNG prng = conform_prng(raw_prng)
         check_for_error(ecc_make_key_ex(&prng.state, prng.idx, &self.key, &curve.curve))
+
+    cdef _from_string(self, input):
+        
+        # TODO: set the right curve here.
+        self._public = None
+        self.curve = P128
+        
+        try:
+            type, mode, input = pem_decode(input)
+        except Error:
+            pass
+        try:
+            check_for_error(ecc_import(input, len(input), &self.key))
+        except:
+            # Mark that this doesn't need deallocating.
+            self.key.public.x = NULL
+            raise
 
     def as_dict(self, int radix=16):
         """Return a dict of all of the key parts encoded into strings.
@@ -143,17 +169,39 @@ cdef class Key(object):
         % endfor
         return out
 
-    def as_string(self, format='der', ansi=False):
+    def as_string(self, type=None, format='pem', ansi=False):
+        """Build the string representation of a key.
+
+        Params:
+            type -- None (as is), 'private' or 'public'.
+            format -- 'pem' (default), or 'der'.
+
+        """
+
         cdef unsigned long length = 1024
         output = PyString_FromStringAndSize(NULL, length)
         
-        if ansi:
-            check_for_error(ecc_ansi_x963_export(&self.key, output, &length))
-        else:
-            check_for_error(ecc_export(output, &length, self.key.type, &self.key))
+        if type is None:
+            type = self.type
+        if type not in ('public', 'private'):
+            raise Error('unknown type %r' % type)
+        if type == 'private' and self.type == 'public':
+            raise Error('cannot export private key from public key')
+        if type == 'private' and ansi:
+            raise Error('cannot export private key in ANSI format')
         
-        return output[:length]
+        cdef Key key = self.public if type == 'public' else self
 
+        if ansi:
+            check_for_error(ecc_ansi_x963_export(&key.key, output, &length))
+        else:
+            check_for_error(ecc_export(output, &length, PK_PRIVATE if type ==
+                'private' else PK_PUBLIC, &self.key))
+
+        if format == 'der':
+            return output[:length]
+        return pem_encode('EC', type.upper(), output[:length])
+        
     @property
     def type(self):
         """'private' or 'public'"""
@@ -263,6 +311,10 @@ cdef class Key(object):
             &self.key
         ))
         return bool(stat)
+    
+    def __richcmp__(self, other, op):
+        return cmp(self.as_dict(), other.as_dict(), op)
+    
 
 
 

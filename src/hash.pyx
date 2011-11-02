@@ -169,12 +169,10 @@ chc = CHC
 new = Hash
 
 
-cdef Descriptor conform_hash(hash, default):
+cdef Descriptor conform_hash(x):
     """Turn a user supplied hash into a HashDescriptor."""
-    if isinstance(hash, Descriptor):
-        return hash
-    if hash is None:
-        return Descriptor(default)
-    return Descriptor(hash)
+    if isinstance(x, Descriptor):
+        return x
+    return Descriptor(x)
 
 

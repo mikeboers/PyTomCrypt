@@ -186,7 +186,7 @@ cdef class Key(object):
         return output[:length]
 
     def encrypt(self, message, hash=None, prng=None):
-        cdef HashDescriptor c_hash = conform_hash(hash, 'sha256')
+        cdef HashDescriptor c_hash = conform_hash(hash or 'sha256')
         cdef PRNG c_prng = conform_prng(prng)
         cdef unsigned long length = 1024 + max(len(message), c_hash.desc.block_size)
         output = PyString_FromStringAndSize(NULL, length)

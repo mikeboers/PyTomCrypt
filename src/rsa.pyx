@@ -80,7 +80,7 @@ def max_payload(int key_size, padding=PAD_OAEP, hash=None):
 
     """
     padding = conform_padding(padding)
-    hash = conform_hash(hash, DEFAULT_ENC_HASH)
+    hash = conform_hash(hash or DEFAULT_ENC_HASH)
     if padding == c_RSA_PAD_NONE:
         return key_size / 8
     elif padding == c_RSA_PAD_OAEP:
@@ -95,7 +95,7 @@ def max_payload(int key_size, padding=PAD_OAEP, hash=None):
 def key_size_for_payload(int length, padding=PAD_OAEP, hash=None):
     """Determine the min keysize for a payload of a given length."""
     padding = conform_padding(padding)
-    hash = conform_hash(hash, DEFAULT_ENC_HASH)
+    hash = conform_hash(hash or DEFAULT_ENC_HASH)
     if padding == c_RSA_PAD_NONE:
         return 8 * length
     elif padding == c_RSA_PAD_OAEP:
@@ -165,7 +165,7 @@ cdef class Key(object):
         # BUT, if we tried to make a key or import one and it FAILED, this
         # will still attempt to free the key. Caution must be taken to make
         # sure that a failed key is NEVER stored in this class. Ergo, the
-        # _nullify method.
+        # _nullify methmd.
         if self.key.N != NULL:
             rsa_free(&self.key)
     
@@ -373,7 +373,7 @@ cdef class Key(object):
             return self.raw_crypt(PK_PUBLIC, input)
 
         cdef PRNG c_prng = conform_prng(prng)
-        cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_ENC_HASH)
+        cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_ENC_HASH)
 
         cdef unsigned long out_length = self.size / 8 + 1
         out = PyString_FromStringAndSize(NULL, out_length)
@@ -394,7 +394,7 @@ cdef class Key(object):
         if padding == c_RSA_PAD_NONE:
             return self.raw_crypt(PK_PRIVATE, input)
 
-        cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_ENC_HASH)
+        cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_ENC_HASH)
 
         cdef unsigned long out_length = self.size / 8 + 1
         out = PyString_FromStringAndSize(NULL, out_length)
@@ -419,7 +419,7 @@ cdef class Key(object):
             return self.raw_crypt(PK_PRIVATE, input)
 
         cdef PRNG c_prng = conform_prng(prng)
-        cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_SIG_HASH)
+        cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_SIG_HASH)
         cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 
         cdef unsigned long out_length = self.size / 8 + 1
@@ -442,7 +442,7 @@ cdef class Key(object):
         if c_padding == c_RSA_PAD_NONE:
             return self.raw_crypt(PK_PUBLIC, input)
 
-        cdef HashDescriptor c_hash = conform_hash(hash, DEFAULT_SIG_HASH)
+        cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_SIG_HASH)
         cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 
         cdef unsigned long out_length = self.size / 8 + 1

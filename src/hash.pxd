@@ -7,5 +7,5 @@ cdef class Descriptor(object):
 
 cdef get_hash_idx(input)
 
-cdef Descriptor conform_hash(input, default)
+cdef Descriptor conform_hash(x)
 

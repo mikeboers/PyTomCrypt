@@ -23,6 +23,8 @@ build/src/%.c: build/src/%.pyx
 # Requirements for the core.
 build/src/tomcrypt._core.c: $(filter %-core.pxd,$(CYTHON_SRCS))
 
+sources: $(CYTHON_SRCS) $(C_NAMES)
+
 build: $(CYTHON_SRCS) $(C_NAMES)
 	python setup.py build_ext --inplace
 

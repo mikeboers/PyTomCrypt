@@ -35,10 +35,10 @@ If you have the original source (ie. from GitHub):
     # Install "mako" and "cython"; they are required to generate the C source of the primary module.
     $ pip install mako cython
  
-    # Build the C source.
-    $ make src/_main.c
+    # Preprocess the Cython sources.
+    $ make sources
     
-    # Build the module.    
+    # Build the package.
     $ python setup.py build
     
     # Install the module.

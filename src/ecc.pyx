@@ -53,7 +53,9 @@ cdef class Curve(object):
         % endfor
 
 
-cdef object sentinel = object()
+# This object will be used as a sentinel to stop user code from instantiating
+# blank Key objects.
+cdef object key_init_sentinel = object()
 
 
 cdef class Key(object):
@@ -62,11 +64,24 @@ cdef class Key(object):
     cdef ecc_key key
     cdef Key _public
 
-    def __cinit__(self, input, **kwargs):
+    def __cinit__(self, input, prng=None):
+
+        # If given an int, pick a curve that is atleast that many bits.
+        if isinstance(input, int):
+            for size, curve in curves_by_size:
+                if size >= input:
+                    break
+            else:
+                raise Error('no NIST curve at least %d bits' % input)
+            input = curve
+
+        # If given a curve, make a random key for that curve.
         if isinstance(input, Curve):
-            self._make_key(input, kwargs.get('prng'))
+            self._make_key(input, prng)
             self.curve = input
-        elif input is not sentinel:
+        
+        # Don't let user code instantiate blank keys.
+        elif input is not key_init_sentinel:
             raise Error('cannot make ECC key from %r' % input)
 
     def __dealloc__(self):
@@ -95,6 +110,17 @@ cdef class Key(object):
         % endfor
         return out
 
+    def as_string(self, format='der', ansi=False):
+        cdef unsigned long length = 1024
+        output = PyString_FromStringAndSize(NULL, length)
+        
+        if ansi:
+            check_for_error(ecc_ansi_x963_export(&self.key, output, &length))
+        else:
+            check_for_error(ecc_export(output, &length, self.key.type, &self.key))
+        
+        return output[:length]
+
     @property
     def type(self):
         """'private' or 'public'"""
@@ -110,9 +136,9 @@ cdef class Key(object):
         """True if this is a public key."""
         return self.key.type == PK_PUBLIC
 
-    cdef Key public_copy(self):
+    cdef Key _public_copy(self):
         """Get a copy of this key with only the public parts."""
-        cdef Key copy = self.__class__(sentinel)
+        cdef Key copy = self.__class__(key_init_sentinel)
 
         copy.curve = self.curve
 
@@ -137,7 +163,7 @@ cdef class Key(object):
             if self.is_public:
                 self._public = self
             else:
-                self._public = self.public_copy()
+                self._public = self._public_copy()
         return self._public
 
     def shared_secret(self, Key other):
@@ -210,19 +236,21 @@ cdef class Key(object):
         
 
 
+cdef list curves_by_size = []
 
 cdef Curve _curve
 % for i, size in enumerate([112, 128, 160, 192, 224, 256, 384, 521]):
 _curve = Curve(
     % for attr in 'prime B order Gx Gy'.split():
-    ecc_curves[${i}].${attr},
+    ecc_nist_curves[${i}].${attr},
     % endfor
 )
 % for attr in 'name size'.split():
-_curve.${attr} = ecc_curves[${i}].${attr}
+_curve.${attr} = ecc_nist_curves[${i}].${attr}
 _curve.curve.${attr} = _curve.${attr}
 % endfor
 P${size} = _curve
+curves_by_size.append((${size}, P${size}))
 
 % endfor
 

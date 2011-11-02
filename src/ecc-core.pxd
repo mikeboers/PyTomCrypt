@@ -13,7 +13,7 @@ cdef extern from "tomcrypt.h" nogil:
         char *Gx
         char *Gy
 
-    ecc_curve ecc_curves "ltc_ecc_sets" []
+    ecc_curve ecc_nist_curves "ltc_ecc_sets" []
 
     ctypedef struct ecc_point:
         void *x
@@ -35,8 +35,13 @@ cdef extern from "tomcrypt.h" nogil:
     void ecc_free(ecc_key *key)
 
     int ecc_export(unsigned char *out, unsigned long *outlen, int type, ecc_key *key)
+    int ecc_import(unsigned char *input, unsigned long inlen, ecc_key *key)
     int ecc_import_ex(unsigned char *input, unsigned long inlen, ecc_key *key, ecc_curve *dp)
-
+    
+    int ecc_ansi_x963_export(ecc_key *key, unsigned char *out, unsigned long *outlen)
+    int ecc_ansi_x963_import(unsigned char *input, unsigned long inlen, ecc_key *key)
+    int ecc_ansi_x963_import_ex(unsigned char *input, unsigned long inlen, ecc_key *key, ecc_curve *dp)
+    
     int ecc_shared_secret(
         ecc_key *private_key,
         ecc_key *public_key,

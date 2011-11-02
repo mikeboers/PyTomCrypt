@@ -1,35 +1,17 @@
 # General
 *.pyc
 .DS_Store
-
-# virtualenv
 /.Python
 /bin
 /build
 /dist
-/include/python2.6
-/lib/python2.6
+/include/python*
+/lib/python*
 /pip-log.txt
 /MANIFEST
-
-/src/libtomcrypt-1.16/doc/crypt.pdf
+/doc/build
+*.pdf
 *.o
 *.a
+*.so
 
-/gitignore
-/Makefile.sub
-
-/tomcrypt/*.so
-/src/_main.c
-/src/_core.c
-/src/cipher.c
-/src/hash.c
-/src/mac.c
-/src/prng.c
-/src/rsa.c
-/src/pkcs1.c
-/src/pkcs5.c
-/src/ecc.c
-
-# docs
-/doc/build

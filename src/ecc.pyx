@@ -193,10 +193,8 @@ cdef class Key(object):
         if type == 'private' and ansi:
             raise Error('cannot export private key in ANSI format')
         
-        cdef Key key = self.public if type == 'public' else self
-
         if ansi:
-            check_for_error(ecc_ansi_x963_export(&key.key, output, &length))
+            check_for_error(ecc_ansi_x963_export(&self.key, output, &length))
         else:
             check_for_error(ecc_export(output, &length, PK_PRIVATE if type ==
                 'private' else PK_PUBLIC, &self.key))

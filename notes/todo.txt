@@ -7,6 +7,12 @@
   public key will be assumed to be one of the NIST recommended ones).
     - can potentially patch LTC to make the assumption that the public
       key is using the same curve as the one we are calling decrypt on.
+    - LTC already has the main 8 keys that most people would use
+    - `openssl ecparam -list_curves` shows there are a couple more
+      versions of the various NIST curves that LTC has; need to look at
+      these and see what is up
+    - picking curves is not a trivial business, so I guess 99% of cases
+      will be very happy with the recomended curves.
 
 - Should ecc.Key.as_string(...) default to ansi format, or LTC?
 

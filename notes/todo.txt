@@ -14,6 +14,16 @@
     - picking curves is not a trivial business, so I guess 99% of cases
       will be very happy with the recomended curves.
 
+
+    - Curves are decriptors
+        Curve(100) would give me the 112 curve
+        curve.make_key() would generate a key
+        idx for index into recommended curves
+    - still use ecc_make_key_ex, but manually set the curve.idx
+        or do ecc_make_key(x, x, self.curve.size, &self.key
+
+
+
 - Should ecc.Key.as_string(...) default to ansi format, or LTC?
 
 - hash.Descriptor.factory(user_input) and prng.PRNG.factory(user_input)

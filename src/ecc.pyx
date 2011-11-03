@@ -14,64 +14,51 @@ TYPE_PRIVATE = 'private'
 TYPE_PUBLIC  = 'public'
 
 
-cdef curve_param_to_int(x):
-    if isinstance(x, basestring):
-        return int(x, 16)
-    return int(x)
+curve_sizes = [112, 128, 160, 192, 224, 256, 384, 521]
+
+
+# Stub.
+cdef class Key
 
 
 cdef class Curve(object):
     """A elliptic curve for use in ECC.
     
-    tomcrypt.ecc provides a number of NIST recommended curves as attributes
-    of the module. Alternatively you can pass an integer to the Key class
-    to select the NIST recommended curve of atleast that size (in bits).
+    Due to LibTomCrypt's limitations and implementation, we will only use the 8
+    recommended curves as provided by LibTomCrypt.
 
-    Attributes:
-        name (blank if a custom curve)
-        size (in bits)
-        bytes (size in bytes)
-        prime, B, order, Gx, Gy
-
-    Constructor params:
-        prime, B, order, Gx, Gy -- ints (or hex-encoded ints) of the 5 curve
-            parameters, as expected by LibTomCrypt.
+    Passing a bit size to the constructor will yield the smallest curve of at
+    least the given size.
     
     """
 
-    cdef ecc_curve curve
+    cdef readonly int idx
+    cdef readonly int bits
+    cdef ecc_curve *curve
     
-    cdef readonly object name
-    cdef readonly object size # In bits.
-    cdef readonly object bytes # "size" in the C struct.
-    cdef readonly object prime
-    cdef readonly object B
-    cdef readonly object order
-    cdef readonly object Gx
-    cdef readonly object Gy
-
-    def __cinit__(self, prime, B, order, Gx, Gy):
+    def __cinit__(self, size):
         
-        # Convert all of the inputs into hex strings.
-        % for attr in 'prime B order Gx Gy'.split():
-        ${attr} = curve_param_to_int(${attr})
-        % endfor
+        cdef int idx, nist_size
+        for idx, nist_size in enumerate(curve_sizes):
+            if size <= nist_size:
+                break
+        else:
+            raise Error('no curve of at least %d bits' % size)
 
-        self.name = ''
+        self.idx = idx
+        self.bits = nist_size
+        self.curve = &ecc_nist_curves[idx]
+        
+    % for name in 'name size'.split():
+    @property
+    def ${name}(self):
+        return self.curve.${name}
+    % endfor
 
-        # Calculate the size in bits and bytes.
-        self.size  = int(math.log(prime, 2))
-        self.bytes = int(math.ceil(self.size / 8))
-        
-        self.curve.name = self.name
-        self.curve.size = self.bytes
-        
-        # Setup Python hex encoded curve params, then set C struct attributes
-        # to point to them.
-        % for attr in 'prime B order Gx Gy'.split():
-        self.${attr} = '%X' % int(${attr})
-        self.curve.${attr} = self.${attr}
-        % endfor
+    cpdef Key make_key(self):
+        return Key(self)
+
+
 
 
 # This object will be used as a sentinel to stop user code from instantiating
@@ -106,19 +93,13 @@ cdef class Key(object):
 
         # If given an int, pick a curve that is atleast that many bits.
         if isinstance(curve, (int, long)):
-            for size, nist_curve in curves_by_size:
-                if size >= curve:
-                    break
-            else:
-                raise Error('no NIST curve at least %d bits' % curve)
-            curve = nist_curve
+            curve = Curve(curve)
 
         # If given a curve, make a random key for that curve.
         if isinstance(curve, Curve):
             self._make_key(curve, prng)
             self.curve = curve
             return
-        
         
         # Don't let user code instantiate blank keys.
         elif curve is not key_init_sentinel:
@@ -131,14 +112,13 @@ cdef class Key(object):
 
     cdef _make_key(self, Curve curve, raw_prng):
         cdef PRNG prng = conform_prng(raw_prng)
-        check_for_error(ecc_make_key_ex(&prng.state, prng.idx, &self.key, &curve.curve))
+        check_for_error(ecc_make_key_ex(&prng.state, prng.idx, &self.key, curve.curve))
+        self.key.idx = curve.idx
 
     cdef _from_string(self, input):
         
-        # TODO: set the right curve here.
         self._public = None
-        self.curve = P128
-        
+
         try:
             type, mode, input = pem_decode(input)
         except Error:
@@ -149,6 +129,11 @@ cdef class Key(object):
             # Mark that this doesn't need deallocating.
             self.key.public.x = NULL
             raise
+        
+        if self.key.idx < 1:
+            raise Error('unknown curve in imported key')
+        self.curve = Curve(ecc_nist_curves[self.key.idx].size)
+
 
     def as_dict(self, int radix=16):
         """Return a dict of all of the key parts encoded into strings.
@@ -318,22 +303,4 @@ cdef class Key(object):
 
         
 
-
-cdef list curves_by_size = []
-
-cdef Curve _curve
-% for i, size in enumerate([112, 128, 160, 192, 224, 256, 384, 521]):
-_curve = Curve(
-    % for attr in 'prime B order Gx Gy'.split():
-    ecc_nist_curves[${i}].${attr},
-    % endfor
-)
-% for cattr, attr in dict(name='name', size='bytes').iteritems():
-_curve.${attr} = ecc_nist_curves[${i}].${cattr}
-_curve.curve.${cattr} = _curve.${attr}
-% endfor
-P${size} = _curve
-curves_by_size.append((${size}, P${size}))
-
-% endfor
 

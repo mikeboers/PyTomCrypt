@@ -9,6 +9,7 @@ def test_library():
     check_for_error(${name}_test())
     % endif
     % endfor
+    check_for_error(eax_test())
         
 
 # Register all the ciphers.
@@ -72,8 +73,11 @@ cdef class Descriptor(object):
 
 # Define a type to masquarade as ANY of the mode states.
 cdef union symmetric_all:
-    % for mode in cipher_modes:
+    % for mode in cipher_no_auth_modes:
     symmetric_${mode} ${mode}
+    % endfor
+    % for mode in cipher_auth_modes:
+    ${mode}_state ${mode}
     % endfor
 
 
@@ -146,6 +150,19 @@ cdef class Cipher(Descriptor):
                 raise Error('salt_key must be a string')
             check_for_error(${mode}_start(self.idx, iv, key, len(key), salt_key, len(salt_key), 0, <symmetric_${mode}*>&self.state))
             
+            % elif mode == 'eax':
+            nonce = kwargs.get('nonce', iv)
+            if not isinstance(nonce, basestring):
+                raise Error('nonce must be a string')
+            header = kwargs.get('header', '')
+            if not isinstance(header, basestring):
+                raise Error('header must be a string')
+            check_for_error(eax_init(<eax_state*>&self.state, self.idx,
+                key, len(key),
+                nonce, len(nonce),
+                header, len(header),
+            ))
+
             % else:
             raise Error('no start for mode %r' % ${repr(mode)})
             
@@ -172,6 +189,12 @@ cdef class Cipher(Descriptor):
         else:
             raise Error('%r mode does not use an IV' % self.mode)
     
+    cpdef add_header(self, str header):
+        if self.mode_i != ${repr(cipher_modes['eax'])}:
+            raise Error('add_header only works for EAX mode')
+        check_for_error(eax_addheader(<eax_state*>&self.state, header,
+            len(header)))
+
     % for type in 'encrypt decrypt'.split():
     cpdef ${type}(self, input):
         """${type.capitalize()} a string."""
@@ -182,11 +205,33 @@ cdef class Cipher(Descriptor):
         output = PyString_FromStringAndSize(NULL, length)
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
+            % if mode in cipher_auth_modes:
+            check_for_error(${mode}_${type}(<${mode}_state*>&self.state, input, output, length))
+            % else:
             check_for_error(${mode}_${type}(input, output, length, <symmetric_${mode}*>&self.state))
+            % endif
         % endfor
         return output
     
     % endfor
+
+    cpdef done(self):
+        cdef unsigned long length = 1024
+
+        % for mode, i in cipher_mode_items:
+        ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
+            % if mode == "eax":
+            output = PyString_FromStringAndSize(NULL, length)
+            check_for_error(eax_done(<eax_state*>&self.state, output, &length))
+            return output[:length]
+            
+            % else    :
+            check_for_error(${mode}_done(<symmetric_${mode}*>&self.state))
+
+            % endif
+        % endfor
+
+    
 
 
 names = ${repr(set(cipher_names))}

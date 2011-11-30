@@ -87,7 +87,7 @@ cdef class Key(object):
     def __cinit__(self, curve, prng=None):
 
         # If given a string, try to import it.
-        if isinstance(curve, str):
+        if isinstance(curve, (unicode, str)):
             self._from_string(curve)
             return
 
@@ -151,7 +151,7 @@ cdef class Key(object):
         if self.key.${x} != NULL:
             check_for_error(mp.write_radix(self.key.${x}, buf, radix))
             val = buf
-            if val != '0':
+            if val != b'0':
                 out[${repr(x)}] = val
             
         % endfor

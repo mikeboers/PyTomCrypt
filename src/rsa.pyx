@@ -224,7 +224,7 @@ cdef class Key(object):
             raise Error('unknown RSA key format %r' % format)
 
         # TODO: determine what size this really needs to be.
-        out = PyString_FromStringAndSize(NULL, 4096)
+        out = PyBytes_FromStringAndSize(NULL, 4096)
         cdef unsigned long length = 4096
         check_for_error(rsa_export(out, &length, type, &self.key))
 
@@ -337,7 +337,7 @@ cdef class Key(object):
                 self._public = self._public_copy()
         return self._public
 
-    cdef str raw_crypt(self, int mode, str input):
+    cdef bytes raw_crypt(self, int mode, str input):
         """Raw RSA encryption/decryption.
 
         Used by encrypt/decrypt/sign/verify when the user requests no padding.
@@ -351,7 +351,7 @@ cdef class Key(object):
         
         """
         cdef unsigned long out_length = self.size / 8 + 1
-        out = PyString_FromStringAndSize(NULL, out_length)
+        out = PyBytes_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_exptmod(
             input, len(input),
             out, &out_length,
@@ -369,7 +369,7 @@ cdef class Key(object):
         cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_ENC_HASH)
 
         cdef unsigned long out_length = self.size / 8 + 1
-        out = PyString_FromStringAndSize(NULL, out_length)
+        out = PyBytes_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_encrypt_key_ex(
             input, len(input),
             out, &out_length,
@@ -390,7 +390,7 @@ cdef class Key(object):
         cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_ENC_HASH)
 
         cdef unsigned long out_length = self.size / 8 + 1
-        out = PyString_FromStringAndSize(NULL, out_length)
+        out = PyBytes_FromStringAndSize(NULL, out_length)
         cdef int status = 0
         check_for_error(rsa_decrypt_key_ex(
             input, len(input),
@@ -416,7 +416,7 @@ cdef class Key(object):
         cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 
         cdef unsigned long out_length = self.size / 8 + 1
-        out = PyString_FromStringAndSize(NULL, out_length)
+        out = PyBytes_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_sign_hash_ex(
             input, len(input),
             out, &out_length,
@@ -439,7 +439,7 @@ cdef class Key(object):
         cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 
         cdef unsigned long out_length = self.size / 8 + 1
-        out = PyString_FromStringAndSize(NULL, out_length)
+        out = PyBytes_FromStringAndSize(NULL, out_length)
         cdef int status = 0
         check_for_error(rsa_verify_hash_ex(
             sig, len(sig),

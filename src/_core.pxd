@@ -7,7 +7,7 @@ cdef extern from "stdlib.h" nogil:
     void * memcpy(void *dest, void *src, size_t num)
 
 
-from cpython cimport PyString_FromStringAndSize
+from cpython cimport PyBytes_FromStringAndSize
 
 
 cdef extern from "pyerrors.h":

@@ -50,7 +50,7 @@ cdef class PRNG(object):
         self.desc.done(&self.state)
     
     def auto_seed(self, length):
-        entropy = PyString_FromStringAndSize(NULL, length)
+        entropy = PyBytes_FromStringAndSize(NULL, length)
         read_len = rng_get_bytes(entropy, length, NULL)
         if read_len != length:
             raise Error('only read %d of requested %d' % (read_len, length))
@@ -64,7 +64,7 @@ cdef class PRNG(object):
         if not self.ready:
             check_for_error(self.desc.ready(&self.state))
             self.ready = True
-        out = PyString_FromStringAndSize(NULL, length)
+        out = PyBytes_FromStringAndSize(NULL, length)
         cdef unsigned long len_read = self.desc.read(out, length, &self.state)
         return out[:len_read]
     

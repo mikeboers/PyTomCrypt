@@ -1,6 +1,3 @@
-
-from cpython cimport PyBytes_FromStringAndSize
-
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
@@ -30,10 +27,11 @@ cdef int get_cipher_idx(object input):
             'rijndael': 'aes', # This one is not cool.
             'saferp': 'safer+',
         }.get(input, input)
-        idx = find_cipher(input)
+        b_input = input.encode()
+        idx = find_cipher(b_input)
     elif isinstance(input, Descriptor):
         idx = input.idx
-    if idx < 0 or idx > max_cipher_idx:
+    if not isinstance(idx, int) or idx < 0 or idx > max_cipher_idx:
         raise Error('could not find cipher %r' % input)
     return idx
 
@@ -57,7 +55,11 @@ cdef class Descriptor(object):
     % for name in cipher_properties:
     @property
     def ${name}(self):
+        % if name == 'name':
+        return self.desc.${name}.decode()
+        % else:
         return self.desc.${name}
+        % endif
     
     % endfor
     ##
@@ -102,7 +104,7 @@ cdef class Cipher(Descriptor):
     cdef readonly object mode
     cdef int mode_i
     
-    def __init__(self, key, iv=None, cipher='aes', mode='ctr', **kwargs):
+    def __init__(self, bytes key, bytes iv=None, cipher='aes', mode='ctr', **kwargs):
         self.mode = mode
         ## We must keep these indices as magic numbers in the source.
         self.mode_i = {
@@ -125,8 +127,8 @@ cdef class Cipher(Descriptor):
         # don't need to worry about making unique ones.
         
         if iv is None:
-            iv = '\0' * self.desc.block_size
-        if not isinstance(iv, str) or len(iv) != self.desc.block_size:
+            iv = bytes([0] * self.desc.block_size)
+        if not isinstance(iv, bytes) or len(iv) != self.desc.block_size:
             raise Error('iv must be %d bytes' % self.desc.block_size)
         
         % for mode, i in cipher_mode_items:

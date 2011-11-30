@@ -95,7 +95,7 @@ cdef class Hash(Descriptor):
     cpdef digest(self):
         cdef hash_state state
         memcpy(&state, &self.state, sizeof(hash_state))
-        out = PyString_FromStringAndSize(NULL, self.desc.digest_size)
+        out = PyBytes_FromStringAndSize(NULL, self.desc.digest_size)
         check_for_error(self.desc.done(&state, out))
         return out
     
@@ -150,7 +150,7 @@ cdef class CHC(Hash):
     cpdef digest(self):
         cdef hash_state state
         memcpy(&state, &self.state, sizeof(hash_state))
-        out = PyString_FromStringAndSize(NULL, self.cipher.desc.block_size)
+        out = PyBytes_FromStringAndSize(NULL, self.cipher.desc.block_size)
         self.assert_chc_cipher()
         check_for_error(self.desc.done(&state, out))
         return out

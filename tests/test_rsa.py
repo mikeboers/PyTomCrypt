@@ -1,5 +1,5 @@
 
-from __future__ import division
+from __future__ import division, print_function
 
 import os
 import sys
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     
     start_time = time.time()
     
-    print 100, k.max_payload()
+    print(100, k.max_payload())
     
     key = Key('''-----BEGIN RSA PRIVATE KEY-----
     MIICXwIBAAKBgQv9V1DrxfhDt56rC1/i18HJE6x/SLs2xu5IDySxI0xhme8U6T6w
@@ -80,8 +80,8 @@ if __name__ == '__main__':
     ioKaum9hlRf3nuXxmSfqv7iXozX6xfrYncjLKbBn/hPhWp8=
     -----END RSA PRIVATE KEY-----''')
     
-    print '1028?', key.size
-    print key.encrypt('hello').encode('base64')
+    print('1028?', key.size)
+    print(key.encrypt('hello').encode('base64'))
     
     private = Key('''-----BEGIN RSA PRIVATE KEY-----
     MIICXQIBAAKBgQC9mcyIFoka73NeECWjCHxr5ssMU5MBPpV2AMYHmtB8qiO5gmiU
@@ -108,22 +108,22 @@ if __name__ == '__main__':
     -----END PUBLIC KEY-----
     ''')
     
-    print 'max_payload', private.max_payload(), public.max_payload()
+    print('max_payload', private.max_payload(), public.max_payload())
     
     pt = 'Hello, world.'
     ct = public.encrypt(pt)
-    print 'ct len', len(ct)
+    print('ct len', len(ct))
     pt2 = private.decrypt(ct)
     
-    print repr(pt2)
+    print(repr(pt2))
     
     pt = pt * 1000
     sig = private.sign(pt)
-    print repr(sig)
-    print public.verify(pt, sig)
+    print(repr(sig))
+    print(public.verify(pt, sig))
     
     # print 'bad - pre'
     #  bad = Key('bad')
     #  print 'bad - post'
     
-    print 'Ran all tests in %.2fms' % (1000 * (time.time() - start_time))
+    print('Ran all tests in %.2fms' % (1000 * (time.time() - start_time)))

@@ -167,7 +167,7 @@ cdef class Key(object):
         """
 
         cdef unsigned long length = 1024
-        output = PyString_FromStringAndSize(NULL, length)
+        output = PyBytes_FromStringAndSize(NULL, length)
         
         if type is None:
             type = self.type
@@ -243,7 +243,7 @@ cdef class Key(object):
             raise Error('one of the keys must be private')
 
         cdef unsigned long length = 1024
-        output = PyString_FromStringAndSize(NULL, length)
+        output = PyBytes_FromStringAndSize(NULL, length)
         check_for_error(ecc_shared_secret(
             &private.key,
             &public.key,
@@ -256,7 +256,7 @@ cdef class Key(object):
         cdef HashDescriptor c_hash = conform_hash(hash or 'sha256')
         cdef PRNG c_prng = conform_prng(prng)
         cdef unsigned long length = 1024 + max(len(message), c_hash.desc.block_size)
-        output = PyString_FromStringAndSize(NULL, length)
+        output = PyBytes_FromStringAndSize(NULL, length)
         check_for_error(ecc_encrypt_key(
             message, len(message),
             output, &length,
@@ -268,7 +268,7 @@ cdef class Key(object):
 
     def decrypt(self, message):
         cdef unsigned long length = len(message)
-        output = PyString_FromStringAndSize(NULL, length)
+        output = PyBytes_FromStringAndSize(NULL, length)
         check_for_error(ecc_decrypt_key(
             message, length,
             output, &length,
@@ -279,7 +279,7 @@ cdef class Key(object):
     def sign(self, message, prng=None):
         cdef PRNG c_prng = conform_prng(prng)
         cdef unsigned long length = 1024 + self.curve.size
-        output = PyString_FromStringAndSize(NULL, length)
+        output = PyBytes_FromStringAndSize(NULL, length)
         check_for_error(ecc_sign_hash(
             message, len(message),
             output, &length,

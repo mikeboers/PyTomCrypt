@@ -97,7 +97,7 @@ cdef class MAC(object):
             state.hmac.key = <unsigned char *>malloc(self.desc.block_size)
             memcpy(state.hmac.key, self.state.hmac.key, self.desc.block_size)
         
-        out = PyString_FromStringAndSize(NULL, c_length)
+        out = PyBytes_FromStringAndSize(NULL, c_length)
         
         % for mac, i in mac_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mac}

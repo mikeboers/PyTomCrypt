@@ -1,5 +1,8 @@
 
 
+cdef extern from "pytomcrypt.h" nogil:
+    pass
+
 cdef extern from "stdlib.h" nogil:
 
     void * malloc(int size)

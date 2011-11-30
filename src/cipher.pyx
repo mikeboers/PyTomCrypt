@@ -1,6 +1,7 @@
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
+
 def test_library():
     """Run internal libtomcrypt cipher tests."""
     % for name in cipher_names:
@@ -20,7 +21,7 @@ max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 
 cdef int get_cipher_idx(object input):
     idx = -1
-    if isinstance(input, str):
+    if isinstance(input, (unicode, str)):
         input = {
             'des3': '3des',
             'kseed': 'seed',
@@ -122,14 +123,14 @@ cdef class Cipher(Descriptor):
             self.__class__.__module__, self.__class__.__name__, self.name,
             self.mode, id(self))
     
-    def start(self, key, iv=None, **kwargs):
+    def start(self, bytes key, bytes iv=None, **kwargs):
         # Both the key and the iv are "const" for the start functions, so we
         # don't need to worry about making unique ones.
         
         if iv is None:
-            iv = bytes([0] * self.desc.block_size)
+            iv = b'\0' * self.desc.block_size
         if not isinstance(iv, bytes) or len(iv) != self.desc.block_size:
-            raise Error('iv must be %d bytes' % self.desc.block_size)
+            raise Error('iv must be %d bytes; got %r' % (self.desc.block_size, iv))
         
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}

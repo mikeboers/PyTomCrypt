@@ -1,5 +1,7 @@
 # vim: set syntax=pyrex
 
+from base64 import b16encode
+
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
@@ -23,9 +25,10 @@ max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
 
 
 cdef get_hash_idx(input):
-    idx = -1
-    if isinstance(input, str):
-        idx = find_hash(input)
+    cdef int idx = -1
+    if isinstance(input, (unicode, str)):
+        b_input = input.encode()
+        idx = find_hash(b_input)
     elif isinstance(input, Descriptor):
         idx = input.idx
     if idx < 0 or idx > max_hash_idx:
@@ -44,13 +47,17 @@ cdef class Descriptor(object):
     % for name in hash_properties:
     @property
     def ${name}(self):
+        % if name == "name":
+        return self.desc.${name}.decode()
+        % else:
         return self.desc.${name}
+        % endif
 
     % endfor
     ##
     def __repr__(self):
         return ${repr('<%s.%s of %s>')} % (
-            self.__class__.__module__, self.__class__.__name__, self.desc.name)
+            self.__class__.__module__, self.__class__.__name__, self.name)
     
     def __call__(self, *args, **kwargs):
         if self.name == 'chc':
@@ -69,7 +76,7 @@ cdef class Hash(Descriptor):
     cdef hash_state state
     cdef bint allocated
     
-    def __init__(self, hash, input=''):
+    def __init__(self, hash, bytes input=b''):
         self.allocated = False
         Descriptor.__init__(self, hash)
         self.allocated = True
@@ -89,7 +96,7 @@ cdef class Hash(Descriptor):
             self.__class__.__module__, self.__class__.__name__, self.name,
             id(self))       
 
-    cpdef update(self, str input):
+    cpdef update(self, bytes input):
         check_for_error(self.desc.process(&self.state, input, len(input)))
     
     cpdef digest(self):
@@ -100,7 +107,7 @@ cdef class Hash(Descriptor):
         return out
     
     cpdef hexdigest(self):
-        return self.digest().encode('hex')
+        return b16encode(self.digest()).decode().lower()
     
     cpdef copy(self):
         cdef Hash copy = self.__class__(self.name)
@@ -112,7 +119,7 @@ cdef class CHC(Hash):
     
     cdef readonly CipherDescriptor cipher
     
-    def __init__(self, cipher, input=''):
+    def __init__(self, cipher, bytes input=b''):
         self.cipher = CipherDescriptor(cipher)
         self.assert_chc_cipher()
         Hash.__init__(self, 'chc', input)
@@ -131,7 +138,7 @@ cdef class CHC(Hash):
     
     @property
     def name(self):
-        return 'chc'
+        return u'chc'
     
     @property
     def block_size(self):
@@ -141,7 +148,7 @@ cdef class CHC(Hash):
     def digest_size(self):
         return self.cipher.desc.block_size
     
-    cpdef update(self, str input):
+    cpdef update(self, bytes input):
         self.assert_chc_cipher()
         Hash.update(self, input)
     

@@ -20,7 +20,10 @@ max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 
 
 cdef int get_cipher_idx(object input):
-    idx = -1
+    cdef int idx = -1
+    # (unicode, str) is a standin for basestring, which doesn't exist in 3.
+    # This line has the effect of accepting only strings in 3, and
+    # bytes/strings in 2.
     if isinstance(input, (unicode, str)):
         input = {
             'des3': '3des',
@@ -32,7 +35,7 @@ cdef int get_cipher_idx(object input):
         idx = find_cipher(b_input)
     elif isinstance(input, Descriptor):
         idx = input.idx
-    if not isinstance(idx, int) or idx < 0 or idx > max_cipher_idx:
+    if idx < 0 or idx > max_cipher_idx:
         raise Error('could not find cipher %r' % input)
     return idx
 

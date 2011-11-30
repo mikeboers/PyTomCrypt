@@ -50,7 +50,7 @@ cdef class Descriptor(object):
         
     def __repr__(self):
         return ${repr('<%s.%s of %s>')} % (
-            self.__class__.__module__, self.__class__.__name__, self.desc.name)
+            self.__class__.__module__, self.__class__.__name__, self.name)
                 
     % for name in cipher_properties:
     @property

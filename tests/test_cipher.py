@@ -4,6 +4,7 @@ import os
 import time
 from subprocess import Popen, PIPE
 from unittest import TestCase, main
+from base64 import b16encode, b16decode
 
 from tomcrypt import cipher
 from tomcrypt.cipher import *
@@ -27,7 +28,7 @@ class CipherTests(TestCase):
 
     def check_openssl(self, cipher_name, keysize, mode):
         cipher_desc = Descriptor(cipher=cipher_name)
-        for i in xrange(1, 2):
+        for i in range(1, 2):
             key = os.urandom(keysize//8)
             iv  = os.urandom(cipher_desc.block_size)
             pt  = os.urandom(i * 128 // 8)
@@ -37,12 +38,14 @@ class CipherTests(TestCase):
                 cipher_spec = 'des-%s' % mode
             elif cipher_name == 'blowfish':
                 cipher_spec = 'bf-%s' % mode
-            proc = Popen(('openssl enc -e -%s -nopad -nosalt -K %s -iv %s' % (cipher_spec, key.encode('hex'), iv.encode('hex'))).split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            proc = Popen(('openssl enc -e -%s -nopad -nosalt -K %s -iv %s' %
+                (cipher_spec, b16encode(key).decode(), b16encode(iv).decode())).split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
             out, err = proc.communicate(pt)
             self.assertFalse(err, err)
             cipher = Cipher(key=key, iv=iv, cipher=cipher_name, mode=mode)
             ct = cipher.encrypt(pt)
-            self.assertEqual(ct, out, '%s %s %s: %s != %s' % (cipher_name, keysize, mode, ct.encode('hex'), out.encode('hex')))
+            self.assertEqual(ct, out, '%s %s %s: %s != %s' % (cipher_name,
+                keysize, mode, b16encode(ct).decode(), b16encode(out).decode()))
             
     def test_vectors(self):
         for filename in os.listdir('test_vectors'):
@@ -52,31 +55,33 @@ class CipherTests(TestCase):
 
     def check_vectors(self, filename):
         mode = filename[:3].lower()
-        fh = open('test_vectors/' + filename, 'rb')
+        fh = open('test_vectors/' + filename, 'r')
         type = fh.readline().strip()[1:-1].lower()
         fh.readline()
         data = {}
         for line in fh:
             line = line.strip()
             if not line and data:
-                key = data['key'].decode('hex')
-                iv  = data.get('iv', '').decode('hex')
-                pt  = data['plaintext'].decode('hex')
-                ct  = data['ciphertext'].decode('hex')
+                key = b16decode(data['key'].encode(), True)
+                iv  = b16decode(data.get('iv', '').encode(), True)
+                pt  = b16decode(data['plaintext'].encode(), True)
+                ct  = b16decode(data['ciphertext'].encode(), True)
                 cipher = Cipher(key=key, iv=iv or None, cipher='aes', mode=mode)
                 if type == 'encrypt':
                     res = cipher.encrypt(pt)
-                    self.assertEqual(res, ct, '%s #%s: %s != %s' % (filename, data['count'], res.encode('hex'), data['ciphertext']))
+                    self.assertEqual(res, ct, '%s #%s: %s != %s' % (filename,
+                        data['count'], b16encode(res), data['ciphertext']))
                 data = {}
             if ' = ' not in line:
                 continue
             k, v = line.lower().split(' = ')
             data[k] = v
+        fh.close()
 
     def test_api(self):
         self.assertTrue('aes' in cipher.names, 'no AES')
-        key = '0123456789abcdef'
-        msg = 'hello, world'
+        key = b'0123456789abcdef'
+        msg = b'hello, world'
         enc = cipher.aes(key).encrypt(msg)
         self.assertEqual(cipher.aes(key).decrypt(enc), msg)
 

@@ -14,8 +14,9 @@ max_prng_idx = max(max_prng_idx, register_prng(&${name}_desc))
 
 cdef get_prng_idx(input):
     idx = -1
-    if isinstance(input, str):
-        idx = find_prng(input)
+    if isinstance(input, (unicode, str)):
+        b_input = input.encode()
+        idx = find_prng(b_input)
     elif isinstance(input, PRNG):
         idx = input.idx
     if idx < 0 or idx > max_prng_idx:
@@ -41,10 +42,10 @@ cdef class PRNG(object):
         self.ready = False
         if isinstance(entropy, int):
             self.auto_seed(entropy)
-        elif isinstance(entropy, str):
+        elif isinstance(entropy, bytes):
             self.add_entropy(entropy)
         elif entropy is not None:
-            raise TypeError('entropy must be int or str; got %r' % entropy)
+            raise TypeError('entropy must be int or bytes; got %r' % entropy)
     
     def __dealloc__(self):
         self.desc.done(&self.state)
@@ -56,7 +57,7 @@ cdef class PRNG(object):
             raise Error('only read %d of requested %d' % (read_len, length))
         self.add_entropy(entropy)
         
-    def add_entropy(self, input):
+    def add_entropy(self, bytes input):
         check_for_error(self.desc.add_entropy(input, len(input), &self.state))
         self.ready = False
     

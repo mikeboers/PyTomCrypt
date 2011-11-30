@@ -9,6 +9,7 @@ from pprint import pprint, pformat
 import time
 from subprocess import Popen, PIPE
 import hashlib
+from base64 import b64encode, b64decode, b16encode
 
 from tomcrypt import prng
 from tomcrypt.rsa import *
@@ -32,15 +33,15 @@ class TestRSA(TestCase):
 
     def test_no_padding(self):
         key = Key(1024)
-        ct1 = key.encrypt("hello", padding="none")
-        ct2 = key.encrypt("hello", padding="none")
-        pt = key.decrypt(ct1, padding="none").lstrip('\0')
+        ct1 = key.encrypt(b"hello", padding="none")
+        ct2 = key.encrypt(b"hello", padding="none")
+        pt = key.decrypt(ct1, padding="none").lstrip(b'\0')
         self.assertEqual(ct1, ct2)
-        self.assertEqual(pt, "hello")
+        self.assertEqual(pt, b"hello")
 
     def test_encrypt(self):
         key = Key(1024)
-        pt1 = "hello world"
+        pt1 = b"hello world"
         ct1 = key.encrypt(pt1)
         ct2 = key.encrypt(pt1)
         pt2 = key.decrypt(ct1)
@@ -50,7 +51,7 @@ class TestRSA(TestCase):
 
     def test_sign(self):
         key = Key(1024)
-        msg = "hello world"
+        msg = b"hello world"
         sig = key.sign(msg)
         self.assertTrue(key.verify(msg, sig))
         # Not testing failure.
@@ -61,8 +62,6 @@ if __name__ == '__main__':
     main()
     
     start_time = time.time()
-    
-    print(100, k.max_payload())
     
     key = Key('''-----BEGIN RSA PRIVATE KEY-----
     MIICXwIBAAKBgQv9V1DrxfhDt56rC1/i18HJE6x/SLs2xu5IDySxI0xhme8U6T6w
@@ -81,7 +80,7 @@ if __name__ == '__main__':
     -----END RSA PRIVATE KEY-----''')
     
     print('1028?', key.size)
-    print(key.encrypt('hello').encode('base64'))
+    print(b64encode(key.encrypt(b'hello')))
     
     private = Key('''-----BEGIN RSA PRIVATE KEY-----
     MIICXQIBAAKBgQC9mcyIFoka73NeECWjCHxr5ssMU5MBPpV2AMYHmtB8qiO5gmiU
@@ -110,7 +109,7 @@ if __name__ == '__main__':
     
     print('max_payload', private.max_payload(), public.max_payload())
     
-    pt = 'Hello, world.'
+    pt = b'Hello, world.'
     ct = public.encrypt(pt)
     print('ct len', len(ct))
     pt2 = private.decrypt(ct)

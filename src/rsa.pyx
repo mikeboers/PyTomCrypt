@@ -138,7 +138,7 @@ cdef class Key(object):
         cdef unsigned long size, e
         cdef PRNG prng
 
-        if isinstance(input, str):
+        if isinstance(input, (unicode, str, bytes)):
             self._from_string(input)
             return
 
@@ -266,7 +266,7 @@ cdef class Key(object):
         out = {}
         % for x in key_parts:
         check_for_error(mp.write_radix(self.key.${x}, buf, radix))
-        out[${repr(x)}] = buf
+        out[${repr(x)}] = buf.decode()
         % endfor
         return out
 
@@ -337,7 +337,7 @@ cdef class Key(object):
                 self._public = self._public_copy()
         return self._public
 
-    cdef bytes raw_crypt(self, int mode, str input):
+    cdef bytes raw_crypt(self, int mode, bytes input):
         """Raw RSA encryption/decryption.
 
         Used by encrypt/decrypt/sign/verify when the user requests no padding.
@@ -359,7 +359,7 @@ cdef class Key(object):
             &self.key))
         return out[:out_length]
 
-    cpdef encrypt(self, str input, prng=None, hash=None, padding=PAD_OAEP):
+    cpdef encrypt(self, bytes input, prng=None, hash=None, padding=PAD_OAEP):
 
         padding = conform_padding(padding)
         if padding == c_RSA_PAD_NONE:
@@ -381,7 +381,7 @@ cdef class Key(object):
         ))
         return out[:out_length]
 
-    cpdef decrypt(self, str input, hash=None, padding=PAD_OAEP):
+    cpdef decrypt(self, bytes input, hash=None, padding=PAD_OAEP):
 
         padding = conform_padding(padding)
         if padding == c_RSA_PAD_NONE:
@@ -405,7 +405,7 @@ cdef class Key(object):
             raise Error('Invalid padding.')
         return out[:out_length]
 
-    cpdef sign(self, str input, prng=None, hash=None, padding=PAD_PSS, saltlen=None):
+    cpdef sign(self, bytes input, prng=None, hash=None, padding=PAD_PSS, saltlen=None):
 
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:
@@ -428,7 +428,7 @@ cdef class Key(object):
         ))
         return out[:out_length]
 
-    cpdef verify(self, str input, str sig, hash=None, padding=PAD_PSS, saltlen=None):
+    cpdef verify(self, bytes input, bytes sig, hash=None, padding=PAD_PSS, saltlen=None):
         """This will throw an exception if the signature could not possibly be valid."""
 
         cdef unsigned long c_padding = conform_padding(padding)

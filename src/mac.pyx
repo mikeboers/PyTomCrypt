@@ -1,4 +1,6 @@
 
+from base64 import b16encode
+
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 from tomcrypt.cipher cimport Descriptor as CipherDescriptor
@@ -9,6 +11,7 @@ from tomcrypt.hash cimport get_hash_idx
 # Just making sure that everything is registered.
 import tomcrypt.cipher
 import tomcrypt.hash
+
 
 def test_library():
     """Run internal libtomcrypt mac tests."""
@@ -36,7 +39,7 @@ cdef class MAC(object):
     cdef mac_state state
     cdef object key
     
-    def __init__(self, mode, idx, key, input=''):
+    def __init__(self, mode, idx, bytes key, bytes input=b''):
         self.mode = mode
         % for mac, i in mac_items:
         ${'el' if i else ''}if mode == ${repr(mac)}:
@@ -73,7 +76,7 @@ cdef class MAC(object):
             self.__class__.__module__, self.__class__.__name__, self.mode,
             self.desc.name, id(self))
     
-    cpdef update(self, str input):
+    cpdef update(self, bytes input):
         % for mac, i in mac_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mac}
             check_for_error(${mac}_process(<${mac}_state *>&self.state, input, len(input)))
@@ -107,7 +110,7 @@ cdef class MAC(object):
         return out[:c_length]
     
     cpdef hexdigest(self, length=None):
-        return self.digest(length).encode('hex')
+        return b16encode(self.digest(length)).decode().lower()
     
     cpdef copy(self):
         cdef MAC copy = self.__class__(self.mode, self.desc, self.key)

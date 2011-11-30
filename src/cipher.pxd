@@ -5,4 +5,4 @@ cdef class Descriptor(object):
     cdef readonly int idx
     cdef cipher_desc *desc
 
-cdef get_cipher_idx(input)
+cdef int get_cipher_idx(object input)

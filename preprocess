@@ -45,7 +45,7 @@ if __name__ == '__main__':
 	data = fo.read()
 	try:
 		lookup = TemplateLookup(["."])
-		print Template(data, lookup=lookup).render(**context)
+		print(Template(data, lookup=lookup).render(**context))
 	except:
 		sys.stderr.write(text_error_template().render())
 		exit(1)

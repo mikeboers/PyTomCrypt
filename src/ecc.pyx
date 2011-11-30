@@ -87,7 +87,7 @@ cdef class Key(object):
     def __cinit__(self, curve, prng=None):
 
         # If given a string, try to import it.
-        if isinstance(curve, basestring):
+        if isinstance(curve, str):
             self._from_string(curve)
             return
 

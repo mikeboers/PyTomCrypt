@@ -24,7 +24,7 @@ max_hash_idx = max(max_hash_idx, register_hash(&${name}_desc))
 
 cdef get_hash_idx(input):
     idx = -1
-    if isinstance(input, basestring):
+    if isinstance(input, str):
         idx = find_hash(input)
     elif isinstance(input, Descriptor):
         idx = input.idx

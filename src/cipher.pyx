@@ -1,4 +1,6 @@
 
+from cpython cimport PyBytes_FromStringAndSize
+
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
@@ -19,9 +21,9 @@ max_cipher_idx = max(max_cipher_idx, register_cipher(&${name}_desc))
 % endfor
 
 
-cdef get_cipher_idx(input):
+cdef int get_cipher_idx(object input):
     idx = -1
-    if isinstance(input, basestring):
+    if isinstance(input, str):
         input = {
             'des3': '3des',
             'kseed': 'seed',
@@ -124,7 +126,7 @@ cdef class Cipher(Descriptor):
         
         if iv is None:
             iv = '\0' * self.desc.block_size
-        if not isinstance(iv, basestring) or len(iv) != self.desc.block_size:
+        if not isinstance(iv, str) or len(iv) != self.desc.block_size:
             raise Error('iv must be %d bytes' % self.desc.block_size)
         
         % for mode, i in cipher_mode_items:
@@ -140,22 +142,22 @@ cdef class Cipher(Descriptor):
             
             % elif mode == 'lrw':
             tweak = kwargs.get('tweak')
-            if not isinstance(tweak, basestring) or len(tweak) != 16:
+            if not isinstance(tweak, str) or len(tweak) != 16:
                 raise Error('tweak must be 16 byte string')
             check_for_error(${mode}_start(self.idx, iv, key, len(key), tweak, 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'f8':
             salt_key = kwargs.get('salt_key')
-            if not isinstance(salt_key, basestring):
+            if not isinstance(salt_key, str):
                 raise Error('salt_key must be a string')
             check_for_error(${mode}_start(self.idx, iv, key, len(key), salt_key, len(salt_key), 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'eax':
             nonce = kwargs.get('nonce', iv)
-            if not isinstance(nonce, basestring):
+            if not isinstance(nonce, str):
                 raise Error('nonce must be a string')
             header = kwargs.get('header', '')
-            if not isinstance(header, basestring):
+            if not isinstance(header, str):
                 raise Error('header must be a string')
             check_for_error(eax_init(<eax_state*>&self.state, self.idx,
                 key, len(key),
@@ -172,7 +174,7 @@ cdef class Cipher(Descriptor):
     cpdef get_iv(self):
         cdef unsigned long length
         length = self.desc.block_size
-        iv = PyString_FromStringAndSize(NULL, length)
+        iv = PyBytes_FromStringAndSize(NULL, length)
         % for i, (mode, mode_i) in enumerate(sorted(cipher_iv_modes.items())):
         ${'el' if i else ''}if self.mode_i == ${mode_i}: # ${mode}
             check_for_error(${mode}_getiv(iv, &length, <symmetric_${mode}*>&self.state))
@@ -202,7 +204,7 @@ cdef class Cipher(Descriptor):
         length = len(input)
         # We need to make sure we have a brand new string as it is going to be
         # modified. The input will not be, so we can use the python one.
-        output = PyString_FromStringAndSize(NULL, length)
+        output = PyBytes_FromStringAndSize(NULL, length)
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
             % if mode in cipher_auth_modes:
@@ -221,7 +223,7 @@ cdef class Cipher(Descriptor):
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
             % if mode == "eax":
-            output = PyString_FromStringAndSize(NULL, length)
+            output = PyBytes_FromStringAndSize(NULL, length)
             check_for_error(eax_done(<eax_state*>&self.state, output, &length))
             return output[:length]
             

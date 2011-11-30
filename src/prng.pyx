@@ -14,7 +14,7 @@ max_prng_idx = max(max_prng_idx, register_prng(&${name}_desc))
 
 cdef get_prng_idx(input):
     idx = -1
-    if isinstance(input, basestring):
+    if isinstance(input, str):
         idx = find_prng(input)
     elif isinstance(input, PRNG):
         idx = input.idx

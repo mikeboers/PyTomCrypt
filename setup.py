@@ -489,14 +489,14 @@ ext_modules = [Extension(
                 './lib/libtomcrypt-1.17/src/headers',
                 './lib/libtommath-0.41',
     ],
-    define_macros=dict(
+    define_macros=list(dict(
     
         # These macros are needed for the math library.
         LTM_DESC=None,
         LTC_SOURCE=None,
         # TFM_NO_ASM=None,
     
-    ).items(),
+    ).items()),
 ) for name in ext_names]
 
 

@@ -9,7 +9,7 @@ cpdef str error_to_string(int err):
     # We need to deal with libtomcrypt not defining this error message.
     if err == CRYPT_PK_INVALID_PADDING:
         return "Invalid padding mode."
-    return raw_error_to_string(err)
+    return raw_error_to_string(err).decode()
 
 
 from tomcrypt import Error, LibError

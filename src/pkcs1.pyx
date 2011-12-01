@@ -3,7 +3,7 @@ from tomcrypt._core cimport *
 from tomcrypt.prng cimport PRNG, conform_prng
 from tomcrypt import Error
 
-cpdef pkcs1_v1_5_encode(str message, block_type, int modulus_bitlen, prng=None):
+cpdef pkcs1_v1_5_encode(bytes message, block_type, int modulus_bitlen, prng=None):
 
     if block_type in (LTC_PKCS_1_EME, 'eme', 'encrypt', 'decrypt'):
         block_type = LTC_PKCS_1_EME

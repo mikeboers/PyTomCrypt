@@ -45,6 +45,32 @@ cdef extern from "tomcrypt.h" nogil:
     int eax_done(eax_state *eax, unsigned char *tag, unsigned long *taglen)
     int eax_test()
 
+    # OBC functions.
+    # int ocb_init(
+    #     ocb_state *eax,
+    #     int cipher,
+    #     unsigned char *key, unsigned long keylen,
+    #     unsigned char *nonce
+    # )
+    # int ocb_encrypt(ocb_state *eax, unsigned char *pt, unsigned char *ct, unsigned long length)
+    # int ocb_decrypt(ocb_state *eax, unsigned char *ct, unsigned char *pt, unsigned long length)
+    # int ocb_done_encrypt(
+    #     ocb_state *ocb,
+    #     unsigned char *pt, unsigned long ptlen,
+    #     unsigned char *ct,
+    #     unsigned char *tag, unsigned long *taglen
+    # )
+    # int ocb_done_decrypt(
+    #     ocb_state *ocb,
+    #     unsigned char *ct, unsigned long ctlen,
+    #     unsigned char *pt,
+    #     unsigned char *tag, unsigned long taglen,
+    #     int *res
+    # )
+    
+
+
+
     
     # Cipher descriptor.
     cdef struct cipher_desc "ltc_cipher_descriptor":

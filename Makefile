@@ -3,7 +3,7 @@ PREPROCESS = ./preprocess
 
 MOD_NAMES = _core cipher ecc hash mac pkcs1 pkcs5 prng rsa
 SO_NAMES = $(MOD_NAMES:%=tomcrypt/%.so)
-C_NAMES = $(MOD_NAMES:%=build/src/tomcrypt.%.c)
+C_NAMES = $(MOD_NAMES:%=tomcrypt/%.c)
 
 MAKO_SRCS := $(wildcard src/*.pyx) $(wildcard src/*.pxd)
 CYTHON_SRCS = $(MAKO_SRCS:src/%=build/src/tomcrypt.%)
@@ -16,7 +16,7 @@ build/src/tomcrypt.%: src/%
 	./preprocess $< > $@
 
 # Translating Cython to C.
-build/src/%.c: build/src/%.pyx
+tomcrypt/%.c: build/src/tomcrypt.%.pyx
 	cython -o $@.tmp $<
 	mv $@.tmp $@
 

@@ -16,3 +16,4 @@
 *.a
 *.so
 
+tomcrypt/*.c

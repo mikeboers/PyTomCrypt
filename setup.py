@@ -482,7 +482,7 @@ for name, sources in ext_sources.items():
 
 # Define the extensions
 ext_modules = [Extension(
-    'tomcrypt.%s' % name, ["build/src/tomcrypt.%s.c" % name] + ext_sources.get(name, []),
+    'tomcrypt.%s' % name, ["tomcrypt/%s.c" % name] + ext_sources.get(name, []),
     include_dirs=[
                 '.', # Buh?
                 './src',
@@ -506,7 +506,7 @@ if __name__ == '__main__':
 
         name='PyTomCrypt',
             description='Python+Cython wrapper around LibTomCrypt',
-            version='0.5.7',
+            version='0.6.0',
             license='BSD-3',
             platforms=['any'],
             packages=['tomcrypt'],
@@ -526,6 +526,7 @@ if __name__ == '__main__':
                 'Operating System :: OS Independent',
                 'Programming Language :: C',
                 'Programming Language :: Python :: 2',
+                'Programming Language :: Python :: 3',
                 'Topic :: Security :: Cryptography',
                 'Topic :: Software Development :: Libraries :: Python Modules',
             ],

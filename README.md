@@ -2,11 +2,11 @@
 PyTomCrypt
 ==========
 
-This package is a Python wrapper around LibTomCrypt. The API is designed to be conceptually similar to LibTomCrypt, but to be as "Pythonic" as possible. PyTomCrypt does not yet wrap the entirety of LibTomCrypt; this is planned in the future. Currently, this package provides:
+This package is a Python 2/3 wrapper around LibTomCrypt. The API is designed to be conceptually similar to LibTomCrypt, but to be as "Pythonic" as possible. PyTomCrypt does not yet wrap the entirety of LibTomCrypt; this is planned in the future. Currently, this package provides:
 
 - symmetric ciphers
     - **no** CTR mode flags (page 38 of ltc PDF)
-    - **no** auth modes (EAX, OCB, CCM, GCM, etc.)
+    - **incomplete** auth modes (EAX, but no OCB, CCM, GCM, etc.)
 - hashes
 - MACs
 - pseudo random number generators
@@ -14,7 +14,7 @@ This package is a Python wrapper around LibTomCrypt. The API is designed to be c
 - pkcs5
 - RSA private/public keys
     - **no** separate padding functions
-- **no** ECC
+- **incomplete** ECC
 - **no** DSA
 
 
@@ -78,17 +78,17 @@ We can inspect some of the properties of a cipher via attributes on a `Descripto
 
 We can construct a `Cipher` object directly (and pass a cipher name via the `cipher` kwarg) or, as a shortcut, use an instantiated `Descriptor` as a factory. You can pass a `key`, `iv`, `cipher` (if calling `Cipher`; defaults to "aes"), `mode` (defaults to "ctr"), `tweak` (only for "lrw" mode), and `salt_key` (only for "f8" mode).
 
-    >>> encryptor = cipher.Cipher(key='0123456789abcdef', iv='0123456789abcdef', cipher='aes', mode='ctr')
+    >>> encryptor = cipher.Cipher(key=b'0123456789abcdef', iv=b'0123456789abcdef', cipher='aes', mode='ctr')
     >>> # OR
-    >>> encryptor = cipher.aes(key='0123456789abcdef', iv='0123456789abcdef', mode='ctr')
+    >>> encryptor = cipher.aes(key=b'0123456789abcdef', iv=b'0123456789abcdef', mode='ctr')
 
-    >>> message = encryptor.encrypt('This is a message')
+    >>> message = encryptor.encrypt(b'This is a message')
     >>> message
-    '&\x1a\x17\xfb>\xb5\x8e!a\x87u\r\nz\xd4\x02\x94'
+    b'&\x1a\x17\xfb>\xb5\x8e!a\x87u\r\nz\xd4\x02\x94'
     
-    >>> decryptor = cipher.aes(key='0123456789abcdef', iv='0123456789abcdef', mode='ctr')
+    >>> decryptor = cipher.aes(key=b'0123456789abcdef', iv=b'0123456789abcdef', mode='ctr')
     >>> decryptor.decrypt(message)
-    'This is a message'
+    b'This is a message'
 
 For those modes which support an IV, you can explicitly get and set it via `get_iv` and `set_iv` methods.
 
@@ -115,22 +115,22 @@ The module has been designed to be a drop-in replacement for `hashlib` (`new` is
 
 You can also provide initial content:
 
-    >>> hasher = hash.Hash('sha256', 'intial')
+    >>> hasher = hash.Hash('sha256', b'intial')
     >>> # OR:
-    >>> hasher = hash.new('sha256', 'intial')
+    >>> hasher = hash.new('sha256', b'intial')
     >>> # OR:
-    >>> hasher = hash.sha256('intial')
+    >>> hasher = hash.sha256(b'intial')
 
 The rest of the API is the same as hashlib as well:
 
     >>> # Digests!
-    >>> hasher = hash.sha256('initial')
+    >>> hasher = hash.sha256(b'initial')
     >>> hasher.hexdigest()
     'ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149'
     
     >>> # Copies!
     >>> copy = hasher.copy()
-    >>> hasher.update('something')
+    >>> hasher.update(b'something')
     >>> copy.hexdigest()
     'ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149'
     
@@ -138,7 +138,7 @@ The rest of the API is the same as hashlib as well:
     >>> hasher.hexdigest()
     '2e917b6429310675c7b8020885cbce99f64482a36dba5ee323e9891b8afe1545'
     >>> hasher.digest()
-    '.\x91{d)1\x06u\xc7\xb8\x02\x08\x85\xcb\xce\x99\xf6D\x82\xa3m\xba^\xe3#\xe9\x89\x1b\x8a\xfe\x15E'
+    b'.\x91{d)1\x06u\xc7\xb8\x02\x08\x85\xcb\xce\x99\xf6D\x82\xa3m\xba^\xe3#\xe9\x89\x1b\x8a\xfe\x15E'
 
 
 
@@ -149,9 +149,9 @@ Message Authentication Codes (MACs)
 
 This module contains a `MAC` class, and a convenience function for every MAC provided.
 
-    >>> mymac = mac.MAC('hmac', 'sha256', 'secret')
+    >>> mymac = mac.MAC('hmac', 'sha256', b'secret')
     >>> # OR
-    >>> mymac = mac.hmac('sha256', 'secret')
+    >>> mymac = mac.hmac('sha256', b'secret')
 
 The module also contains a list of the names of all MACS provided, and lists of those which use ciphers or hashes:
 
@@ -164,14 +164,14 @@ The module also contains a list of the names of all MACS provided, and lists of 
 
 The `MAC` will accept either a name or a `Descriptor` to specify which hash/cipher algorithm to use.
 
-    >>> mac.hmac('md5', 'secret', 'content').hexdigest()
+    >>> mac.hmac('md5', b'secret', b'content').hexdigest()
     '97e5f3684213a40aaaa9ef31f9f4b1a7'
-    >>> mac.hmac(hash.md5, 'secret', 'content').hexdigest()
+    >>> mac.hmac(hash.md5, b'secret', b'content').hexdigest()
     '97e5f3684213a40aaaa9ef31f9f4b1a7'
     
-    >>> mac.pmac('aes', '0123456789abcdef', 'content').hexdigest()
+    >>> mac.pmac('aes', b'0123456789abcdef', b'content').hexdigest()
     '530566cd1c33e874f503b3c3272d0fd4'
-    >>> mac.pmac(cipher.aes, '0123456789abcdef', 'content').hexdigest()
+    >>> mac.pmac(cipher.aes, b'0123456789abcdef', b'content').hexdigest()
     '530566cd1c33e874f503b3c3272d0fd4'
 
 The rest of the API is similar to the stdlib `hmac` (or `hashlib` or `tomcrypt.hash`, etc.), offering `update`, `digest`, `hexdigest`, and `copy` methods.
@@ -198,7 +198,7 @@ You can add entropy via the add_entropy method:
     >>> myrng = prng.yarrow()
     >>> myrng.add_entropy('hello')
     >>> myrng.read(8).encode('hex')
-    'f34a113448ead699'
+    b'f34a113448ead699'
 
 You can use the system `PRNG` (eg. `/dev/urandom`) to auto-seed your `PRNG`, either at construction or any time afterwards:
 
@@ -221,8 +221,8 @@ PKCS5
     
 This module contains a function which performs the pkcs5 password hashing scheme. Arguments are available to specify the iteration count (defaults to 1024), hash algo (defaults to sha256), and the hash length (defaults to the full hash).
 
-    >>> pkcs5('password', salt='salt', iteration_count=1024, hash='sha256')
-    '#\x1a\xfb}\xcd.\x86\x0c\xfdX\xab\x137+\xd1,\x920v\xc3Y\x8a\x12\x19`2\x0fo\xec\x8aV\x98'
+    >>> pkcs5(b'password', salt='salt', iteration_count=1024, hash='sha256')
+    b'#\x1a\xfb}\xcd.\x86\x0c\xfdX\xab\x137+\xd1,\x920v\xc3Y\x8a\x12\x19`2\x0fo\xec\x8aV\x98'
     
 
 RSA
@@ -284,7 +284,7 @@ The reverse is also possible; calculating the key size required for a message pa
 
 We can encrypt and decrypt:
 
-    >>> msg = "Hello, World!"
+    >>> msg = b"Hello, World!"
     >>> ct = key.encrypt(msg)
     >>> pt = key.decrypt(ct)
     >>> msg == pt
@@ -300,7 +300,7 @@ Note that you can encrypt with a public key, but you can't decrypt:
 
 We can also sign/verify signatures:
 
-    >>> msg = "Hello, World!"
+    >>> msg = b"Hello, World!"
     >>> sig = key.sign(msg)
     >>> key.verify(msg, sig)
     True

@@ -29,7 +29,7 @@ build: $(CYTHON_SRCS) $(C_NAMES)
 	python setup.py build_ext --inplace
 
 test: build
-	nosetests -sv
+	python -m unittest discover -v tests
 
 readme: README.html
 

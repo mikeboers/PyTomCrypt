@@ -5,9 +5,16 @@ import time
 from subprocess import Popen, PIPE
 from unittest import TestCase, main
 from base64 import b16encode, b16decode
+import doctest
 
 from tomcrypt import cipher
 from tomcrypt.cipher import *
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(cipher))
+    return tests
+
 
 class CipherTests(TestCase):
     

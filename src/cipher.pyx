@@ -3,13 +3,20 @@ from tomcrypt._core import Error
 
 
 def test_library():
-    """Run internal libtomcrypt cipher tests."""
+    """Run internal libtomcrypt cipher tests.
+    
+    >>> test_library()
+    True
+    
+    """
+    
     % for name in cipher_names:
     % if not name.endswith('_enc'):
     check_for_error(${name}_test())
     % endif
     % endfor
     check_for_error(eax_test())
+    return True
         
 
 # Register all the ciphers.
@@ -45,6 +52,8 @@ cdef class Descriptor(object):
     
     Can be called as convenience to calling Cipher, passing the cipher name
     via kwargs.
+
+    >>> aes = Descriptor('aes') # Same as tomcrypt.cipher.aes.
     
     """
     
@@ -56,27 +65,83 @@ cdef class Descriptor(object):
         return ${repr('<%s.%s of %s>')} % (
             self.__class__.__module__, self.__class__.__name__, self.name)
                 
-    % for name in cipher_properties:
     @property
-    def ${name}(self):
-        % if name == 'name':
-        return self.desc.${name}.decode()
-        % else:
-        return self.desc.${name}
-        % endif
+    def name(self):
+        """Name of this cipher.
+
+        >>> aes.name
+        'aes'
+
+        """
+        # The extra str is so that Python 2 will return a byte string.
+        return str(self.desc.name.decode())
+
+    @property
+    def min_key_size(self):
+        """Minimum key size for this cipher, in bytes.
+
+        >>> aes.min_key_size
+        16
+
+        """
+        return self.desc.min_key_size
     
-    % endfor
-    ##
+    @property
+    def max_key_size(self):
+        """Maximum key size for this cipher, in bytes.
+
+        >>> aes.max_key_size
+        32
+
+        """
+        return self.desc.max_key_size
+
+    @property
+    def block_size(self):
+        """Block size of this cipher.
+
+        >>> aes.block_size
+        16
+
+        """
+        return self.desc.block_size
+
+    @property
+    def default_rounds(self):
+        """Default number of "rounds" for this cipher.
+
+        >>> aes.default_rounds
+        10
+
+        """
+        return self.desc.default_rounds
+
     def key_size(self, key_size):
-        cdef int out
-        out = key_size
+        """The largest key that can be sliced from a string of the given size.
+
+        >>> aes.key_size(16)
+        16
+        >>> aes.key_size(17)
+        16
+        >>> aes.key_size(128)
+        32
+
+        """
+        cdef int out = key_size
         check_for_error(self.desc.key_size(&out))
         return out
     
     def __call__(self, *args, **kwargs):
-        return Cipher(*args, cipher=self.name, **kwargs)
-    
+        """Initialize a cipher state.
 
+        This is a convenience for constructing Cipher objects.
+
+        >>> cipher = aes(b'0123456789abcdef')
+        >>> cipher.encrypt(b'hello')
+        b'c\\xfey\\xb6$'
+        
+        """
+        return Cipher(*args, cipher=self.name, **kwargs)
 
 
 # Define a type to masquarade as ANY of the mode states.
@@ -93,15 +158,20 @@ cdef class Cipher(Descriptor):
     """All state required to encrypt/decrypt with a symmetric cipher.
     
     Parameters:
-        key: Symmetric key.
-        iv: IV; None is treated as all null bytes.
-        cipher: The name of the cipher to use; defaults to "aes".
-        mode: Cipher block chaining more to use; defaults to "ctr".
+        bytes key -- Symmetric key.
+        bytes iv -- Initialization vector; None is treated as all null bytes.
+        str cipher -- The name of the cipher to use; defaults to "aes".
+        str mode -- Cipher block chaining more to use; defaults to "ctr".
     
     Mode Specific Parameters:
-        tweak: Only for "lrw" mode.
-        salt_key: Only for "f8" mode.
-    
+        bytes nonce -- Only for "eax" mode.
+        bytes tweak -- Only for "lrw" mode.
+        bytes salt_key -- Only for "f8" mode.
+
+    >>> cipher = Cipher(b'0123456789abcdef', b'0123456789abcdef', 'aes', 'cbc')
+
+    See Cipher.add_header(...) for example of EAX mode.
+
     """
     
     cdef symmetric_all state
@@ -119,24 +189,17 @@ cdef class Cipher(Descriptor):
         if self.mode_i < 0:
             raise Error('no mode %r' % mode)
         Descriptor.__init__(self, cipher)
-        self.start(key, iv, **kwargs)
-    
-    def __repr__(self):
-        return ${repr('<%s.%s with %s in %s mode at 0x%x>')} % (
-            self.__class__.__module__, self.__class__.__name__, self.name,
-            self.mode, id(self))
-    
-    def start(self, bytes key, bytes iv=None, **kwargs):
-        # Both the key and the iv are "const" for the start functions, so we
-        # don't need to worry about making unique ones.
         
+        # Create null IV.
         if iv is None:
             iv = b'\0' * self.desc.block_size
         if not isinstance(iv, bytes) or len(iv) != self.desc.block_size:
             raise Error('iv must be %d bytes; got %r' % (self.desc.block_size, iv))
         
+        # Initialize the various modes.
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
+
             % if mode == 'ecb':
             check_for_error(ecb_start(self.idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
             
@@ -154,17 +217,17 @@ cdef class Cipher(Descriptor):
             
             % elif mode == 'f8':
             salt_key = kwargs.get('salt_key')
-            if not isinstance(salt_key, str):
-                raise Error('salt_key must be a string')
+            if not isinstance(salt_key, bytes):
+                raise Error('salt_key must be bytes')
             check_for_error(${mode}_start(self.idx, iv, key, len(key), salt_key, len(salt_key), 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'eax':
             nonce = kwargs.get('nonce', iv)
-            if not isinstance(nonce, str):
-                raise Error('nonce must be a string')
-            header = kwargs.get('header', '')
-            if not isinstance(header, str):
-                raise Error('header must be a string')
+            if not isinstance(nonce, bytes):
+                raise Error('nonce must be bytes')
+            header = kwargs.get('header', b'')
+            if not isinstance(header, bytes):
+                raise Error('header must be bytes')
             check_for_error(eax_init(<eax_state*>&self.state, self.idx,
                 key, len(key),
                 nonce, len(nonce),
@@ -176,8 +239,26 @@ cdef class Cipher(Descriptor):
             
             % endif
         % endfor
-    ##
+
+    def __repr__(self):
+        return ${repr('<%s.%s with %s in %s mode at 0x%x>')} % (
+            self.__class__.__module__, self.__class__.__name__, self.name,
+            self.mode, id(self))
+    
     cpdef get_iv(self):
+        """Returns the current IV, for modes that use it.
+
+        >>> cipher = aes(b'0123456789abcdef', b'ThisWillSetTheIV')
+        >>> cipher.get_iv()
+        b'ThisWillSetTheIV'
+
+        >>> cipher = aes(b'0123456789abcdef', mode='ecb')
+        >>> cipher.get_iv()
+        Traceback (most recent call last):
+        ...
+        tomcrypt.Error: 'ecb' mode does not use an IV
+        
+        """
         cdef unsigned long length
         length = self.desc.block_size
         iv = PyBytes_FromStringAndSize(NULL, length)
@@ -189,7 +270,24 @@ cdef class Cipher(Descriptor):
             raise Error('%r mode does not use an IV' % self.mode)
         return iv
     
-    cpdef set_iv(self, iv):        
+    cpdef set_iv(self, iv):
+        """ Sets the current IV, for modes that use it.
+
+        See the LibTomCrypt manual section 3.4.6 for what, precisely, this
+        function will do depending on the chaining mode.
+
+        >>> cipher = aes(b'0123456789abcdef')
+        >>> cipher.set_iv(b'ThisWillSetTheIV')
+        >>> cipher.encrypt(b'hello')
+        b'\\xe2\\xef\\xc5\\xe6\\x9e'
+
+        >>> cipher = aes(b'0123456789abcdef', mode='ecb')
+        >>> cipher.set_iv(b'does not matter')
+        Traceback (most recent call last):
+        ...
+        tomcrypt.Error: 'ecb' mode does not use an IV
+
+        """
         % for i, (mode, mode_i) in enumerate(sorted(cipher_iv_modes.items())):
         ${'el' if i else ''}if self.mode_i == ${mode_i}: # ${mode}
             check_for_error(${mode}_setiv(iv, len(iv), <symmetric_${mode}*>&self.state))
@@ -197,15 +295,44 @@ cdef class Cipher(Descriptor):
         else:
             raise Error('%r mode does not use an IV' % self.mode)
     
-    cpdef add_header(self, str header):
+    cpdef add_header(self, bytes header):
+        """Add the given string to the EAX header. Only for EAX mode.
+
+        >>> cipher = aes(b'0123456789abcdef', mode='eax', nonce=b'random')
+        >>> cipher.add_header(b'a header')
+        >>> cipher.encrypt(b'hello')
+        b'Y\\x9b\\xe5\\x87\\xcc'
+        >>> cipher.done()
+        b'A(|\\x9f@I#\\x0f\\x93\\x90Z,\\xb5A\\x9bN'
+
+        >>> cipher = aes(b'0123456789abcdef', mode='eax', nonce=b'random', header=b'a header')
+        >>> cipher.decrypt(b'Y\\x9b\\xe5\\x87\\xcc')
+        b'hello'
+        >>> cipher.done()
+        b'A(|\\x9f@I#\\x0f\\x93\\x90Z,\\xb5A\\x9bN'
+
+        """
         if self.mode_i != ${repr(cipher_modes['eax'])}:
-            raise Error('add_header only works for EAX mode')
+            raise Error('only for EAX mode')
         check_for_error(eax_addheader(<eax_state*>&self.state, header,
             len(header)))
 
     % for type in 'encrypt decrypt'.split():
-    cpdef ${type}(self, input):
-        """${type.capitalize()} a string."""
+    cpdef ${type}(self, bytes input):
+        """${type.capitalize()} a string.
+        
+        % if type == 'encrypt':
+        >>> cipher = aes(b'0123456789abcdef')
+        >>> cipher.encrypt(b'this is a message')
+        b'\\x7f\\xf3|\\xa9k-\\xd3\\xd5t=\\xa2\\xa1\\xb3lT\\xb2d'
+
+        % else:
+        >>> cipher = aes(b'0123456789abcdef')
+        >>> cipher.decrypt(b'\\x7f\\xf3|\\xa9k-\\xd3\\xd5t=\\xa2\\xa1\\xb3lT\\xb2d')
+        b'this is a message'
+
+        % endif
+        """
         cdef int length
         length = len(input)
         # We need to make sure we have a brand new string as it is going to be
@@ -224,22 +351,19 @@ cdef class Cipher(Descriptor):
     % endfor
 
     cpdef done(self):
+        """Return authentication tag for EAX mode.
+
+        See Cipher.add_header(...) for example.
+
+        """
         cdef unsigned long length = 1024
 
-        % for mode, i in cipher_mode_items:
-        ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
-            % if mode == "eax":
+        if self.mode_i == ${repr(cipher_modes['eax'])}:
             output = PyBytes_FromStringAndSize(NULL, length)
             check_for_error(eax_done(<eax_state*>&self.state, output, &length))
             return output[:length]
-            
-            % else    :
-            check_for_error(${mode}_done(<symmetric_${mode}*>&self.state))
-
-            % endif
-        % endfor
-
-    
+        else:
+            raise Error('not for %s mode' % self.mode)
 
 
 names = ${repr(set(cipher_names))}

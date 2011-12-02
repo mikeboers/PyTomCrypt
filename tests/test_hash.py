@@ -3,9 +3,15 @@ from __future__ import division, print_function
 import os
 import hashlib
 from unittest import TestCase, main
+import doctest
 
 from tomcrypt.hash import *
 from tomcrypt import hash
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(hash))
+    return tests
 
 
 class TestHashed(TestCase):

@@ -3,9 +3,15 @@ from __future__ import division
 import os
 import hmac
 from unittest import TestCase, main
+import doctest
 
 from tomcrypt import mac
 from tomcrypt import Error as TomCryptError
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(mac))
+    return tests
 
 
 class TestMAC(TestCase):

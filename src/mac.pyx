@@ -14,10 +14,16 @@ import tomcrypt.hash
 
 
 def test_library():
-    """Run internal libtomcrypt mac tests."""
+    """Run internal libtomcrypt mac tests.
+    
+    >>> test_library()
+    True
+    
+    """
     % for mac in mac_names:
     check_for_error(${mac}_test())
     % endfor
+    return True
 
 
 # A data type to hold ALL of the different mac type states.
@@ -28,7 +34,21 @@ cdef union mac_state:
 
 
 cdef class MAC(object):
-    
+    """Calculator of keyed hashes.
+
+    Parameters:
+        str mode -- What type of mac. One of 'hmac', 'omac', 'pmac', or 'xcbc'.
+        idx -- What cipher/hash to use. Either a name or descriptor.
+        bytes key -- The key.
+        bytes input -- Initial data.
+
+    >>> mac = MAC('hmac', 'md5', b'secret') # or hmac('md5', b'secret')
+    >>> mac = MAC('omac', 'aes', b'0123456789abcdef') # or omac(...)
+    >>> mac = MAC('pmac', 'aes', b'0123456789abcdef') # or pmac(...)
+    >>> mac = MAC('xcbc', 'aes', b'0123456789abcdef') # or xcbc(...)
+
+    """
+
     cdef readonly object mode
     cdef int mode_i
     cdef readonly bint uses_hash
@@ -68,6 +88,7 @@ cdef class MAC(object):
         self.update(input)
     
     def __dealloc__(self):
+        # hmac is the only one that has anything we need to manually free.
         if self.mode_i == ${mac_ids['hmac']}:
             free(self.state.hmac.key)
     
@@ -77,12 +98,27 @@ cdef class MAC(object):
             self.desc.name, id(self))
     
     cpdef update(self, bytes input):
+        """Add more data to the mac.
+
+        >>> mac = hmac('md5', b'secret')
+        >>> mac.update(b'message')
+        >>> mac.hexdigest()
+        '7e0d0767775312154ba16fd3af9771a2'
+
+        """
         % for mac, i in mac_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mac}
             check_for_error(${mac}_process(<${mac}_state *>&self.state, input, len(input)))
         % endfor
     
     cpdef digest(self, length=None):
+        """Return binary digest.
+
+        >>> mac = hmac('md5', b'secret', b'message')
+        >>> mac.digest()
+        b'~\\r\\x07gwS\\x12\\x15K\\xa1o\\xd3\\xaf\\x97q\\xa2'
+
+        """
         if length is None:
             if self.uses_hash:
                 length = self.desc.digest_size
@@ -110,9 +146,28 @@ cdef class MAC(object):
         return out[:c_length]
     
     cpdef hexdigest(self, length=None):
+        """Return hex-encoded string of digest.
+
+        >>> mac = hmac('md5', b'secret', b'message')
+        >>> mac.hexdigest()
+        '7e0d0767775312154ba16fd3af9771a2'
+
+        """
+
         return b16encode(self.digest(length)).decode().lower()
     
     cpdef copy(self):
+        """Get a copy of the mac state.
+
+        >>> a = hmac('md5', b'secret', b'message')
+        >>> b = a.copy()
+        >>> b.update(b'some more')
+        >>> b.hexdigest()
+        'e0cdc5e1d7af04f800b0e0f0ceee588a'
+        >>> a.hexdigest()
+        '7e0d0767775312154ba16fd3af9771a2'
+
+        """
         cdef MAC copy = self.__class__(self.mode, self.desc, self.key)
         memcpy(&copy.state, &self.state, sizeof(mac_state))
         

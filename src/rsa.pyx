@@ -127,6 +127,19 @@ cdef Key blank_key(cls):
 
 
 cdef class Key(object):
+    """An RSA key.
+
+    This key can be imported from an encoded string, or randomly generated.
+
+    >>> # Generate a key.
+    >>> key = Key(1024)
+    >>> key.size
+    1024
+
+    >>> # Import a key.
+    >>> key = Key(open('/path/to/key.pem').read()) #doctest: +SKIP
+
+    """
 
     cdef rsa_key key
     cdef Key _public

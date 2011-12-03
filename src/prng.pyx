@@ -57,7 +57,7 @@ cdef class PRNG(object):
 
     >>> # Auto-seeding (with 1KB of data from the system PRNG):
     >>> myprng = PRNG('yarrow', 1024)
-    >>> myprng.read(8) #doctest: +ELLIPSIS
+    >>> myprng.read(8) # doctest: +ELLIPSIS
     b'...'
 
     """

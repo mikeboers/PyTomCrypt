@@ -8,9 +8,11 @@ import doctest
 from tomcrypt.hash import *
 from tomcrypt import hash
 
+from . import get_doctests
+
 
 def load_tests(loader, tests, ignore):
-    tests.addTests(doctest.DocTestSuite(hash))
+    tests.addTests(get_doctests(hash))
     return tests
 
 

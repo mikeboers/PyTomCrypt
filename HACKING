@@ -1,0 +1,21 @@
+This project has a couple of sticky bits that need to be kept in mind during
+any development.
+
+First, the bulk of the code is written as Mako templates,
+which render to Cython source code. This allows us to deal with massive
+amounts of duplicated code (due to the many different cipher modes, hashes,
+macs, etc., which all have their own functions).
+
+Second, bytes/unicode. Function which perform cryptographic operations will
+always accept bytes, however due to automatic coersion Python 2 will also
+allow for unicode inputs. This is not a problem. The tricky parts come with
+specifications of algorithm names, as we want the developer to be able to use
+"native" strings (bytes in Python 2, unicode in Python 3). Most instances
+should be noted as source comments.
+
+Third, testing. Doctests are written for Python 3 syntax. Doctests will
+automatically be adjusted to comply with the representation of bytes
+(essentially the removal of the b prefix that is required in Python 3).
+
+Good luck!
+

@@ -10,6 +10,7 @@ cdef extern from "stdlib.h" nogil:
     void * memcpy(void *dest, void *src, size_t num)
 
 
+from cpython.version cimport PY_MAJOR_VERSION
 from cpython cimport PyBytes_FromStringAndSize
 
 

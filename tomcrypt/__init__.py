@@ -18,3 +18,4 @@ class Error(ValueError):
 
 class LibError(Error):
     pass
+

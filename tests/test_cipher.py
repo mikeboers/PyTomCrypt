@@ -10,9 +10,11 @@ import doctest
 from tomcrypt import cipher
 from tomcrypt.cipher import *
 
+from . import get_doctests
+
 
 def load_tests(loader, tests, ignore):
-    tests.addTests(doctest.DocTestSuite(cipher))
+    tests.addTests(get_doctests(cipher))
     return tests
 
 

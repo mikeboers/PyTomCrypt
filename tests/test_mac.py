@@ -8,9 +8,11 @@ import doctest
 from tomcrypt import mac
 from tomcrypt import Error as TomCryptError
 
+from . import get_doctests
+
 
 def load_tests(loader, tests, ignore):
-    tests.addTests(doctest.DocTestSuite(mac))
+    tests.addTests(get_doctests(mac))
     return tests
 
 

@@ -4,9 +4,11 @@ import doctest
 
 from tomcrypt import prng
 
+from . import get_doctests
+
 
 def load_tests(loader, tests, ignore):
-    tests.addTests(doctest.DocTestSuite(prng))
+    tests.addTests(get_doctests(prng))
     return tests
 
 

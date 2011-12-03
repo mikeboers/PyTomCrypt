@@ -46,17 +46,6 @@ if __name__ == '__main__':
 	context.update(defs)
 	
 	data = fo.read()
-	
-
-    # We rewrite all of the doctests to overcome the differences of Python 2
-    # and 3. This is incredibly hacky. I really ought to change the Python 2
-    # interface (defaulting to unicode algo names) so that 2to3 will work.
-	if sys.version_info.major < 3:
-		def fixdoc(m):
-			return repr(re.sub(r"\bb'", "'", literal_eval(m.group(0))))
-		data = re.sub(r'""".+?"""', fixdoc, data, 0, re.M | re.S)
-		data = data.replace('tomcrypt.Error', 'Error')
-
 	try:
 		lookup = TemplateLookup(["."])
 		print(Template(data, lookup=lookup).render(**context))

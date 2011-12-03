@@ -11,9 +11,16 @@ from subprocess import Popen, PIPE
 import hashlib
 from base64 import b64encode, b64decode, b16encode
 
-from tomcrypt import prng
+from tomcrypt import prng, rsa
 from tomcrypt.rsa import *
 from unittest import TestCase, main
+
+
+from . import get_doctests
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(get_doctests(rsa))
+    return tests
 
 
 class TestRSA(TestCase):

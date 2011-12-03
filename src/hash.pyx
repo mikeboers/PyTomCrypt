@@ -79,7 +79,7 @@ cdef class Descriptor(object):
         16
 
         """
-        return self.desc.digest_size
+        return int(self.desc.digest_size)
 
     @property
     def block_size(self):
@@ -89,7 +89,7 @@ cdef class Descriptor(object):
         64
 
         """
-        return self.desc.block_size
+        return int(self.desc.block_size)
 
     def __repr__(self):
         return ${repr('<%s.%s of %s>')} % (
@@ -207,7 +207,7 @@ cdef class Hash(Descriptor):
         '78e731027d8fd50ed642340b7c9a63b3'
 
         """
-        return b16encode(self.digest()).decode().lower()
+        return str(b16encode(self.digest()).decode().lower())
     
     cpdef copy(self):
         """Get a copy of the hash state.

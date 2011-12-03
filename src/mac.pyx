@@ -154,7 +154,7 @@ cdef class MAC(object):
 
         """
 
-        return b16encode(self.digest(length)).decode().lower()
+        return str(b16encode(self.digest(length)).decode().lower())
     
     cpdef copy(self):
         """Get a copy of the mac state.

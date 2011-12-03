@@ -19,7 +19,7 @@ def pem_encode(type, mode, content):
     if mode not in ('PUBLIC', 'PRIVATE'):
         raise Error('mode must be PUBLIC or PRIVATE')
     type = ('%s %s' % (type, mode)) if mode == 'PRIVATE' else 'PUBLIC'
-    content = base64.b64encode(content).decode()
+    content = str(base64.b64encode(content).decode())
     content = '\n'.join(content[i:i+78] for i in range(0, len(content), 78))
     return '-----BEGIN %(type)s KEY-----\n%(content)s-----END %(type)s KEY-----\n' % dict(
         type=type,

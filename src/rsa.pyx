@@ -25,7 +25,6 @@ cdef object type_map = {
     TYPE_PUBLIC : c_RSA_TYPE_PUBLIC,
 }
 
-
 cdef c_RSA_PAD_NONE = 0
 PAD_NONE = 'none'
 PAD_V1_5 = 'v1.5'
@@ -39,10 +38,8 @@ cdef object padding_map = {
     PAD_PSS : c_RSA_PAD_PSS,
 }
 
-
 FORMAT_PEM = 'pem'
 FORMAT_DER = 'der'
-
 
 DEFAULT_ENC_HASH = 'sha1'
 DEFAULT_SIG_HASH = 'sha512'
@@ -76,8 +73,15 @@ def max_payload(int key_size, padding=PAD_OAEP, hash=None):
     """Find the maximum length of the payload that is safe to encrypt/sign.
 
     Params:
-        padding -- The padding that will be used.
-        hash -- The hash that will be used.
+        padding -- One of 'none', 'v1.5', 'oaep', or 'pss'. Defaults to 'oaep'.
+        hash -- The hash that will be used. Defaults to 'sha1'.
+
+    >>> max_payload(1024)
+    86
+    >>> max_payload(2048, hash='sha512')
+    126
+    >>> max_payload(1024, padding='none')
+    128
 
     """
     padding = conform_padding(padding)
@@ -94,7 +98,20 @@ def max_payload(int key_size, padding=PAD_OAEP, hash=None):
 
 
 def key_size_for_payload(int length, padding=PAD_OAEP, hash=None):
-    """Determine the min keysize for a payload of a given length."""
+    """Determine the min keysize for a payload of a given length.
+    
+    Params:
+        length -- The length of the payload.
+        padding -- One of 'none', 'v1.5', 'oaep', or 'pss'. Defaults to 'oaep'.
+        hash -- The hash that will be used. Defaults to 'sha1'.
+        
+    key_size_for_payload(86)
+    1024
+    
+    key_size_for_payload(128, padding='none')
+    1024
+
+    """
     padding = conform_padding(padding)
     hash = conform_hash(hash or DEFAULT_ENC_HASH)
     if padding == c_RSA_PAD_NONE:
@@ -221,6 +238,20 @@ cdef class Key(object):
             type -- None (as is), 'private' or 'public'.
             format -- 'pem' (default), or 'der'.
 
+        >>> k = Key(1024)
+
+        >>> k.as_string() # doctest: +ELLIPSIS
+        '-----BEGIN RSA PRIVATE KEY-----...-----END RSA PRIVATE KEY-----\\n'
+
+        >>> k.public.as_string() # doctest: +ELLIPSIS
+        '-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\\n'
+
+        >>> k.as_string(type='public') # doctest: +ELLIPSIS
+        '-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\\n'
+
+        >>> isinstance(k.as_string(format='der'), bytes)
+        True
+
         """
 
         if type is None:
@@ -285,17 +316,41 @@ cdef class Key(object):
 
     @property
     def type(self):
-        """'private' or 'public'"""
+        """'private' or 'public'
+        
+        >>> k = Key(1024)
+        >>> k.type
+        'private'
+        >>> k.public.type
+        'public'
+        
+        """
         return TYPE_PRIVATE if self.is_private else TYPE_PUBLIC
 
     @property
     def is_private(self):
-        """True if this is a private key."""
+        """True if this is a private key.
+        
+        >>> k = Key(1024)
+        >>> k.is_private
+        True
+        >>> k.public.is_private
+        False
+        
+        """
         return self.key.type == c_RSA_TYPE_PRIVATE
 
     @property
     def is_public(self):
-        """True if this is a public key."""
+        """True if this is a public key.
+        
+        >>> k = Key(1024)
+        >>> k.is_public
+        False
+        >>> k.public.is_public
+        True
+        
+        """
         return self.key.type == c_RSA_TYPE_PUBLIC
 
     @property
@@ -306,6 +361,9 @@ cdef class Key(object):
         but that is not a requirement for others. (It is easy to make any
         size key with openssl, for instance.)
 
+        >>> Key(1024).size
+        1024
+
         """
         return mp.count_bits(self.key.N)
 
@@ -313,8 +371,10 @@ cdef class Key(object):
         """The maximum length of the payload that is safe to encrypt/sign.
 
         Params:
-            padding -- The padding that will be used.
-            hash -- The hash that will be used.
+            padding -- One of 'none', 'v1.5', 'oaep', or 'pss'. Defaults to 'oaep'.
+            hash -- The hash that will be used. Defaults to 'sha1'.
+
+        See tomcrypt.rsa.max_payload(...) for examples.
 
         """
         return max_payload(self.size, padding, hash)
@@ -341,6 +401,14 @@ cdef class Key(object):
         """A view of this key with only the public parts.
 
         If this is already a public key, this will be the same object.
+
+        >>> k = Key(1024)
+        >>> a = k.public
+        >>> a.type
+        'public'
+        >>> b = k.public
+        >>> a is b
+        True
 
         """
         if self._public is None:
@@ -373,6 +441,15 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef encrypt(self, bytes input, prng=None, hash=None, padding=PAD_OAEP):
+        """Encrypt some bytes.
+
+        Parameters:
+            bytes input -- The data to encrypt.
+            prng -- The PRNG to use; defaults to 'sprng'.
+            hash -- The Hash to use; defaults to 'sha1'.
+            padding -- One of 'none', 'v1.5', or 'oaep'. Defaults to 'oaep'.
+
+        """
 
         padding = conform_padding(padding)
         if padding == c_RSA_PAD_NONE:
@@ -395,6 +472,16 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef decrypt(self, bytes input, hash=None, padding=PAD_OAEP):
+        """Decrypt some bytes.
+
+        Only usable on private keys.
+
+        Parameters:
+            bytes input -- The data to decrypt.
+            hash -- The Hash used; defaults to 'sha1'.
+            padding -- One of 'none', 'v1.5', or 'oaep'. Defaults to 'oaep'.
+
+        """
 
         padding = conform_padding(padding)
         if padding == c_RSA_PAD_NONE:
@@ -419,7 +506,17 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef sign(self, bytes input, prng=None, hash=None, padding=PAD_PSS, saltlen=None):
+        """Sign some bytes.
 
+        Only usable on private keys.
+
+        Parameters:
+            bytes input -- The data to sign.
+            prng -- The PRNG to use; defaults to 'sprng'.
+            hash -- The Hash to use; defaults to 'sha512'.
+            padding -- One of 'none', 'v1.5', or 'pss'. Defaults to 'pss'.
+
+        """
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:
             return self.raw_crypt(PK_PRIVATE, input)
@@ -442,7 +539,18 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef verify(self, bytes input, bytes sig, hash=None, padding=PAD_PSS, saltlen=None):
-        """This will throw an exception if the signature could not possibly be valid."""
+        """Verify the signature of some bytes.
+
+        Parameters:
+            bytes input -- The signed data.
+            bytes sig -- The signature.
+            hash -- The Hash used; defaults to 'sha512'.
+            padding -- One of 'none', 'v1.5', or 'pss'. Defaults to 'pss'.
+
+        Returns True if the signature is valid. Raises an exception if the
+        signature is the wrong format.
+
+        """
 
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:

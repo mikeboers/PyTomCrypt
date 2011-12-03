@@ -1,7 +1,14 @@
 from unittest import TestCase, main
 from base64 import b16encode
+import doctest
 
 from tomcrypt import prng
+
+
+def load_tests(loader, tests, ignore):
+    tests.addTests(doctest.DocTestSuite(prng))
+    return tests
+
 
 class TestPRNG(TestCase):
     

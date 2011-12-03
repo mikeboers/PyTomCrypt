@@ -11,6 +11,8 @@ cdef class PRNG(object):
     cdef readonly int idx
     cdef readonly bint ready
     cdef prng_state state
+
+    cdef _autoready(self)
     
 cdef get_prng_idx(input)
 

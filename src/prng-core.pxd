@@ -13,8 +13,8 @@ cdef extern from "tomcrypt.h" nogil:
         int ready(prng_state *)
         unsigned long read(unsigned char *, unsigned long, prng_state *)
         void done(prng_state *)
-        int get_state "export" (unsigned char *, unsigned long *, prng_state *)
-        int set_state "import" (unsigned char *, unsigned long  , prng_state *)
+        int get_state "pexport" (unsigned char *, unsigned long *, prng_state *)
+        int set_state "pimport" (unsigned char *, unsigned long  , prng_state *)
         int test()
     
     # The array which contains the descriptors once setup.

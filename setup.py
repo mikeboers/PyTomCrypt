@@ -506,7 +506,7 @@ if __name__ == '__main__':
 
         name='PyTomCrypt',
             description='Python+Cython wrapper around LibTomCrypt',
-            version='0.6.0',
+            version='0.6.1',
             license='BSD-3',
             platforms=['any'],
             packages=['tomcrypt'],

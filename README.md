@@ -10,13 +10,11 @@ This package is a Python 2/3 wrapper around LibTomCrypt. The API is designed to 
 - hashes
 - MACs
 - pseudo random number generators
-    - **no** import/export functions
 - pkcs5
 - RSA private/public keys
     - **no** separate padding functions
 - **incomplete** ECC
 - **no** DSA
-
 
 
 Installation

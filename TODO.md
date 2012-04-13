@@ -1,9 +1,11 @@
-- Python 3
+- Document how Python 3 works.
     - cipher names should be strings
     - keys and ivs are bytes
     - pick upper or lower case for all hex output
     - test all api types
     - update docs to have string prefixes
+- Document ECC.
+- Test EAX.
 
 - Decide if going to allow for custom ECC curves at all. ecc_decrypt_key
   does not have the logic required for using a custom key as it uses

@@ -68,7 +68,19 @@ cdef extern from "tomcrypt.h" nogil:
     #     int *res
     # )
     
-
+    int ccm_memory(
+        int cipher,
+        unsigned char *key, unsigned long keylen,
+        symmetric_key *uskey,
+        unsigned char *nonce, unsigned long noncelen,
+        unsigned char *header, unsigned long headerlen,
+        unsigned char *pt, unsigned long ptlen,
+        unsigned char *ct,
+        unsigned char *tag, unsigned long *taglen.
+        int direction
+    )
+    cdef int CCM_ENCRYPT
+    cdef int CCM_DECRYPT
 
 
     

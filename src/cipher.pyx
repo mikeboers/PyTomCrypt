@@ -233,7 +233,10 @@ cdef class Cipher(Descriptor):
                 nonce, len(nonce),
                 header, len(header),
             ))
-
+            
+            % elif mode == 'ccm':
+                pass
+            
             % else:
             raise Error('no start for mode %r' % ${repr(mode)})
             
@@ -318,7 +321,7 @@ cdef class Cipher(Descriptor):
             len(header)))
 
     % for type in 'encrypt decrypt'.split():
-    cpdef ${type}(self, bytes input):
+    cpdef ${type}(self, bytes input, header=None, nonce=None, tag=None):
         """${type.capitalize()} a string.
         
         % if type == 'encrypt':
@@ -342,8 +345,13 @@ cdef class Cipher(Descriptor):
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
             % if mode in cipher_auth_modes:
             check_for_error(${mode}_${type}(<${mode}_state*>&self.state, input, output, length))
+            
+            % elif mode == 'ccm':
+            raise RuntimeError('ccm is not implemented')
+            
             % else:
             check_for_error(${mode}_${type}(input, output, length, <symmetric_${mode}*>&self.state))
+            
             % endif
         % endfor
         return output

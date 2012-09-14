@@ -6,7 +6,7 @@ python:
     - "3.2"
 
 install:
-    - pip install --use-mirrors cython
-    - pip install -e .
+    - pip install --use-mirrors cython mako
+    - make build
 
 script: nosetests

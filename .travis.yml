@@ -9,4 +9,4 @@ install:
     - pip install --use-mirrors cython mako
     - make build
 
-script: nosetests
+script: nosetests -e load_tests

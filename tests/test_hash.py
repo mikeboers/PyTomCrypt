@@ -33,13 +33,13 @@ class TestHashed(TestCase):
     def check_hashlib(self, name):        
         x = Hash(name)
         y = hashlib.new(name)
-        for i in xrange(100):
+        for i in range(100):
             s = os.urandom(i)
             x.update(s)
             y.update(s)
             assert x.digest() == y.digest()
         x2 = x.copy()
-        x2.update('something else')
+        x2.update(b'something else')
         assert x.digest() == y.digest()
         assert x2.digest() != y.digest()
 

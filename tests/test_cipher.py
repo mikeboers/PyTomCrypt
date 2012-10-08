@@ -18,6 +18,7 @@ def load_tests(loader, tests, ignore):
     return tests
 
 
+
 class CipherTests(TestCase):
     
     def test_library(self):

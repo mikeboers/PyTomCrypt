@@ -30,7 +30,7 @@ class TestHashed(TestCase):
             yield self.check_hashlib, name
 
 
-    def check_hashlib(self):        
+    def check_hashlib(self, name):        
         x = Hash(name)
         y = hashlib.new(name)
         for i in xrange(100):

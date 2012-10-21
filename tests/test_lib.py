@@ -3,13 +3,13 @@ from __future__ import print_function
 from . import *
 
 from tomcrypt import core
-from tomcrypt._core import ltc_mod
+from tomcrypt.core import LTC
 from tomcrypt import cipher
 
 class TestLib(TestCase):
     
     def test_crypt_ok(self):
-        self.assertEqual(ltc_mod.CRYPT_OK, 0)
+        self.assertEqual(LTC.pymod.CRYPT_OK, 0)
     
     def test_cipher_internal(self):
         for name, test in cipher._internal_tests():

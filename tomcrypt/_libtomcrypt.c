@@ -2,6 +2,13 @@
 #include "tomcrypt.h"
 
 
+#if PY_MAJOR_VERSION >= 3
+
+    #define PyInt_FromLong PyLong_FromLong
+
+#endif
+
+
 // We have no methods.
 static PyMethodDef tomcrypt_methods[] = {
     {NULL, NULL, 0, NULL}        /* Sentinel */
@@ -42,17 +49,35 @@ static void init(PyObject *m) {
 // locations for Python 2 vs 3 to ease for rapid testing. They should always
 // do the same things.
 
-PyMODINIT_FUNC
-init_libtomcrypt2(void)
-{
-    PyObject *m = Py_InitModule("_libtomcrypt2", tomcrypt_methods);
-    init(m);
-}
+#if PY_MAJOR_VERSION < 3
 
+    PyMODINIT_FUNC
+    init_libtomcrypt2(void)
+    {
+        PyObject *m = Py_InitModule("_libtomcrypt2", tomcrypt_methods);
+        init(m);
+    }
 
-PyMODINIT_FUNC
-init_libtomcrypt3(void)
-{
-    PyObject *m = Py_InitModule("_libtomcrypt3", tomcrypt_methods);
-    init(m);
-}
+# else
+
+    static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "_libtomcrypt3",     /* m_name */
+        "This is a module",  /* m_doc */
+        -1,                  /* m_size */
+        tomcrypt_methods,    /* m_methods */
+        NULL,                /* m_reload */
+        NULL,                /* m_traverse */
+        NULL,                /* m_clear */
+        NULL,                /* m_free */
+    };
+    
+    PyMODINIT_FUNC
+    PyInit__libtomcrypt3(void)
+    {
+        PyObject *m = PyModule_Create(&moduledef);
+        init(m);
+        return m;
+    }
+
+#endif

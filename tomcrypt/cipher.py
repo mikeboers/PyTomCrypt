@@ -79,7 +79,8 @@ class Descriptor(object):
             >>> Descriptor('aes').name
             'aes'
         """
-        return self.__desc.name
+        # Extra str/decode is for Python3.
+        return str(self.__desc.name.decode())
         
     @property
     def min_key_size(self):

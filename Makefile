@@ -1,6 +1,6 @@
 .PHONY: default build test clean
 
-MODULE := $(shell python -c 'from tomcrypt.meta import *; print module_name')
+MODULE := $(shell python -c 'from __future__ import print_function; from tomcrypt.meta import *; print(module_name)')
 
 default: build
 

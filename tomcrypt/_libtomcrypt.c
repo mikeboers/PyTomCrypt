@@ -8,11 +8,19 @@ static PyMethodDef tomcrypt_methods[] = {
 };
 
 
-static void init(void) {
+static void init(PyObject *m) {
     
     // Use LibTomMath.
     ltc_mp = ltm_desc;
 
+    // Pass some constants over.
+    #define ADD_CONSTANT(name) \
+    PyModule_AddObject(m, #name, PyInt_FromLong(name));
+    ADD_CONSTANT(CRYPT_OK)
+    ADD_CONSTANT(CRYPT_INVALID_PACKET)
+    ADD_CONSTANT(CRYPT_PK_INVALID_PADDING)
+    ADD_CONSTANT(MAXBLOCKSIZE)
+    
 }
 
 
@@ -23,14 +31,14 @@ static void init(void) {
 PyMODINIT_FUNC
 init_libtomcrypt2(void)
 {
-    Py_InitModule("_libtomcrypt2", tomcrypt_methods);
-    init();
+    PyObject *m = Py_InitModule("_libtomcrypt2", tomcrypt_methods);
+    init(m);
 }
 
 
 PyMODINIT_FUNC
 init_libtomcrypt3(void)
 {
-    Py_InitModule("_libtomcrypt3", tomcrypt_methods);
-    init();
+    PyObject *m = Py_InitModule("_libtomcrypt3", tomcrypt_methods);
+    init(m);
 }

@@ -1,19 +1,13 @@
 # General
 *.pyc
 .DS_Store
-/.Python
-/bin
-/build
-/dist
-/include/python*
-/lib/python*
-/man
+/venv*
+
 /pip-log.txt
 /MANIFEST
-/doc/build
+
+# Build products.
 *.pdf
 *.o
 *.a
 *.so
-
-tomcrypt/*.c

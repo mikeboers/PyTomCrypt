@@ -3,18 +3,11 @@ import datetime
 
 from distutils.core import setup
 from distutils.extension import Extension
-# from Cython.Distutils import build_ext
+
+import tomcrypt.meta
 
 
-# Allow us to specify a single extension to build.
-ext_names = ['_core', 'cipher', 'hash', 'mac', 'prng', 'rsa', 'pkcs1', 'pkcs5', 'ecc']
-ext_name = os.environ.get('PyTomCrypt_ext_name')
-if ext_name:
-    if ext_name not in ext_names:
-        raise ValueError('unknown extension %r' % ext_name)
-    ext_names = [ext_name]
-
-ext_sources = {'_core': '''
+ext_sources = '''
 
 ### LIBTOMCRYPT
 # lib/libtomcrypt-1.17/demos/encrypt.c
@@ -473,31 +466,26 @@ lib/libtommath-0.41/bncore.c
 # lib/libtommath-0.41/pre_gen/mpi.c
 
 
-'''.strip().splitlines()}
+'''.strip().splitlines()
 
-for name, sources in ext_sources.items():
-	ext_sources[name] = [x.strip() for x in sources if x.strip() and not x.lstrip().startswith('#')]
+ext_sources = [x for x in ext_sources if x.strip() and not x.strip().startswith('#')]
 
-# print '\n'.join(sources)
 
-# Define the extensions
-ext_modules = [Extension(
-    'tomcrypt.%s' % name, ["tomcrypt/%s.c" % name] + ext_sources.get(name, []),
+ext_module = Extension(
+    tomcrypt.meta.module_name,
+    ['tomcrypt/_libtomcrypt.c'] + ext_sources,
     include_dirs=[
                 '.', # Buh?
                 './src',
                 './lib/libtomcrypt-1.17/src/headers',
                 './lib/libtommath-0.41',
     ],
-    define_macros=list(dict(
-    
+    define_macros=[
         # These macros are needed for the math library.
-        LTM_DESC=None,
-        LTC_SOURCE=None,
-        # TFM_NO_ASM=None,
-    
-    ).items()),
-) for name in ext_names]
+        ('LTM_DESC', None),
+        ('LTC_SOURCE', None),
+    ]
+)
 
 
 # Go!
@@ -505,7 +493,7 @@ if __name__ == '__main__':
     setup(
 
         name='PyTomCrypt',
-            description='Python+Cython wrapper around LibTomCrypt',
+            description='Python wrapper around LibTomCrypt',
             version='0.6.2-dev',
             license='BSD-3',
             platforms=['any'],
@@ -517,7 +505,6 @@ if __name__ == '__main__':
             maintainer_email='pytomcrypt@mikeboers.com',
             url='http://github.com/mikeboers/PyTomCrypt',
             
-
             classifiers = [
                 'Development Status :: 4 - Beta',
                 'Intended Audience :: Developers',
@@ -526,10 +513,10 @@ if __name__ == '__main__':
                 'Operating System :: OS Independent',
                 'Programming Language :: C',
                 'Programming Language :: Python :: 2',
-                'Programming Language :: Python :: 3',
+                # 'Programming Language :: Python :: 3',
                 'Topic :: Security :: Cryptography',
                 'Topic :: Software Development :: Libraries :: Python Modules',
             ],
 
-        ext_modules=ext_modules,
+        ext_modules=[ext_module],
     )

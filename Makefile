@@ -1,40 +1,12 @@
-PYTHON = bin/python
-PREPROCESS = ./preprocess
+.PHONY: default build test clean
 
-MOD_NAMES = _core cipher ecc hash mac pkcs1 pkcs5 prng rsa
-SO_NAMES = $(MOD_NAMES:%=tomcrypt/%.so)
-C_NAMES = $(MOD_NAMES:%=tomcrypt/%.c)
+default: build
 
-MAKO_SRCS := $(wildcard src/*.pyx) $(wildcard src/*.pxd)
-CYTHON_SRCS = $(MAKO_SRCS:src/%=build/src/tomcrypt.%)
-
-default : build
-
-# Evaluating Mako templates.
-build/src/tomcrypt.%: src/%
-	@ mkdir -p build/src
-	./preprocess $< > $@
-
-# Translating Cython to C.
-tomcrypt/%.c: build/src/tomcrypt.%.pyx
-	cython -o $@.tmp $<
-	mv $@.tmp $@
-
-# Requirements for the core.
-build/src/tomcrypt._core.c: $(filter %-core.pxd,$(CYTHON_SRCS))
-
-sources: $(CYTHON_SRCS) $(C_NAMES)
-
-build: $(CYTHON_SRCS) $(C_NAMES)
+build:
 	python setup.py build_ext --inplace
 
 test: build
-	python -m unittest discover -v
-
-readme: README.html
-
-README.html: README.md
-	markdown $< > $@
+	nosetests
 
 clean: 
 	- rm tomcrypt/*.so

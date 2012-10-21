@@ -1,4 +1,6 @@
+import sys
 
+module_name = 'tomcrypt._libtomcrypt%d' % (sys.version_info[0])
 
 
 cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8 eax'.split()))

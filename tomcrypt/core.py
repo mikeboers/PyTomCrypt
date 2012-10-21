@@ -5,7 +5,7 @@ from . import meta
 from . import Error, LibError
 
 
-__all__ = ['C', 'LTC']
+__all__ = ['C', 'LTC', 'standard_errcheck']
 
 
 # I'm not a huge fan of the ctypes API, so I'm pulling a classic Mike move and
@@ -85,11 +85,6 @@ class _LTCClass(C.CDLL):
 LTC = _LTCClass()
 
 
-def standard_errcheck(code):
-    if code:
-        raise LibError(error_to_string, code=code)
-    return code
-
 
 
 
@@ -117,3 +112,8 @@ def error_to_string(func, errno):
     # Extra str is for Python 2 to get a native string.
     return str(func(errno).decode())
 
+
+def standard_errcheck(code):
+    if code:
+        raise LibError(error_to_string, code=code)
+    return code

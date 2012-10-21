@@ -10,7 +10,7 @@ $(MODULE): tomcrypt/_libtomcrypt.c
 	python setup.py build_ext --inplace
 
 test:
-	nosetests -v --with-doctest
+	python -m tests.runner -v --with-doctest --doctest-options '+ELLIPSIS'
 
 clean: 
 	- rm tomcrypt/*.so

@@ -54,8 +54,8 @@ class _LTCClass(C.CDLL):
         except KeyError:
             pass
         else:
-            if restype is not None:
-                raise RuntimeError('LTC function %r was already wrapped' % name)
+            if restype is not None and func.restype != restype and func.argtypes != argtypes:
+                raise RuntimeError('LTC function %r was already wrapped differently' % name)
         if restype is None:
             raise RuntimeError('LTC function %r is not already wrapped' % name)
         func = getattr(self, name)
@@ -113,7 +113,7 @@ def error_to_string(func, errno):
     return str(func(errno).decode())
 
 
-def standard_errcheck(code):
+def standard_errcheck(code, func=None, args=None):
     if code:
         raise LibError(error_to_string, code=code)
     return code

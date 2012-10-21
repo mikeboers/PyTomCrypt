@@ -57,16 +57,19 @@ class Descriptor(object):
     """
     
     def __init__(self, cipher):
-        cipher = {
+        self.__cipher = {
             'des3': '3des',
             'kseed': 'seed',
             'saferp': 'safer+',
         }.get(cipher, cipher)
-        
         try:
-            self.__idx, self.__desc = _cipher_internals[cipher]
+            self.__idx, self.__desc = _cipher_internals[self.__cipher]
         except KeyError:
             raise Error('could not find cipher %r' % cipher)
+    
+    @property
+    def idx(self):
+        return self.__idx
     
     @property
     def name(self):
@@ -137,23 +140,134 @@ class Descriptor(object):
 
 
 class Cipher(Descriptor):
+    """All state required to encrypt/decrypt with a symmetric cipher.
     
+    :param bytes key: Symmetric key.
+        bytes key -- Symmetric key.
+        bytes iv -- Initialization vector; None is treated as all null bytes.
+        str cipher -- The name of the cipher to use; defaults to "aes".
+        str mode -- Cipher block chaining more to use; defaults to "ctr".
+    
+    Mode Specific Parameters:
+        bytes nonce -- Only for "eax" mode.
+        bytes tweak -- Only for "lrw" mode.
+        bytes salt_key -- Only for "f8" mode.
+    
+    ::
+        >>> cipher = Cipher(b'0123456789abcdef', b'0123456789abcdef', cipher='aes', mode='ctr')
+        >>> cipher
+        <tomcrypt.cipher.Cipher with "aes" in CTR mode at 0x...>
+
+    See Cipher.add_header(...) for example of EAX mode.
+
+    """
     def __init__(self, key, iv=None, cipher='aes', mode='ctr', **kwargs):
         super(Cipher, self).__init__(cipher)
         
         self.__mode = str(mode).lower()
         
-        # Determine the state size
+        # Determine the state size, and create a buffer for it.
         self.__state_size = max(
             LTC.pymod.sizeof.get('symmetric_%s' % self.__mode.upper(), 0),
             LTC.pymod.sizeof.get('%s_state' % self.__mode, 0),
         )
         if not self.__state_size:
             raise Error('no mode %r' % mode)
-        
         self.__state = C.create_string_buffer(self.__state_size)
         
+        # Conform the IV (or create a one of all zeroes)
+        if iv is None:
+            iv = b'\0' * self.block_size
+        if not isinstance(iv, bytes) or len(iv) != self.block_size:
+            raise Error('iv must be %d bytes; got %r' % (self.block_size, iv))
+
+        if self.__mode in meta.cipher_simple_modes:
+            start = LTC.function('%s_start' % self.__mode, C.int,
+                C.int, # idx
+                C.char_p, # IV
+                C.char_p, # key
+                C.int, # len(key)
+                C.int, # number of rounds
+                C.void_p, # state
+                errcheck=True
+            )
+            start(self.idx, iv, key, len(key), 0, self.__state)
+            
+        elif self.__mode == 'ecb':
+            start = LTC.function('%s_start' % self.__mode, C.int,
+                C.int, # idx
+                C.char_p, # key
+                C.int, # len(key)
+                C.int, # number of rounds
+                C.void_p, # state
+                errcheck=True
+            )
+            start(self.idx, key, len(key), 0, self.__state)
+                
+        elif self.__mode == 'ctr':
+            start = LTC.function('%s_start' % self.__mode, C.int,
+                C.int, # idx
+                C.char_p, # IV
+                C.char_p, # key
+                C.int, # len(key)
+                C.int, # number of rounds
+                C.int, # CTR flags
+                C.void_p, # state
+                errcheck=True,
+            )
+            start(self.idx, iv, key, len(key), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self.__state)
         
+        else:
+            raise Error('Unknown cipher mode %r' % mode)
+    
+    @property
+    def mode(self):
+        return self.__mode
+    
+    def __repr__(self):
+        return '<%s.%s with "%s" in %s mode at 0x%x>' % (
+            self.__class__.__module__, self.__class__.__name__, self.name,
+            self.mode.upper(), id(self),
+        )
+    
+    def encrypt(self, input):
+        """Encrypt a string.
+        
+        ::
+            >>> cipher = Cipher(b'0123456789abcdef', cipher='aes', mode='ctr')
+            >>> cipher.encrypt(b'this is a message')
+            b'\\x7f\\xf3|\\xa9k-\\xd3\\xd5t=\\xa2\\xa1\\xb3lT\\xb2d'
+        
+        """
+        return self._crypt(True, input)
+    
+    def decrypt(self, input):
+        """Decrypt a string.
+        
+        ::
+            >>> cipher = Cipher(b'0123456789abcdef', cipher='aes', mode='ctr')
+            >>> cipher.decrypt(b'\\x7f\\xf3|\\xa9k-\\xd3\\xd5t=\\xa2\\xa1\\xb3lT\\xb2d')
+            b'this is a message'
+        
+        """
+        return self._crypt(False, input)
+    
+    def _crypt(self, encrypt, input):
+        
+        if not isinstance(input, bytes):
+            raise TypeError('input must be bytes')
+
+        func = LTC.function('%s_%scrypt' % (self.__mode, 'en' if encrypt else 'de'), C.int,
+            C.char_p, # Input.
+            C.char_p, # Output.
+            C.ulong, # Length.
+            C.void_p, # State.
+            errcheck=True,
+        )
+        output = C.create_string_buffer(len(input))
+        func(input, output, len(input), self.__state)
+        
+        return output.value
         
         
         

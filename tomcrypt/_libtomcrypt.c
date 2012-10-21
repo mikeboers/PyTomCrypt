@@ -20,11 +20,12 @@ static void init(PyObject *m) {
     ADD_CONSTANT(CRYPT_INVALID_PACKET);
     ADD_CONSTANT(CRYPT_PK_INVALID_PADDING);
     ADD_CONSTANT(MAXBLOCKSIZE);
+    ADD_CONSTANT(CTR_COUNTER_BIG_ENDIAN);
     
-    PyObject *size_of = PyDict_New();
-    PyModule_AddObject(m, "sizeof", size_of);
+    PyObject *sizeof_ = PyDict_New();
+    PyModule_AddObject(m, "sizeof", sizeof_);
     #define ADD_SIZEOF(name) \
-    PyDict_SetItemString(size_of, #name, PyInt_FromLong(sizeof(name)));
+    PyDict_SetItemString(sizeof_, #name, PyInt_FromLong(sizeof(name)));
     ADD_SIZEOF(symmetric_ECB);
     ADD_SIZEOF(symmetric_CBC);
     ADD_SIZEOF(symmetric_CTR);

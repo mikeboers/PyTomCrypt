@@ -58,14 +58,14 @@ class Descriptor(object):
     
     def __init__(self, cipher):
         self.__cipher = {
-            'des3': '3des',
-            'kseed': 'seed',
-            'saferp': 'safer+',
+            '3des': 'des3',
+            'seed': 'kseed',
+            'safer+': 'saferp',
         }.get(cipher, cipher)
         try:
             self.__idx, self.__desc = _cipher_internals[self.__cipher]
         except KeyError:
-            raise Error('could not find cipher %r' % cipher)
+            raise Error('could not find cipher %r (%r)' % (cipher, self.__cipher))
     
     @property
     def idx(self):
@@ -137,6 +137,10 @@ class Descriptor(object):
         out = C.int(key_size)
         standard_errcheck(self.__desc.keysize(C.byref(out)))
         return out.value
+    
+    def __call__(self, *args, **kwargs):
+        kwargs['cipher'] = self.__cipher
+        return Cipher(*args, **kwargs)
 
 
 class Cipher(Descriptor):
@@ -267,7 +271,17 @@ class Cipher(Descriptor):
         output = C.create_string_buffer(len(input))
         func(input, output, len(input), self.__state)
         
-        return output.value
+        # Must explicitly slice it to make sure we get null bytes.
+        return output[:len(input)]
         
-        
+
+names = set(meta.cipher_names)
+names.add('aes')
+
+for name in names:
+    globals()[name] = Descriptor(name)
+del name
+
+
+
         

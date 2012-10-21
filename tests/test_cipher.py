@@ -10,19 +10,9 @@ import doctest
 from tomcrypt import cipher
 from tomcrypt.cipher import *
 
-from . import get_doctests
-
-
-def load_tests(loader, tests, ignore):
-    tests.addTests(get_doctests(cipher))
-    return tests
-
 
 
 class CipherTests(TestCase):
-    
-    def test_library(self):
-        cipher.test_library()    
     
     def test_against_openssl(self):
         for cipher_name in 'aes', 'des':
@@ -58,14 +48,15 @@ class CipherTests(TestCase):
                 keysize, mode, b16encode(ct).decode(), b16encode(out).decode()))
             
     def test_vectors(self):
-        for filename in os.listdir('test_vectors'):
+        
+        for filename in os.listdir('tests/vectors'):
             if 'CFB1' in filename:
                 continue
             self.check_vectors(filename)
 
     def check_vectors(self, filename):
         mode = filename[:3].lower()
-        fh = open('test_vectors/' + filename, 'r')
+        fh = open('tests/vectors/' + filename, 'r')
         type = fh.readline().strip()[1:-1].lower()
         fh.readline()
         data = {}

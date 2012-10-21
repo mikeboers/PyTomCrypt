@@ -16,32 +16,25 @@ cipher_no_auth_modes = dict((k, cipher_modes[k]) for k in cipher_modes if k not 
 
 cipher_mode_items = list(sorted(cipher_modes.items(), key=lambda x: x[1]))
 
-if True:
-	cipher_names = tuple('''
-		aes
-		anubis
-		blowfish
-		cast5
-		des
-		des3
-		kasumi
-		khazad
-		kseed
-		noekeon
-		rc2
-		rc5
-		rc6
-		rijndael
-		saferp
-		twofish
-		xtea
-	'''.strip().split())
-else:
-	cipher_names = tuple('''
-		aes
-		blowfish
-		des
-	'''.strip().split())
+
+cipher_names = tuple('''
+	anubis
+	blowfish
+	cast5
+	des
+	des3
+	kasumi
+	khazad
+	kseed
+	noekeon
+	rc2
+	rc5
+	rc6
+	rijndael
+	saferp
+	twofish
+	xtea
+'''.strip().split())
 
 cipher_properties = 'name min_key_size max_key_size block_size default_rounds'.split()
 

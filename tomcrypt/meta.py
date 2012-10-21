@@ -1,42 +1,49 @@
 import sys
 
+
+#: The full name of the compiled module. This is different for Python 2 and 3
+#: to facilitate easier testing without recompiling.
 module_name = 'tomcrypt._libtomcrypt%d' % (sys.version_info[0])
 
+#: All of the availible cipher modes.
+cipher_modes = set('ecb cbc ctr cfb ofb lrw f8 eax'.split())
 
-cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8 eax'.split()))
+#: The cipher modes which support IVs.
+cipher_iv_modes = set(m for m in cipher_modes if m not in ('ecb', 'eax'))
 
-cipher_no_iv_modes = dict((k, cipher_modes[k]) for k in 'ecb eax'.split())
-cipher_iv_modes = dict((k, cipher_modes[k]) for k in cipher_modes if k not in cipher_no_iv_modes)
-
-# "Simple" modes which all have the same interface.
-cipher_simple_modes = dict((k, cipher_modes[k]) for k in 'cbc cfb ofb'.split())
-
-cipher_auth_modes = dict((k, cipher_modes[k]) for k in 'eax'.split())
-cipher_no_auth_modes = dict((k, cipher_modes[k]) for k in cipher_modes if k not in cipher_auth_modes)
-
-cipher_mode_items = list(sorted(cipher_modes.items(), key=lambda x: x[1]))
+# The cipher modes which all have the same interface.
+cipher_simple_modes = set('cbc cfb ofb'.split())
 
 
+#: The names of the availible ciphers.
 cipher_names = tuple('''
 	anubis
 	blowfish
 	cast5
 	des
-	des3
+	3des
 	kasumi
 	khazad
-	kseed
+	seed
 	noekeon
 	rc2
 	rc5
 	rc6
 	rijndael
-	saferp
+	safer+
 	twofish
 	xtea
 '''.strip().split())
 
-cipher_properties = 'name min_key_size max_key_size block_size default_rounds'.split()
+
+#: Mapping cipher names to what is used for as a variable iff the original name
+#: is not a valid identifier.
+cipher_identfier_mapping = {
+    '3des': 'des3',
+    'safer+': 'saferp',
+    'seed': 'kseed',
+}
+
 
 
 

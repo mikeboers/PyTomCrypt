@@ -14,6 +14,14 @@ from tomcrypt.cipher import *
 
 class CipherTests(TestCase):
     
+    def test_odd_names(self):
+        self.assertEqual(Descriptor('safer+').name, 'safer+')
+        self.assertEqual(Descriptor('saferp').name, 'safer+')
+        self.assertEqual(Descriptor('3des').name, '3des')
+        self.assertEqual(Descriptor('des3').name, '3des')
+        self.assertEqual(Descriptor('seed').name, 'seed')
+        self.assertEqual(Descriptor('kseed').name, 'seed')
+        
     def test_against_openssl(self):
         for cipher_name in 'aes', 'des':
             cipher_desc = Descriptor(cipher=cipher_name)

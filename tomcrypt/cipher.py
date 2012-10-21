@@ -8,11 +8,14 @@ from . import meta
 # These will be run by nose.
 def _internal_tests():
     for name in meta.cipher_names:
+        name = meta.cipher_identfier_mapping.get(name, name)
         yield name, LTC.function('%s_test' % name, C.int)
             
 
 class _LTC_Descriptor(C.Structure):
     _fields_ = [
+    
+        # Generic properties.
         ('name', C.char_p),
         ('ID', C.ubyte),
         ('min_key_size', C.int),
@@ -20,6 +23,8 @@ class _LTC_Descriptor(C.Structure):
         ('block_length', C.int),
         ('default_rounds', C.int),
         
+        # We don't care about these functions, but we need stubs in the
+        # structure.
         ('setup', C.void_p),
         ('ecb_encrypt', C.void_p),
         ('ecb_decrypt', C.void_p),
@@ -28,8 +33,8 @@ class _LTC_Descriptor(C.Structure):
         
         ('keysize', C.CFUNCTYPE(C.int, C.POINTER(C.int))),
         
-        # There are a bunch of encrypt/decrypt functions here as well that we
-        # really don't care about.
+        # There are many more functions that we don't care about, but we don't
+        # need them for sizing.
     ]
     
 
@@ -37,15 +42,17 @@ class _LTC_Descriptor(C.Structure):
 # ``(index, desciptor)`` tuples.
 _register_cipher = LTC.function('register_cipher', C.int, C.POINTER(_LTC_Descriptor))
 _cipher_internals = {}
-for cipher_name in itertools.chain(['aes'], meta.cipher_names):
-    descriptor = _LTC_Descriptor.in_dll(LTC, "%s_desc" % cipher_name)
+for name in itertools.chain(['aes'], meta.cipher_names):
+    name = meta.cipher_identfier_mapping.get(name, name)
+    descriptor = _LTC_Descriptor.in_dll(LTC, "%s_desc" % name)
     index = _register_cipher(C.byref(descriptor))
-    _cipher_internals[cipher_name] = (index, descriptor)
+    _cipher_internals[name] = (index, descriptor)
 
 
 class Descriptor(object):
     """LibTomCrypt descriptor of a symmetric cipher.
     
+    :param str cipher: The name of a supported cipher.
     Can be called as convenience to calling Cipher, passing the cipher name
     via kwargs.
     
@@ -57,11 +64,7 @@ class Descriptor(object):
     """
     
     def __init__(self, cipher):
-        self.__cipher = {
-            '3des': 'des3',
-            'seed': 'kseed',
-            'safer+': 'saferp',
-        }.get(cipher, cipher)
+        self.__cipher = meta.cipher_identfier_mapping.get(cipher, cipher)
         try:
             self.__idx, self.__desc = _cipher_internals[self.__cipher]
         except KeyError:
@@ -69,6 +72,7 @@ class Descriptor(object):
     
     @property
     def idx(self):
+        """LTC internal index; not nesssesarily stable in different processes."""
         return self.__idx
     
     @property
@@ -81,7 +85,7 @@ class Descriptor(object):
         """
         # Extra str/decode is for Python3.
         return str(self.__desc.name.decode())
-        
+    
     @property
     def min_key_size(self):
         """Cipher minimum key size in bytes.
@@ -186,38 +190,38 @@ class Cipher(Descriptor):
         if not isinstance(iv, bytes) or len(iv) != self.block_size:
             raise Error('iv must be %d bytes; got %r' % (self.block_size, iv))
 
-        if self.__mode in meta.cipher_simple_modes:
+        if self.__mode in ('cbc', 'cfb', 'ofb'):
             start = LTC.function('%s_start' % self.__mode, C.int,
-                C.int, # idx
+                C.int, # Cipher index.
                 C.char_p, # IV
-                C.char_p, # key
-                C.int, # len(key)
-                C.int, # number of rounds
-                C.void_p, # state
+                C.char_p, # Key.
+                C.int, # Key length.
+                C.int, # Number of rounds.
+                C.void_p, # State.
                 errcheck=True
             )
             start(self.idx, iv, key, len(key), 0, self.__state)
             
         elif self.__mode == 'ecb':
             start = LTC.function('%s_start' % self.__mode, C.int,
-                C.int, # idx
-                C.char_p, # key
-                C.int, # len(key)
-                C.int, # number of rounds
-                C.void_p, # state
+                C.int, # Cipher index.
+                C.char_p, # Key.
+                C.int, # Key length.
+                C.int, # Number of rounds.
+                C.void_p, # State.
                 errcheck=True
             )
             start(self.idx, key, len(key), 0, self.__state)
                 
         elif self.__mode == 'ctr':
             start = LTC.function('%s_start' % self.__mode, C.int,
-                C.int, # idx
+                C.int, # Cipher index.
                 C.char_p, # IV
-                C.char_p, # key
-                C.int, # len(key)
-                C.int, # number of rounds
-                C.int, # CTR flags
-                C.void_p, # state
+                C.char_p, # Key.
+                C.int, # Key length.
+                C.int, # Number of rounds.
+                C.int, # CTR flags.
+                C.void_p, # State.
                 errcheck=True,
             )
             start(self.idx, iv, key, len(key), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self.__state)

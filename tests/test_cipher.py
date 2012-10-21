@@ -14,13 +14,32 @@ from tomcrypt.cipher import *
 
 class CipherTests(TestCase):
     
-    def test_odd_names(self):
+    def test_canonical_names(self):
+        
+        # Making sure that canonical names are returned.
         self.assertEqual(Descriptor('safer+').name, 'safer+')
         self.assertEqual(Descriptor('saferp').name, 'safer+')
         self.assertEqual(Descriptor('3des').name, '3des')
         self.assertEqual(Descriptor('des3').name, '3des')
         self.assertEqual(Descriptor('seed').name, 'seed')
         self.assertEqual(Descriptor('kseed').name, 'seed')
+        
+        # Preconstructed descriptors must have valid identifiers.
+        self.assertTrue(hasattr(cipher, 'saferp'))
+        self.assertFalse(hasattr(cipher, 'safer+'))
+        
+        # These are allowed to alias.
+        self.assertEqual(Descriptor('aes').name, 'aes')
+        self.assertEqual(Descriptor('rijndael').name, 'rijndael')
+        
+    def test_reject_unicode(self):
+        
+        # We need a string in both versions of Python.
+        plaintext = b'testing'.decode()
+        
+        aes = Cipher(b'0123456789abcdef', cipher='aes', mode='ctr')        
+        self.assertRaises(TypeError, aes.encrypt, plaintext)
+        self.assertRaises(TypeError, aes.decrypt, plaintext)
         
     def test_against_openssl(self):
         for cipher_name in 'aes', 'des':

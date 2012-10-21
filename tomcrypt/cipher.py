@@ -50,16 +50,24 @@ for name in itertools.chain(['aes'], meta.cipher_names):
 
 
 class Descriptor(object):
-    """LibTomCrypt descriptor of a symmetric cipher.
+    """Collection of information regarding a single cipher.
     
     :param str cipher: The name of a supported cipher.
-    Can be called as convenience to calling Cipher, passing the cipher name
-    via kwargs.
+    
+    A ``Descriptor`` can also be called to construct a matching :class:`Cipher`.
     
     ::
-        >>> desc = Descriptor('aes') # Same as tomcrypt.cipher.aes.
-        >>> desc.name
+        >>> aes = Descriptor('aes')
+        >>> aes.name
         'aes'
+        >>> aes.min_key_size
+        16
+        >>> aes.max_key_size
+        32
+        >>> aes.block_size
+        16
+        >>> aes.default_rounds
+        10
     
     """
     
@@ -77,57 +85,35 @@ class Descriptor(object):
     
     @property
     def name(self):
-        """Cipher name.
-        
-        ::
-            >>> Descriptor('aes').name
-            'aes'
-        """
-        # Extra str/decode is for Python3.
+        """Canonical name of the cipher."""
+        # We want a str in Python3.
         return str(self.__desc.name.decode())
     
     @property
     def min_key_size(self):
-        """Cipher minimum key size in bytes.
-        
-        ::
-            >>> Descriptor('aes').min_key_size
-            16
-        """
+        """Minimum key size in bytes."""
         return self.__desc.min_key_size
         
     @property
     def max_key_size(self):
-        """Cipher maximum key size in bytes.
-        
-        ::
-            >>> Descriptor('aes').max_key_size
-            32
-        """
+        """Maximum key size in bytes."""
         return self.__desc.max_key_size
         
     @property
     def block_size(self):
-        """Size of a cipher block in bytes.
-        
-        ::
-            >>> Descriptor('aes').block_size
-            16
-        """
+        """Size of a cipher block in bytes."""
         return self.__desc.block_length
     
     @property
     def default_rounds(self):
-        """Default number of rounds.
-        
-        ::
-            >>> Descriptor('aes').default_rounds
-            10
-        """
+        """Default number of rounds."""
         return self.__desc.default_rounds
     
     def key_size(self, key_size):
-        """The largest key that can be sliced from a string of the given size.
+        """Get the size of largest key that can be sliced from the given size.
+        
+        :param int key_size: The number of bytes of key material availible.
+        :returns int: The largest number of bytes that is a valid key size.
         
         ::
             >>> aes = Descriptor('aes')
@@ -139,9 +125,9 @@ class Descriptor(object):
             32
 
         """
-        out = C.int(key_size)
-        standard_errcheck(self.__desc.keysize(C.byref(out)))
-        return out.value
+        key_size = C.int(key_size)
+        standard_errcheck(self.__desc.keysize(C.byref(key_size)))
+        return key_size.value
     
     def __call__(self, *args, **kwargs):
         kwargs['cipher'] = self.__cipher
@@ -149,23 +135,23 @@ class Descriptor(object):
 
 
 class Cipher(Descriptor):
-    """All state required to encrypt/decrypt with a symmetric cipher.
+    r"""All state required to use a symmetric cipher.
     
     :param bytes key: Symmetric key.
-        bytes key -- Symmetric key.
-        bytes iv -- Initialization vector; None is treated as all null bytes.
-        str cipher -- The name of the cipher to use; defaults to "aes".
-        str mode -- Cipher block chaining more to use; defaults to "ctr".
+    :param bytes iv: Initialization vector; None is treated as all null bytes.
+    :param str cipher: The name of the cipher to use.
+    :param str mode: Cipher block chaining more to use; case insensitive.
     
-    Mode Specific Parameters:
-        bytes nonce -- Only for "eax" mode.
-        bytes tweak -- Only for "lrw" mode.
-        bytes salt_key -- Only for "f8" mode.
+    :param bytes nonce: Only for "eax" mode.
+    :param bytes tweak: Only for "lrw" mode.
+    :param bytes salt_key: Only for "f8" mode.
     
     ::
-        >>> cipher = Cipher(b'0123456789abcdef', b'0123456789abcdef', cipher='aes', mode='ctr')
+        >>> cipher = Cipher(b'0123456789abcdef')
         >>> cipher
         <tomcrypt.cipher.Cipher with "aes" in CTR mode at 0x...>
+        >>> cipher.encrypt(b'Hello')
+        b'C\xfey\xb6$'
 
     See Cipher.add_header(...) for example of EAX mode.
 
@@ -181,53 +167,35 @@ class Cipher(Descriptor):
             LTC.pymod.sizeof.get('%s_state' % self.__mode, 0),
         )
         if not self.__state_size:
-            raise Error('no mode %r' % mode)
+            raise Error('unknown cipher mode %r' % mode)
         self.__state = C.create_string_buffer(self.__state_size)
         
-        # Conform the IV (or create a one of all zeroes)
+        # Conform the IV (or create one of all zeroes)
         if iv is None:
             iv = b'\0' * self.block_size
         if not isinstance(iv, bytes) or len(iv) != self.block_size:
             raise Error('iv must be %d bytes; got %r' % (self.block_size, iv))
 
-        if self.__mode in ('cbc', 'cfb', 'ofb'):
-            start = LTC.function('%s_start' % self.__mode, C.int,
-                C.int, # Cipher index.
-                C.char_p, # IV
-                C.char_p, # Key.
-                C.int, # Key length.
-                C.int, # Number of rounds.
-                C.void_p, # State.
-                errcheck=True
-            )
-            start(self.idx, iv, key, len(key), 0, self.__state)
+        # I would rather keep the `start = getattr(...)` within the if blocks to
+        # reduce the chance of a false positive.
+        
+        if self.__mode == 'ecb':
+            # This is the most basic.
+            start = getattr(LTC, '%s_start' % self.__mode)
+            standard_errcheck(start(self.idx, key, len(key), 0, self.__state))
             
-        elif self.__mode == 'ecb':
-            start = LTC.function('%s_start' % self.__mode, C.int,
-                C.int, # Cipher index.
-                C.char_p, # Key.
-                C.int, # Key length.
-                C.int, # Number of rounds.
-                C.void_p, # State.
-                errcheck=True
-            )
-            start(self.idx, key, len(key), 0, self.__state)
+        elif self.__mode in ('cbc', 'cfb', 'ofb'):
+            # Adds an IV to ECB.
+            start = getattr(LTC, '%s_start' % self.__mode)
+            standard_errcheck(start(self.idx, iv, key, len(key), 0, self.__state))
                 
         elif self.__mode == 'ctr':
-            start = LTC.function('%s_start' % self.__mode, C.int,
-                C.int, # Cipher index.
-                C.char_p, # IV
-                C.char_p, # Key.
-                C.int, # Key length.
-                C.int, # Number of rounds.
-                C.int, # CTR flags.
-                C.void_p, # State.
-                errcheck=True,
-            )
-            start(self.idx, iv, key, len(key), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self.__state)
+            # Adds an IV and CTR flags to ECB.
+            start = getattr(LTC, '%s_start' % self.__mode)
+            standard_errcheck(start(self.idx, iv, key, len(key), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self.__state))
         
         else:
-            raise Error('Unknown cipher mode %r' % mode)
+            raise Error('unknown cipher mode %r' % mode)
     
     @property
     def mode(self):
@@ -240,22 +208,28 @@ class Cipher(Descriptor):
         )
     
     def encrypt(self, input):
-        """Encrypt a string.
+        r"""Encrypt a string.
+        
+        :param bytes input: The string to encrypt. Unless in CTR mode this must
+            be a multiple of the cipher's block length.
+        :returns bytes:
         
         ::
             >>> cipher = Cipher(b'0123456789abcdef', cipher='aes', mode='ctr')
             >>> cipher.encrypt(b'this is a message')
-            b'\\x7f\\xf3|\\xa9k-\\xd3\\xd5t=\\xa2\\xa1\\xb3lT\\xb2d'
+            b'\x7f\xf3|\xa9k-\xd3\xd5t=\xa2\xa1\xb3lT\xb2d'
         
         """
         return self._crypt(True, input)
     
     def decrypt(self, input):
-        """Decrypt a string.
+        r"""Decrypt a string.
         
+        :param bytes input: The string to decrypt. Unless in CTR mode this must
+            be a multiple of the cipher's block length.
         ::
             >>> cipher = Cipher(b'0123456789abcdef', cipher='aes', mode='ctr')
-            >>> cipher.decrypt(b'\\x7f\\xf3|\\xa9k-\\xd3\\xd5t=\\xa2\\xa1\\xb3lT\\xb2d')
+            >>> cipher.decrypt(b'\x7f\xf3|\xa9k-\xd3\xd5t=\xa2\xa1\xb3lT\xb2d')
             b'this is a message'
         
         """
@@ -266,25 +240,21 @@ class Cipher(Descriptor):
         if not isinstance(input, bytes):
             raise TypeError('input must be bytes')
 
-        func = LTC.function('%s_%scrypt' % (self.__mode, 'en' if encrypt else 'de'), C.int,
-            C.char_p, # Input.
-            C.char_p, # Output.
-            C.ulong, # Length.
-            C.void_p, # State.
-            errcheck=True,
-        )
         output = C.create_string_buffer(len(input))
-        func(input, output, len(input), self.__state)
+        func = getattr(LTC, '%s_%scrypt' % (self.__mode, 'en' if encrypt else 'de'))
+        standard_errcheck(func(input, output, len(input), self.__state))
         
         # Must explicitly slice it to make sure we get null bytes.
         return output[:len(input)]
         
 
+#: A set of all of the supported cipher names.
 names = set(meta.cipher_names)
 names.add('aes')
 
+# Preconstruct descriptors for each cipher.
 for name in names:
-    globals()[name] = Descriptor(name)
+    globals()[meta.cipher_identfier_mapping.get(name, name)] = Descriptor(name)
 del name
 
 

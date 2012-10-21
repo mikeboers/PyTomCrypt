@@ -1,4 +1,5 @@
 import ctypes
+import functools
 
 from . import meta
 
@@ -26,6 +27,7 @@ def wrapper(restype, *argtypes):
         c_func = getattr(ltc, func.__name__)
         c_func.restype = restype
         c_func.argtypes = argtypes
+        @functools.wraps(func)
         def _wrapped(*args, **kwargs):
             return func(c_func, *args, **kwargs)
         return _wrapped
@@ -34,9 +36,22 @@ def wrapper(restype, *argtypes):
 
 @wrapper(C.char_p, C.int)
 def error_to_string(func, errno):
+    """Convert a LibTomCrypt error code to a string.
+    
+    ::
+        >>> error_to_string(0) # Returns `None`.
+        >>> error_to_string(4)
+        'Invalid number of rounds for block cipher.'
+    
+    """
+    
+    if not errno:
+        return
+    
     # We need to deal with libtomcrypt not defining this error message.
     if errno == ltc_mod.CRYPT_PK_INVALID_PADDING:
         return "Invalid padding mode."
+    
     # Extra str is for Python 2 to get a native string.
     return str(func(errno).decode())
 

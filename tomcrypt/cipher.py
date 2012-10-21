@@ -1,5 +1,6 @@
 import itertools
 
+from . import Error
 from .core import *
 from . import meta
 
@@ -31,7 +32,9 @@ class _LTC_Descriptor(C.Structure):
         # really don't care about.
     ]
     
-    
+
+# Register the ciphers. ``_cipher_internals`` maps from names to
+# ``(index, desciptor)`` tuples.
 _register_cipher = LTC.function('register_cipher', C.int, C.POINTER(_LTC_Descriptor))
 _cipher_internals = {}
 for cipher_name in itertools.chain(['aes'], meta.cipher_names):
@@ -131,5 +134,26 @@ class Descriptor(object):
         out = C.int(key_size)
         standard_errcheck(self.__desc.keysize(C.byref(out)))
         return out.value
+
+
+class Cipher(Descriptor):
     
+    def __init__(self, key, iv=None, cipher='aes', mode='ctr', **kwargs):
+        super(Cipher, self).__init__(cipher)
+        
+        self.__mode = str(mode).lower()
+        
+        # Determine the state size
+        self.__state_size = max(
+            LTC.pymod.sizeof.get('symmetric_%s' % self.__mode.upper(), 0),
+            LTC.pymod.sizeof.get('%s_state' % self.__mode, 0),
+        )
+        if not self.__state_size:
+            raise Error('no mode %r' % mode)
+        
+        self.__state = C.create_string_buffer(self.__state_size)
+        
+        
+        
+        
         

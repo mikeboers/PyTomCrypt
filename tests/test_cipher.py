@@ -43,8 +43,8 @@ class CipherTests(TestCase):
     
     def test_ivless_modes(self):
         aes = Cipher(b'0123456789abcdef', mode='ecb')
-        self.assertRaises(Error, aes.get_iv)
-        self.assertRaises(Error, aes.set_iv, b'doesnt matter')
+        self.assertRaises(TomCryptError, aes.get_iv)
+        self.assertRaises(TomCryptError, aes.set_iv, b'doesnt matter')
         
     def test_against_openssl(self):
         for cipher_name in 'aes', 'des':

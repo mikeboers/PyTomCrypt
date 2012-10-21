@@ -1,6 +1,6 @@
 import itertools
 
-from . import Error
+from . import TomCryptError
 from .core import *
 from . import meta
 
@@ -76,7 +76,7 @@ class Descriptor(object):
         try:
             self.__idx, self.__desc = _cipher_internals[self.__cipher]
         except KeyError:
-            raise Error('could not find cipher %r (%r)' % (cipher, self.__cipher))
+            raise TomCryptError('could not find cipher %r (%r)' % (cipher, self.__cipher))
     
     @property
     def idx(self):
@@ -153,7 +153,7 @@ class Cipher(Descriptor):
         >>> cipher.encrypt(b'Hello')
         b'C\xfey\xb6$'
 
-    See Cipher.add_header(...) for example of EAX mode.
+    See :meth:`Cipher.add_header` for example of EAX mode.
 
     """
     def __init__(self, key, iv=None, cipher='aes', mode='ctr', **kwargs):
@@ -167,14 +167,16 @@ class Cipher(Descriptor):
             LTC.pymod.sizeof.get('%s_state' % self.__mode, 0),
         )
         if not self.__state_size:
-            raise Error('unknown cipher mode %r' % mode)
+            raise TomCryptError('unknown cipher mode %r' % mode)
         self.__state = C.create_string_buffer(self.__state_size)
         
         # Conform the IV (or create one of all zeroes)
         if iv is None:
             iv = b'\0' * self.block_size
-        if not isinstance(iv, bytes) or len(iv) != self.block_size:
-            raise Error('iv must be %d bytes; got %r' % (self.block_size, iv))
+        if not isinstance(iv, bytes):
+            raise TypeError('iv must be bytes')
+        if len(iv) != self.block_size:
+            raise TomCryptError('iv must be %d bytes; got %d' % (self.block_size, len(iv)))
 
         # I would rather keep the `start = getattr(...)` within the if blocks to
         # reduce the chance of a false positive.
@@ -182,22 +184,50 @@ class Cipher(Descriptor):
         if self.__mode == 'ecb':
             # This is the most basic.
             start = getattr(LTC, '%s_start' % self.__mode)
-            standard_errcheck(start(self.idx, key, len(key), 0, self.__state))
+            standard_errcheck(start(self.idx, key, C.ulong(len(key)), 0, self.__state))
             
         elif self.__mode in ('cbc', 'cfb', 'ofb'):
             # Adds an IV to ECB.
             start = getattr(LTC, '%s_start' % self.__mode)
-            standard_errcheck(start(self.idx, iv, key, len(key), 0, self.__state))
+            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), 0, self.__state))
                 
         elif self.__mode == 'ctr':
             # Adds an IV and CTR flags to ECB.
             start = getattr(LTC, '%s_start' % self.__mode)
-            standard_errcheck(start(self.idx, iv, key, len(key), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self.__state))
+            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self.__state))
         
-        # TODO: lrw, f8, and eax. See old Cython implementation.
+        elif self.__mode == 'lrw':
+            # Adds an IV and "tweak" to ECB.
+            tweak = kwargs.get('tweak')
+            if not isinstance(tweak, bytes) or len(tweak) != 16:
+                raise TypeError('tweak must be 16 bytes')
+            start = getattr(LTC, '%s_start' % self.__mode)
+            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), tweak, 0, self.__state))
+        
+        elif self.__mode == 'f8':
+            # Adds an IV and "salt_key" to ECB.
+            salt_key = kwargs.get('salt_key')
+            if not isinstance(salt_key, bytes):
+                raise TypeError('salt_key must be bytes')
+            start = getattr(LTC, '%s_start' % self.__mode)
+            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), salt_key, C.ulong(len(salt_key)), 0, self.__state))
+        
+        elif self.__mode == 'eax':
+            # Adds a "nonce" and "header" to ECB. No IV.
+            nonce = kwargs.get('nonce', iv)
+            if not isinstance(nonce, bytes):
+                raise TypeError('nonce must be bytes')
+            header = kwargs.get('header', b'')
+            if not isinstance(header, bytes):
+                raise TypeError('header must be bytes')
+            standard_errcheck(LTC.eax_init(self.__state, self.idx,
+                key, C.ulong(len(key)),
+                nonce, C.ulong(len(nonce)),
+                header, C.ulong(len(header)),
+            ))
         
         else:
-            raise Error('unknown cipher mode %r' % mode)
+            raise TomCryptError('unknown cipher mode %r' % mode)
     
     @property
     def mode(self):
@@ -208,6 +238,29 @@ class Cipher(Descriptor):
             self.__class__.__module__, self.__class__.__name__, self.name,
             self.mode.upper(), id(self),
         )
+    
+    def add_header(self, header):
+        """Add the given string to the EAX header. Only for EAX mode.
+
+        >>> cipher = aes(b'0123456789abcdef', mode='eax', nonce=b'random')
+        >>> cipher.add_header(b'a header')
+        >>> cipher.encrypt(b'hello')
+        b'Y\\x9b\\xe5\\x87\\xcc'
+        >>> cipher.done()
+        b'A(|\\x9f@I#\\x0f\\x93\\x90Z,\\xb5A\\x9bN'
+
+        >>> cipher = aes(b'0123456789abcdef', mode='eax', nonce=b'random', header=b'a header')
+        >>> cipher.decrypt(b'Y\\x9b\\xe5\\x87\\xcc')
+        b'hello'
+        >>> cipher.done()
+        b'A(|\\x9f@I#\\x0f\\x93\\x90Z,\\xb5A\\x9bN'
+
+        """
+        if not isinstance(header, bytes):
+            raise TypeError('header must be bytes')
+        if self.__mode != 'eax':
+            raise TomCryptError('not EAX mode')
+        standard_errcheck(LTC.eax_addheader(self.__state, header, len(header)))
     
     def get_iv(self):
         """Returns the current IV, for modes that use it.
@@ -229,7 +282,7 @@ class Cipher(Descriptor):
             # Not raising here so that contexts aren't chained in Python3.
             get_iv = None
         if not get_iv:
-            raise Error("%r mode does not use an IV" % self.__mode)
+            raise TomCryptError("%r mode does not use an IV" % self.__mode)
         
         length = C.ulong(self.block_size)
         iv = C.create_string_buffer(self.block_size)
@@ -262,10 +315,12 @@ class Cipher(Descriptor):
             # Not raising here so that contexts aren't chained in Python3.
             set_iv = None
         if not set_iv:
-            raise Error("%r mode does not use an IV" % self.__mode)
+            raise TomCryptError("%r mode does not use an IV" % self.__mode)
         
-        if not isinstance(iv, bytes) or len(iv) != self.block_size:
-            raise Error('iv must be %d bytes; got %r' % (self.block_size, iv))
+        if not isinstance(iv, bytes):
+            raise TypeError('iv must be bytes')
+        if len(iv) != self.block_size:
+            raise TomCryptError('iv must be %d bytes; got %d' % (self.block_size, len(iv)))
         standard_errcheck(set_iv(iv, len(iv), C.byref(self.__state)))
     
     iv = property(get_iv, set_iv)
@@ -305,11 +360,30 @@ class Cipher(Descriptor):
 
         output = C.create_string_buffer(len(input))
         func = getattr(LTC, '%s_%scrypt' % (self.__mode, 'en' if encrypt else 'de'))
-        standard_errcheck(func(input, output, len(input), self.__state))
+        if self.__mode == 'eax':
+            standard_errcheck(func(self.__state, input, output, C.ulong(len(input))))
+        else:
+            standard_errcheck(func(input, output, C.ulong(len(input)), self.__state))
         
         # Must explicitly slice it to make sure we get null bytes.
         return output[:len(input)]
         
+
+    def done(self):
+        """Return authentication tag for EAX mode.
+
+        See Cipher.add_header(...) for example.
+
+        """
+
+        if self.__mode != 'eax':
+            raise TomCryptError('not EAX mode')
+        
+        length = C.ulong(self.block_size)
+        output = C.create_string_buffer(length.value)
+        standard_errcheck(LTC.eax_done(self.__state, output, C.byref(length)))
+        return output[:length.value]
+
 
 #: A set of all of the supported cipher names.
 names = set(meta.cipher_names)

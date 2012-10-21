@@ -115,5 +115,5 @@ def error_to_string(func, errno):
 
 def standard_errcheck(code, func=None, args=None):
     if code:
-        raise LibError(error_to_string, code=code)
+        raise LibError(error_to_string(code), code=code)
     return code

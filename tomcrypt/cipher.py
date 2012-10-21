@@ -194,6 +194,8 @@ class Cipher(Descriptor):
             start = getattr(LTC, '%s_start' % self.__mode)
             standard_errcheck(start(self.idx, iv, key, len(key), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self.__state))
         
+        # TODO: lrw, f8, and eax. See old Cython implementation.
+        
         else:
             raise Error('unknown cipher mode %r' % mode)
     
@@ -206,6 +208,67 @@ class Cipher(Descriptor):
             self.__class__.__module__, self.__class__.__name__, self.name,
             self.mode.upper(), id(self),
         )
+    
+    def get_iv(self):
+        """Returns the current IV, for modes that use it.
+        
+        E.g.::
+            >>> cipher = aes(b'0123456789abcdef', b'ThisWillSetTheIV')
+            >>> cipher.get_iv()
+            b'ThisWillSetTheIV'
+        
+        This is also accessable as a property::
+            >>> cipher.iv
+            b'ThisWillSetTheIV'
+        
+        """
+        
+        try:
+            get_iv = getattr(LTC, '%s_getiv' % self.__mode)
+        except AttributeError:
+            # Not raising here so that contexts aren't chained in Python3.
+            get_iv = None
+        if not get_iv:
+            raise Error("%r mode does not use an IV" % self.__mode)
+        
+        length = C.ulong(self.block_size)
+        iv = C.create_string_buffer(self.block_size)
+        standard_errcheck(get_iv(iv, C.byref(length), C.byref(self.__state)))
+        return iv[:length.value]
+    
+    def set_iv(self, iv):
+        """ Sets the current IV, for modes that use it.
+
+        See the LibTomCrypt manual section 3.4.6 for what, precisely, this
+        function will do depending on the chaining mode.
+        
+        E.g.::
+            >>> cipher = aes(b'0123456789abcdef')
+            >>> cipher.set_iv(b'ThisWillSetTheIV')
+            >>> cipher.encrypt(b'hello')
+            b'\\xe2\\xef\\xc5\\xe6\\x9e'
+
+        This is also accessable as a property::
+            >>> cipher = aes(b'0123456789abcdef')
+            >>> cipher.iv = b'ThisWillSetTheIV'
+            >>> cipher.encrypt(b'hello')
+            b'\\xe2\\xef\\xc5\\xe6\\x9e'
+        
+        """
+        
+        try:
+            set_iv = getattr(LTC, '%s_setiv' % self.__mode)
+        except AttributeError:
+            # Not raising here so that contexts aren't chained in Python3.
+            set_iv = None
+        if not set_iv:
+            raise Error("%r mode does not use an IV" % self.__mode)
+        
+        if not isinstance(iv, bytes) or len(iv) != self.block_size:
+            raise Error('iv must be %d bytes; got %r' % (self.block_size, iv))
+        standard_errcheck(set_iv(iv, len(iv), C.byref(self.__state)))
+    
+    iv = property(get_iv, set_iv)
     
     def encrypt(self, input):
         r"""Encrypt a string.

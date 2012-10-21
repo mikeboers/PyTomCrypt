@@ -40,6 +40,11 @@ class CipherTests(TestCase):
         aes = Cipher(b'0123456789abcdef', cipher='aes', mode='ctr')        
         self.assertRaises(TypeError, aes.encrypt, plaintext)
         self.assertRaises(TypeError, aes.decrypt, plaintext)
+    
+    def test_ivless_modes(self):
+        aes = Cipher(b'0123456789abcdef', mode='ecb')
+        self.assertRaises(Error, aes.get_iv)
+        self.assertRaises(Error, aes.set_iv, b'doesnt matter')
         
     def test_against_openssl(self):
         for cipher_name in 'aes', 'des':

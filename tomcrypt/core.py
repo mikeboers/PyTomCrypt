@@ -1,4 +1,4 @@
-import ctypes
+import ctypes.util
 import functools
 
 from . import meta
@@ -15,6 +15,7 @@ __all__ = ['C', 'LTC', 'standard_errcheck']
 
 class _CTypesWrapper(object):
     
+    libc = ctypes.CDLL(ctypes.util.find_library('c'))
     
     def __getattr__(self, name):
         obj = (getattr(ctypes, name, None) or

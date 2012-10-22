@@ -93,3 +93,18 @@ static void init(PyObject *m) {
     }
 
 #endif
+
+
+// Helper functions for Python code.
+void copy_hmac_state(hmac_state *from, hmac_state *to, int block_size) {
+    to->key = malloc(block_size);
+    memcpy(to->key, from->key, block_size);
+}
+
+void free_hmac_state(hmac_state *state) {
+    if (state->key) {
+        free(state->key);
+        state->key = NULL;
+    }
+}
+

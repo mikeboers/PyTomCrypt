@@ -1,11 +1,12 @@
 - Restore (from ctypes conversion):
     - CHC hashes
-    - MAC
     - PRNG
     - ECC
     - PKCS1
     - PKCS5
     - RSA
+
+- Assert there are no memory leaks in HMAC due to key copying.
 
 - Document how Python 3 works.
     - algorithm names should be strings

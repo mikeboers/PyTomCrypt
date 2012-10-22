@@ -5,6 +5,9 @@ from .core import *
 from . import meta
 
 
+__all__ = ['Descriptor', 'Cipher']
+
+
 # These will be run by nose.
 def _internal_tests():
     for name in meta.cipher_names:
@@ -38,18 +41,10 @@ class _LTC_Descriptor(C.Structure):
     ]
     
 
-# Register the ciphers. ``_cipher_internals`` maps from names to
-# ``(index, desciptor)`` tuples.
-_register_cipher = LTC.function('register_cipher', C.int, C.POINTER(_LTC_Descriptor))
-_cipher_internals = {}
-for name in itertools.chain(['aes'], meta.cipher_names):
-    name = meta.cipher_identfier_mapping.get(name, name)
-    descriptor = _LTC_Descriptor.in_dll(LTC, "%s_desc" % name)
-    index = _register_cipher(C.byref(descriptor))
-    _cipher_internals[name] = (index, descriptor)
 
 
 class Descriptor(object):
+    
     """Collection of information regarding a single cipher.
     
     :param str cipher: The name of a supported cipher.
@@ -71,10 +66,23 @@ class Descriptor(object):
     
     """
     
+    #: Map from cipher names to ``(idx, descriptor)`` pairs.
+    _name_to_descriptor = {}
+    
+    # Register the ciphers.
+    register = LTC.function('register_cipher', C.int, C.POINTER(_LTC_Descriptor))
+    for name in itertools.chain(['aes'], meta.cipher_names):
+        name = meta.cipher_identfier_mapping.get(name, name)
+        descriptor = _LTC_Descriptor.in_dll(LTC, "%s_desc" % name)
+        index = register(C.byref(descriptor))
+        _name_to_descriptor[name] = (index, descriptor)
+    del register
+    
+    
     def __init__(self, cipher):
         self.__cipher = meta.cipher_identfier_mapping.get(cipher, cipher)
         try:
-            self.__idx, self.__desc = _cipher_internals[self.__cipher]
+            self.__idx, self.__desc = self._name_to_descriptor[self.__cipher]
         except KeyError:
             raise TomCryptError('could not find cipher %r (%r)' % (cipher, self.__cipher))
     

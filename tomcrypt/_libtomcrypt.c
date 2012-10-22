@@ -41,6 +41,7 @@ static void init(PyObject *m) {
     ADD_SIZEOF(symmetric_LRW);
     ADD_SIZEOF(symmetric_F8);
     ADD_SIZEOF(eax_state);
+    ADD_SIZEOF(hash_state);
     
 }
 

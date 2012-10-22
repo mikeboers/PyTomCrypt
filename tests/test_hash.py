@@ -8,15 +8,8 @@ import doctest
 from tomcrypt.hash import *
 from tomcrypt import hash
 
-from . import get_doctests
 
-
-def load_tests(loader, tests, ignore):
-    tests.addTests(get_doctests(hash))
-    return tests
-
-
-class TestHashed(TestCase):
+class TestHash(TestCase):
 
     def test_against_hashlib(self):
         for name in hash.names:

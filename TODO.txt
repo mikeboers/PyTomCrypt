@@ -6,14 +6,14 @@
     - PKCS5
     - RSA
 
-- Assert there are no memory leaks in HMAC due to key copying.
+- Assert there are no memory leaks in HMAC due to key copying. Should we just
+  disable hmac copying entirely?
 
 - Document how Python 3 works.
     - algorithm names should be strings
     - keys and ivs are bytes
     - pick upper or lower case for all hex output
     - test all api types
-    - update docs to have string prefixes
 
 - Document ECC.
 

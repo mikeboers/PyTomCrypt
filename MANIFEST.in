@@ -4,9 +4,7 @@ include *.md
 recursive-include tests *.py
 recursive-include tomcrypt *.c *.py
 
-include src/libtom*-*/LICENSE
+include lin/libtom*-*/LICENSE
 
 recursive-include lib/libtomcrypt-1.17/src *.h *.c
 recursive-include lib/libtommath-0.41      *.h *.c
-recursive-include src *.h
-

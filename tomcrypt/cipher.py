@@ -47,7 +47,7 @@ class Descriptor(object):
     
     """Collection of information regarding a single cipher.
     
-    :param str cipher: The name of a supported cipher.
+    :param str cipher: The name or index of a supported cipher.
     
     A ``Descriptor`` can also be called to construct a matching :class:`Cipher`.
     
@@ -63,11 +63,27 @@ class Descriptor(object):
         16
         >>> aes.default_rounds
         10
+        
+    One can also pass a LTC idx::
+    
+        >>> aes2 = Descriptor(aes.idx)
+        >>> aes2.name
+        'rijndael'
+        >>> aes2 is aes
+        False
+    
+    or an existing descriptor::
+    
+        >>> aes3 = Descriptor(aes)
+        >>> aes3.name
+        'aes'
+        >>> aes3 is aes
+        False
     
     """
     
-    #: Map from cipher names to ``(idx, descriptor)`` pairs.
-    _name_to_descriptor = {}
+    #: Map from names and indices to ``(idx, descriptor)`` pairs.
+    __name_or_index_to_internals = {}
     
     # Register the ciphers.
     register = LTC.function('register_cipher', C.int, C.POINTER(_LTC_Descriptor))
@@ -75,14 +91,16 @@ class Descriptor(object):
         name = meta.cipher_identfier_mapping.get(name, name)
         descriptor = _LTC_Descriptor.in_dll(LTC, "%s_desc" % name)
         index = register(C.byref(descriptor))
-        _name_to_descriptor[name] = (index, descriptor)
+        __name_or_index_to_internals[name] = (index, descriptor)
+        __name_or_index_to_internals[index] = (index, descriptor)
     del register
     
-    
     def __init__(self, cipher):
+        if isinstance(cipher, Descriptor):
+            cipher = cipher.name
         self.__cipher = meta.cipher_identfier_mapping.get(cipher, cipher)
         try:
-            self.__idx, self.__desc = self._name_to_descriptor[self.__cipher]
+            self.__idx, self.__desc = self.__name_or_index_to_internals[self.__cipher]
         except KeyError:
             raise TomCryptError('could not find cipher %r (%r)' % (cipher, self.__cipher))
     

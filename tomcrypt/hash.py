@@ -41,34 +41,59 @@ class Descriptor(object):
     
     Can be called as convenience to calling Hash, passing the hash name
     via kwargs.
-
-    >>> md5 = Descriptor('md5') # Same as tomcrypt.hash.md5.
-    >>> md5.name
-    'md5'
-    >>> md5.digest_size
-    16
-    >>> md5.block_size
-    64
+    
+    ::
+    
+        >>> md5 = Descriptor('md5') # Same as tomcrypt.hash.md5.
+        >>> md5.name
+        'md5'
+        >>> md5.digest_size
+        16
+        >>> md5.block_size
+        64
+    
+    One can also pass in a LTC idx::
+    
+        >>> md52 = Descriptor(md5.idx)
+        >>> md52.name
+        'md5'
+        >>> md52 is md5
+        False
+    
+    or another descriptor::
+    
+        >>> md53 = Descriptor(md5)
+        >>> md53.name
+        'md5'
+        >>> md53 is md5
+        False
     
     """
     
     #: Map from hash names to ``(idx, descriptor)`` pairs.
-    _name_to_descriptor = {}
+    __name_or_index_to_internals = {}
     
     # Register the hashes.
     register = LTC.function('register_hash', C.int, C.POINTER(_LTC_Descriptor))
     for name in meta.hash_names:
         descriptor = _LTC_Descriptor.in_dll(LTC, "%s_desc" % name)
         index = register(C.byref(descriptor))
-        _name_to_descriptor[name] = (index, descriptor)
+        __name_or_index_to_internals[name] = (index, descriptor)
+        __name_or_index_to_internals[index] = (index, descriptor)
     del register
     
     def __init__(self, hash):
+        if isinstance(hash, Descriptor):
+            hash = hash.name
         self.__hash = hash
         try:
-            self.__idx, self._desc = self._name_to_descriptor[hash]
+            self.__idx, self._desc = self.__name_or_index_to_internals[hash]
         except KeyError:
             raise TomCryptError('could not find hash %r' % hash)
+    
+    @property
+    def idx(self):
+        return self.__idx
     
     @property
     def name(self):

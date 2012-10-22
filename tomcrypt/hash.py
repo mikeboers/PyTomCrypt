@@ -71,15 +71,15 @@ class Descriptor(object):
     """
     
     #: Map from hash names to ``(idx, descriptor)`` pairs.
-    __name_or_index_to_internals = {}
+    _name_or_index_to_internals = {}
     
     # Register the hashes.
     register = LTC.function('register_hash', C.int, C.POINTER(_LTC_Descriptor))
     for name in meta.hash_names:
         descriptor = _LTC_Descriptor.in_dll(LTC, "%s_desc" % name)
         index = register(C.byref(descriptor))
-        __name_or_index_to_internals[name] = (index, descriptor)
-        __name_or_index_to_internals[index] = (index, descriptor)
+        _name_or_index_to_internals[name] = (index, descriptor)
+        _name_or_index_to_internals[index] = (index, descriptor)
     del register
     
     def __init__(self, hash):
@@ -87,13 +87,13 @@ class Descriptor(object):
             hash = hash.name
         self.__hash = hash
         try:
-            self.__idx, self._desc = self.__name_or_index_to_internals[hash]
+            self._idx, self._desc = self._name_or_index_to_internals[hash]
         except KeyError:
             raise TomCryptError('could not find hash %r' % hash)
     
     @property
     def idx(self):
-        return self.__idx
+        return self._idx
     
     @property
     def name(self):
@@ -175,8 +175,8 @@ class Hash(Descriptor):
     
     def __init__(self, hash, input=b''):
         super(Hash, self).__init__(hash)
-        self.__state = C.create_string_buffer(LTC.pymod.MAXBLOCKSIZE)
-        standard_errcheck(self._desc.init(self.__state))
+        self._state = C.create_string_buffer(LTC.pymod.MAXBLOCKSIZE)
+        standard_errcheck(self._desc.init(self._state))
         if input:
             self.update(input)
     
@@ -200,7 +200,7 @@ class Hash(Descriptor):
         """
         if not isinstance(input, bytes):
             raise TypeError('input must be bytes')
-        standard_errcheck(self._desc.process(self.__state, input, C.ulong(len(input))))
+        standard_errcheck(self._desc.process(self._state, input, C.ulong(len(input))))
     
     def digest(self):
         """Return binary digest.
@@ -213,10 +213,10 @@ class Hash(Descriptor):
         
         # Copy the state so that we can get multiple digests from this state.
         state = C.create_string_buffer(LTC.pymod.MAXBLOCKSIZE)
-        state[:] = self.__state
+        state[:] = self._state
         
         output = C.create_string_buffer(self.digest_size)
-        standard_errcheck(self._desc.done(self.__state, output))
+        standard_errcheck(self._desc.done(self._state, output))
         return output[:self.digest_size]
     
     def hexdigest(self):
@@ -247,7 +247,7 @@ class Hash(Descriptor):
         # shared pointers, etc.
         
         copy = self.__class__(self.name)
-        copy.__state[:] = self.__state
+        copy._state[:] = self._state
         return copy
         
         

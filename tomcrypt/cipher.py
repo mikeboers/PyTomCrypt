@@ -83,7 +83,7 @@ class Descriptor(object):
     """
     
     #: Map from names and indices to ``(idx, descriptor)`` pairs.
-    __name_or_index_to_internals = {}
+    _name_or_index_to_internals = {}
     
     # Register the ciphers.
     register = LTC.function('register_cipher', C.int, C.POINTER(_LTC_Descriptor))
@@ -91,8 +91,8 @@ class Descriptor(object):
         name = meta.cipher_identfier_mapping.get(name, name)
         descriptor = _LTC_Descriptor.in_dll(LTC, "%s_desc" % name)
         index = register(C.byref(descriptor))
-        __name_or_index_to_internals[name] = (index, descriptor)
-        __name_or_index_to_internals[index] = (index, descriptor)
+        _name_or_index_to_internals[name] = (index, descriptor)
+        _name_or_index_to_internals[index] = (index, descriptor)
     del register
     
     def __init__(self, cipher):
@@ -100,40 +100,40 @@ class Descriptor(object):
             cipher = cipher.name
         self.__cipher = meta.cipher_identfier_mapping.get(cipher, cipher)
         try:
-            self.__idx, self.__desc = self.__name_or_index_to_internals[self.__cipher]
+            self._idx, self._desc = self._name_or_index_to_internals[self.__cipher]
         except KeyError:
             raise TomCryptError('could not find cipher %r (%r)' % (cipher, self.__cipher))
     
     @property
     def idx(self):
         """LTC internal index; not nesssesarily stable in different processes."""
-        return self.__idx
+        return self._idx
     
     @property
     def name(self):
         """Canonical name of the cipher."""
         # We want a str in Python3.
-        return str(self.__desc.name.decode())
+        return str(self._desc.name.decode())
     
     @property
     def min_key_size(self):
         """Minimum key size in bytes."""
-        return self.__desc.min_key_size
+        return self._desc.min_key_size
         
     @property
     def max_key_size(self):
         """Maximum key size in bytes."""
-        return self.__desc.max_key_size
+        return self._desc.max_key_size
         
     @property
     def block_size(self):
         """Size of a cipher block in bytes."""
-        return self.__desc.block_length
+        return self._desc.block_length
     
     @property
     def default_rounds(self):
         """Default number of rounds."""
-        return self.__desc.default_rounds
+        return self._desc.default_rounds
     
     def key_size(self, key_size):
         """Get the size of largest key that can be sliced from the given size.
@@ -152,7 +152,7 @@ class Descriptor(object):
 
         """
         key_size = C.int(key_size)
-        standard_errcheck(self.__desc.keysize(C.byref(key_size)))
+        standard_errcheck(self._desc.keysize(C.byref(key_size)))
         return key_size.value
     
     def __call__(self, *args, **kwargs):
@@ -188,13 +188,13 @@ class Cipher(Descriptor):
         self.__mode = str(mode).lower()
         
         # Determine the state size, and create a buffer for it.
-        self.__state_size = max(
+        self._state_size = max(
             LTC.pymod.sizeof.get('symmetric_%s' % self.__mode.upper(), 0),
             LTC.pymod.sizeof.get('%s_state' % self.__mode, 0),
         )
-        if not self.__state_size:
+        if not self._state_size:
             raise TomCryptError('unknown cipher mode %r' % mode)
-        self.__state = C.create_string_buffer(self.__state_size)
+        self._state = C.create_string_buffer(self._state_size)
         
         # Conform the IV (or create one of all zeroes)
         if iv is None:
@@ -210,17 +210,17 @@ class Cipher(Descriptor):
         if self.__mode == 'ecb':
             # This is the most basic.
             start = getattr(LTC, '%s_start' % self.__mode)
-            standard_errcheck(start(self.idx, key, C.ulong(len(key)), 0, self.__state))
+            standard_errcheck(start(self.idx, key, C.ulong(len(key)), 0, self._state))
             
         elif self.__mode in ('cbc', 'cfb', 'ofb'):
             # Adds an IV to ECB.
             start = getattr(LTC, '%s_start' % self.__mode)
-            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), 0, self.__state))
+            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), 0, self._state))
                 
         elif self.__mode == 'ctr':
             # Adds an IV and CTR flags to ECB.
             start = getattr(LTC, '%s_start' % self.__mode)
-            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self.__state))
+            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), 0, LTC.pymod.CTR_COUNTER_BIG_ENDIAN, self._state))
         
         elif self.__mode == 'lrw':
             # Adds an IV and "tweak" to ECB.
@@ -228,7 +228,7 @@ class Cipher(Descriptor):
             if not isinstance(tweak, bytes) or len(tweak) != 16:
                 raise TypeError('tweak must be 16 bytes')
             start = getattr(LTC, '%s_start' % self.__mode)
-            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), tweak, 0, self.__state))
+            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), tweak, 0, self._state))
         
         elif self.__mode == 'f8':
             # Adds an IV and "salt_key" to ECB.
@@ -236,7 +236,7 @@ class Cipher(Descriptor):
             if not isinstance(salt_key, bytes):
                 raise TypeError('salt_key must be bytes')
             start = getattr(LTC, '%s_start' % self.__mode)
-            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), salt_key, C.ulong(len(salt_key)), 0, self.__state))
+            standard_errcheck(start(self.idx, iv, key, C.ulong(len(key)), salt_key, C.ulong(len(salt_key)), 0, self._state))
         
         elif self.__mode == 'eax':
             # Adds a "nonce" and "header" to ECB. No IV.
@@ -246,7 +246,7 @@ class Cipher(Descriptor):
             header = kwargs.get('header', b'')
             if not isinstance(header, bytes):
                 raise TypeError('header must be bytes')
-            standard_errcheck(LTC.eax_init(self.__state, self.idx,
+            standard_errcheck(LTC.eax_init(self._state, self.idx,
                 key, C.ulong(len(key)),
                 nonce, C.ulong(len(nonce)),
                 header, C.ulong(len(header)),
@@ -286,7 +286,7 @@ class Cipher(Descriptor):
             raise TypeError('header must be bytes')
         if self.__mode != 'eax':
             raise TomCryptError('not EAX mode')
-        standard_errcheck(LTC.eax_addheader(self.__state, header, len(header)))
+        standard_errcheck(LTC.eax_addheader(self._state, header, len(header)))
     
     def get_iv(self):
         """Returns the current IV, for modes that use it.
@@ -312,7 +312,7 @@ class Cipher(Descriptor):
         
         length = C.ulong(self.block_size)
         iv = C.create_string_buffer(self.block_size)
-        standard_errcheck(get_iv(iv, C.byref(length), C.byref(self.__state)))
+        standard_errcheck(get_iv(iv, C.byref(length), C.byref(self._state)))
         return iv[:length.value]
     
     def set_iv(self, iv):
@@ -347,7 +347,7 @@ class Cipher(Descriptor):
             raise TypeError('iv must be bytes')
         if len(iv) != self.block_size:
             raise TomCryptError('iv must be %d bytes; got %d' % (self.block_size, len(iv)))
-        standard_errcheck(set_iv(iv, len(iv), C.byref(self.__state)))
+        standard_errcheck(set_iv(iv, len(iv), C.byref(self._state)))
     
     iv = property(get_iv, set_iv)
     
@@ -387,9 +387,9 @@ class Cipher(Descriptor):
         output = C.create_string_buffer(len(input))
         func = getattr(LTC, '%s_%scrypt' % (self.__mode, 'en' if encrypt else 'de'))
         if self.__mode == 'eax':
-            standard_errcheck(func(self.__state, input, output, C.ulong(len(input))))
+            standard_errcheck(func(self._state, input, output, C.ulong(len(input))))
         else:
-            standard_errcheck(func(input, output, C.ulong(len(input)), self.__state))
+            standard_errcheck(func(input, output, C.ulong(len(input)), self._state))
         
         # Must explicitly slice it to make sure we get null bytes.
         return output[:len(input)]
@@ -407,7 +407,7 @@ class Cipher(Descriptor):
         
         length = C.ulong(self.block_size)
         output = C.create_string_buffer(length.value)
-        standard_errcheck(LTC.eax_done(self.__state, output, C.byref(length)))
+        standard_errcheck(LTC.eax_done(self._state, output, C.byref(length)))
         return output[:length.value]
 
 

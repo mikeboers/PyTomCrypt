@@ -1,8 +1,8 @@
-
-import re
 import base64
+import re
 
 from . import Error
+
 
 def pem_encode(type, mode, content):
     """PEM encode a key.
@@ -54,5 +54,4 @@ def pem_decode(content):
     mode = mode.upper()
     content = base64.b64decode(''.join(content.strip().split()).encode())
     return type, mode, content
-
 

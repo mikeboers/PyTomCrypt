@@ -36,10 +36,13 @@ class _LTC_Descriptor(C.Structure):
 
 
 class Descriptor(object):
+
+    """LibTomCrypt descriptor of a hash function.
     
-    """
-    
-    >>> md5 = Descriptor('md5')
+    Can be called as convenience to calling Hash, passing the hash name
+    via kwargs.
+
+    >>> md5 = Descriptor('md5') # Same as tomcrypt.hash.md5.
     >>> md5.name
     'md5'
     >>> md5.digest_size
@@ -129,6 +132,21 @@ class Descriptor(object):
 
 
 class Hash(Descriptor):
+
+    """All state required to digest messages with a given hash function.
+
+    The API of this class has been designed to be a drop-in replacement for
+    the standard library's hashlib.
+
+    For CHC hashes see CHC class.
+
+    Parameters:
+        str hash -- The name of the hash fuction, or a hash Descriptor.
+        bytes input -- Initial input.
+
+    >>> hash = Hash('md5', b'message')
+
+    """
     
     def __init__(self, hash, input=b''):
         super(Hash, self).__init__(hash)
@@ -136,6 +154,10 @@ class Hash(Descriptor):
         standard_errcheck(self._desc.init(self.__state))
         if input:
             self.update(input)
+    
+    # Note that we never force the `done` method to clean up the state, since
+    # we have determined (by reading the C source) that there aren't any
+    # memory leaks by doing so.
     
     def __repr__(self):
         return '<%s.%s of %s at 0x%x>' % (
@@ -151,6 +173,8 @@ class Hash(Descriptor):
         '78e731027d8fd50ed642340b7c9a63b3'
 
         """
+        if not isinstance(input, bytes):
+            raise TypeError('input must be bytes')
         standard_errcheck(self._desc.process(self.__state, input, C.ulong(len(input))))
     
     def digest(self):
@@ -162,7 +186,7 @@ class Hash(Descriptor):
 
         """
         
-        # Copy the state.
+        # Copy the state so that we can get multiple digests from this state.
         state = C.create_string_buffer(LTC.pymod.MAXBLOCKSIZE)
         state[:] = self.__state
         
@@ -192,13 +216,14 @@ class Hash(Descriptor):
         '78e731027d8fd50ed642340b7c9a63b3'
 
         """
+        
         # HACK ALERT: This is only safe because we have read through the
         # source of all the provided hashes and determined that there are no
         # shared pointers, etc.
+        
         copy = self.__class__(self.name)
         copy.__state[:] = self.__state
         return copy
-        
         
         
 #: A set of all of the supported hash names.

@@ -23,16 +23,21 @@ static void init(PyObject *m) {
     // Pass some constants over.
     #define ADD_CONSTANT(name) \
     PyModule_AddObject(m, #name, PyInt_FromLong(name));
+    
     ADD_CONSTANT(CRYPT_OK);
     ADD_CONSTANT(CRYPT_INVALID_PACKET);
     ADD_CONSTANT(CRYPT_PK_INVALID_PADDING);
+    
     ADD_CONSTANT(MAXBLOCKSIZE);
+    
     ADD_CONSTANT(CTR_COUNTER_BIG_ENDIAN);
     
+    // Pass some sizes over.
     PyObject *sizeof_ = PyDict_New();
     PyModule_AddObject(m, "sizeof", sizeof_);
     #define ADD_SIZEOF(name) \
     PyDict_SetItemString(sizeof_, #name, PyInt_FromLong(sizeof(name)));
+    
     ADD_SIZEOF(symmetric_ECB);
     ADD_SIZEOF(symmetric_CBC);
     ADD_SIZEOF(symmetric_CTR);
@@ -41,7 +46,13 @@ static void init(PyObject *m) {
     ADD_SIZEOF(symmetric_LRW);
     ADD_SIZEOF(symmetric_F8);
     ADD_SIZEOF(eax_state);
+    
     ADD_SIZEOF(hash_state);
+    
+    ADD_SIZEOF(hmac_state);
+    ADD_SIZEOF(omac_state);
+    ADD_SIZEOF(pmac_state);
+    ADD_SIZEOF(xcbc_state);
     
 }
 
@@ -64,7 +75,7 @@ static void init(PyObject *m) {
     static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
         "_libtomcrypt3",     /* m_name */
-        "This is a module",  /* m_doc */
+        "",                  /* m_doc */
         -1,                  /* m_size */
         tomcrypt_methods,    /* m_methods */
         NULL,                /* m_reload */

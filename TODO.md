@@ -1,10 +1,21 @@
+- Restore (from ctypes conversion):
+    - CHC hashes
+    - MAC
+    - PRNG
+    - ECC
+    - PKCS1
+    - PKCS5
+    - RSA
+
 - Document how Python 3 works.
-    - cipher names should be strings
+    - algorithm names should be strings
     - keys and ivs are bytes
     - pick upper or lower case for all hex output
     - test all api types
     - update docs to have string prefixes
+
 - Document ECC.
+
 - Test EAX.
 
 - Decide if going to allow for custom ECC curves at all. ecc_decrypt_key
@@ -37,17 +48,6 @@
     - instead of conform_hash and conform_prng
     - name it better
 
-- utils.is_pem_encoded, pem_encode, pem_decode -> headers, body
-       The PEM private key format uses the header and footer lines:
-
-        -----BEGIN EC PRIVATE KEY-----
-        -----END EC PRIVATE KEY-----
-
-       The PEM public key format uses the header and footer lines:
-
-        -----BEGIN PUBLIC KEY-----
-        -----END PUBLIC KEY-----
-
 
 - signature verification should accept message and signature in any
   order
@@ -59,23 +59,6 @@
 - add tests for everything in the readme
 
 - write a timing-attack-safe string comparison function
-
-- test with Python 3
-
-- options for fixing the linking issues:
-
-	1) Use this trick, but it won't ever work with Windows and I feel that 
-	there could be symbol collisions in the future unless I prefix all my 
-	variables names, etc.
-	
-	2) Develop more specific platform-dependent fixes (special linking per 
-	platform, etc) 
-	
-	3) Jam everything together into the one main core module, and write 
-	pure Python modules to import the right parts and provide tiny 
-	wrappers to restore the class naming, etc.
-	
-	4) Wrap all of the C functions in cdef wrappers which are importable. All global state would also need to have functions which return pointers to them.
 
 - Standardize on *_length vs *_len vs *_size. The problem with this is that
 sometimes it feels more natural to use one than the other. While there may be

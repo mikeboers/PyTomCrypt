@@ -286,6 +286,12 @@ cdef class Cipher(Descriptor):
         >>> cipher = aes(b'0123456789abcdef', b'ThisWillSetTheIV')
         >>> cipher.get_iv()
         b'ThisWillSetTheIV'
+
+        >>> cipher = aes(b'0123456789abcdef', mode='ecb')
+        >>> cipher.get_iv()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: 'ecb' mode does not use an IV
         
         """
         cdef unsigned long length
@@ -296,7 +302,7 @@ cdef class Cipher(Descriptor):
             check_for_error(${mode}_getiv(iv, &length, <symmetric_${mode}*>&self.state))
         % endfor
         else:
-            raise Error('%r mode does not use an IV' % self.mode)
+            raise RuntimeError('%r mode does not use an IV' % self.mode)
         return iv
     
     cpdef set_iv(self, iv):
@@ -315,13 +321,19 @@ cdef class Cipher(Descriptor):
         >>> cipher.encrypt(b'hello')
         b'\\xe2\\xef\\xc5\\xe6\\x9e'
 
+        >>> cipher = aes(b'0123456789abcdef', mode='ecb')
+        >>> cipher.set_iv(b'does not matter')
+        Traceback (most recent call last):
+        ...
+        RuntimeError: 'ecb' mode does not use an IV
+
         """
         % for i, (mode, mode_i) in enumerate(sorted(cipher_iv_modes.items())):
         ${'el' if i else ''}if self.mode_i == ${mode_i}: # ${mode}
             check_for_error(${mode}_setiv(iv, len(iv), <symmetric_${mode}*>&self.state))
         % endfor
         else:
-            raise Error('%r mode does not use an IV' % self.mode)
+            raise RuntimeError('%r mode does not use an IV' % self.mode)
     
     cpdef add_header(self, bytes header):
         """add_header(header)

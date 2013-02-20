@@ -1,13 +1,20 @@
-# General
+# General.
 *.pyc
 .DS_Store
+
+# Old venv.
 /.Python
 /bin
-/build
-/dist
 /include/python*
 /lib/python*
 /man
+
+# New venv.
+/venv
+
+# Products
+/build
+/dist
 /pip-log.txt
 /MANIFEST
 /doc/build
@@ -15,5 +22,4 @@
 *.o
 *.a
 *.so
-
 tomcrypt/*.c

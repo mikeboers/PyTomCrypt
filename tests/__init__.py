@@ -3,7 +3,7 @@ import doctest
 
 
 def fix_doctests(suite):
-    if sys.version_info.major >= 3:
+    if sys.version_info[0] >= 3:
         return
     for case in suite._tests:
         # Add some more flags.

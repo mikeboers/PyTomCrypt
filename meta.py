@@ -15,6 +15,7 @@ cipher_no_auth_modes = dict((k, cipher_modes[k]) for k in cipher_modes if k not 
 cipher_mode_items = list(sorted(cipher_modes.items(), key=lambda x: x[1]))
 
 if True:
+
 	cipher_names = tuple('''
 		aes
 		anubis

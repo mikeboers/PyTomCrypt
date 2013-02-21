@@ -40,5 +40,9 @@ clean:
 	- rm tomcrypt/*.so
 	- rm tomcrypt/*.pyc
 	- rm -rf dist
+	- rm -rf build/src build/*/tomcrypt
+
+clean-all: clean
 	- rm -rf build
+
 

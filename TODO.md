@@ -1,4 +1,13 @@
-- Document how Python 3 works.
+- Integrate library tests into startup?
+  - check each cipher as the module is imported; keep a list of the ones
+    that fail
+
+- replace all the generic tomcrypt.Error(s) with appropriate standard library
+  errors
+
+- use libtomcrypt from GitHub?
+
+- Document how Python 3 implementation works.
     - cipher names should be strings
     - keys and ivs are bytes
     - pick upper or lower case for all hex output

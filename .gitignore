@@ -11,6 +11,7 @@
 
 # New venv.
 /venv
+/venv3
 
 # Products
 /build

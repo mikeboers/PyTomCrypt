@@ -10,12 +10,12 @@ def test_library():
     
     """
     
-    % for name in cipher_names:
+    % for name in list(cipher_names) + ['eax']:
     % if not name.endswith('_enc'):
-    check_for_error(${name}_test())
+    if ${name}_test() != CRYPT_OK:
+        raise RuntimeError('library test failed on ${name}')
     % endif
     % endfor
-    check_for_error(eax_test())
     return True
         
 

@@ -1,10 +1,6 @@
-from unittest import TestCase, main
-from base64 import b16encode
-import doctest
+from . import *
 
 from tomcrypt import prng
-
-from . import get_doctests
 
 
 def load_tests(loader, tests, ignore):
@@ -46,7 +42,3 @@ class TestPRNG(TestCase):
             b16encode(x.read(16)).lower(),
             b'f63c36f72ad5098e42ac002243d2cce2'
         )
-
-
-if __name__ == '__main__':
-    main()

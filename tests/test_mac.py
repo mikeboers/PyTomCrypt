@@ -1,14 +1,11 @@
 from __future__ import division
 
-import os
+from . import *
+
 import hmac
-from unittest import TestCase, main
-import doctest
 
 from tomcrypt import mac
 from tomcrypt import Error as TomCryptError
-
-from . import get_doctests
 
 
 def load_tests(loader, tests, ignore):
@@ -71,7 +68,3 @@ class TestMAC(TestCase):
         assert 'hmac' in mac.names
         msg = b'hello, world'
         assert mac.hmac('sha256', msg).hexdigest() == 'bf9498672a3fc6c06a7b13f7b0a7c24d2c9aeb8f797dbfc00cb4e1a1ab5cb420'
-
-
-if __name__ == '__main__':
-    main()

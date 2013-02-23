@@ -1,22 +1,14 @@
 from __future__ import division
 
-import os
-import time
-from subprocess import Popen, PIPE
-from unittest import TestCase, main
-from base64 import b16encode, b16decode
-import doctest
+from . import *
 
 from tomcrypt import cipher
 from tomcrypt.cipher import *
-
-from . import get_doctests
 
 
 def load_tests(loader, tests, ignore):
     tests.addTests(get_doctests(cipher))
     return tests
-
 
 
 class CipherTests(TestCase):
@@ -94,7 +86,3 @@ class CipherTests(TestCase):
         msg = b'hello, world'
         enc = cipher.aes(key).encrypt(msg)
         self.assertEqual(cipher.aes(key).decrypt(enc), msg)
-
-
-if __name__ == '__main__':
-    main()

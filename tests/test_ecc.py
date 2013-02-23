@@ -1,19 +1,10 @@
-
 from __future__ import division
 
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-from pprint import pprint, pformat
-import time
-from subprocess import Popen, PIPE
-import hashlib
+from . import *
 
 import tomcrypt
 from tomcrypt import prng
 from tomcrypt.ecc import *
-from unittest import TestCase, main
 
 
 class TestECC(TestCase):
@@ -61,7 +52,3 @@ class TestECC(TestCase):
                 Key(a.public.as_string()).as_dict())
         self.assertEqual(a.public.as_dict(),
                 Key(a.as_string(type='public')).as_dict())
-
-
-if __name__ == '__main__':
-    main()

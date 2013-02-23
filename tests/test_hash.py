@@ -1,14 +1,9 @@
 from __future__ import division, print_function
 
-import os
-import hashlib
-from unittest import TestCase, main
-import doctest
+from . import *
 
 from tomcrypt.hash import *
 from tomcrypt import hash
-
-from . import get_doctests
 
 
 def load_tests(loader, tests, ignore):
@@ -20,7 +15,6 @@ class TestHashed(TestCase):
 
     def test_against_hashlib(self):
         for name in hash.names:
-            print(repr(name))
             if name == 'chc':
                 continue
             try:
@@ -28,7 +22,6 @@ class TestHashed(TestCase):
             except ValueError:
                 continue
             yield self.check_hashlib, name
-
 
     def check_hashlib(self, name):        
         x = Hash(name)
@@ -48,7 +41,3 @@ class TestHashed(TestCase):
         assert 'sha256' in hash.names
         msg = b'hello, world'
         assert hash.sha256(msg).hexdigest() == '09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b'
-
-
-if __name__ == '__main__':
-    main()

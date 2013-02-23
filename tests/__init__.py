@@ -1,5 +1,12 @@
-import sys
+from base64 import b64encode, b64decode, b16encode, b16decode
+from pprint import pprint, pformat
+from subprocess import Popen, PIPE
+from unittest import TestCase
 import doctest
+import hashlib
+import os
+import sys
+import time
 
 
 def fix_doctests(suite):

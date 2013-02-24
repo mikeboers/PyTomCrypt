@@ -1,7 +1,6 @@
 Short-term goals:
 
-  1. Start sphinx-based docs.
-      - push into gh-pages
+  1. Convert README.md into Sphinx docs.
   2. Integrate library tests into startup.
       - check each cipher as the module is imported; keep a list of the ones
       that fail

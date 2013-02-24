@@ -1,6 +1,8 @@
-0.6.2-dev
-----------
-NOTHING YET
+0.7.0-dev
+---------
+- Sphinx-based API documentation.
+- Standard exception types (in progress). This introduces limited backwards incompatibility.
+- Test vectors run on first instanciation (planned).
 
 0.6.1
 -----

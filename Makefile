@@ -48,5 +48,5 @@ clean-all: clean
 	- rm -rf build
 
 docs: build
-	make -C docs html
+	PYTHONPATH=.. make -C docs html
 

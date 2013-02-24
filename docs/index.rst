@@ -8,6 +8,15 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   cipher
+   ecc
+   hash
+   mac
+   pkcs1
+   pkcs5
+   prng
+   rsa
+   utils
 
 
 Indices and tables

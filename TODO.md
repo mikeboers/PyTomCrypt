@@ -1,11 +1,12 @@
-- Integrate library tests into startup?
-  - check each cipher as the module is imported; keep a list of the ones
-    that fail
+Short-term goals:
 
-- replace all the generic tomcrypt.Error(s) with appropriate standard library
-  errors
-
-- use libtomcrypt from GitHub?
+  1. Start sphinx-based docs.
+      - push into gh-pages
+  2. Integrate library tests into startup.
+      - check each cipher as the module is imported; keep a list of the ones
+      that fail
+  3. Replace all generic errors with appropriate standard lib errors.
+  4. Use libtomcrypt and libtommath from GitHub
 
 - Document how Python 3 implementation works.
     - cipher names should be strings

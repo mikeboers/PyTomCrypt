@@ -8,6 +8,8 @@ C_NAMES = $(MOD_NAMES:%=tomcrypt/%.c)
 MAKO_SRCS := $(wildcard src/*.pyx) $(wildcard src/*.pxd)
 CYTHON_SRCS = $(MAKO_SRCS:src/%=build/src/tomcrypt.%)
 
+.PHONY : default build test readme clean clean-all docs
+
 default : build
 
 # Evaluating Mako templates.
@@ -45,4 +47,6 @@ clean:
 clean-all: clean
 	- rm -rf build
 
+docs: build
+	make -C docs html
 

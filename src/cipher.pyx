@@ -50,6 +50,8 @@ cdef int get_cipher_idx(object input):
 cdef class Descriptor(object):
     """LibTomCrypt descriptor of a symmetric cipher.
     
+    :param str cipher: Name of a cipher, e.g. "aes" or "3des".
+
     Can be called as convenience to calling Cipher, passing the cipher name
     via kwargs.
 
@@ -157,16 +159,16 @@ cdef union symmetric_all:
 cdef class Cipher(Descriptor):
     """All state required to encrypt/decrypt with a symmetric cipher.
     
-    Parameters:
-        bytes key -- Symmetric key.
-        bytes iv -- Initialization vector; None is treated as all null bytes.
-        str cipher -- The name of the cipher to use; defaults to "aes".
-        str mode -- Cipher block chaining more to use; defaults to "ctr".
+    :param bytes key: Symmetric key.
+    :param bytes iv: Initialization vector; None is treated as all null bytes.
+    :param str cipher: The name of the cipher to use; defaults to "aes".
+    :param str mode: Cipher block chaining more to use; defaults to "ctr".
     
     Mode Specific Parameters:
-        bytes nonce -- Only for "eax" mode.
-        bytes tweak -- Only for "lrw" mode.
-        bytes salt_key -- Only for "f8" mode.
+
+    :param bytes nonce: Only for "eax" mode.
+    :param bytes tweak: Only for "lrw" mode.
+    :param bytes salt_key: Only for "f8" mode.
 
     >>> cipher = Cipher(b'0123456789abcdef', b'0123456789abcdef', 'aes', 'cbc')
 

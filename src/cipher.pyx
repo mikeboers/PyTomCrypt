@@ -50,16 +50,21 @@ cdef int get_cipher_idx(object input):
 cdef class Descriptor(object):
     """LibTomCrypt descriptor of a symmetric cipher.
     
-    :param str cipher: Name of a cipher, e.g. "aes" or "3des".
-
     Can be called as convenience to calling Cipher, passing the cipher name
     via kwargs.
 
-    >>> aes = Descriptor('aes') # Same as tomcrypt.cipher.aes.
-    
     """
     
     def __init__(self, cipher):
+        """__init__(name)
+
+        :param str name: Name of a cipher, e.g. "aes" or "3des".
+
+        ::
+
+            >>> aes = Descriptor('aes') # Same as tomcrypt.cipher.aes.
+
+        """
         self.idx = get_cipher_idx(cipher)
         self.desc = &cipher_descriptors[self.idx]
         
@@ -118,23 +123,37 @@ cdef class Descriptor(object):
         """
         return self.desc.default_rounds
 
-    def key_size(self, key_size):
-        """The largest key that can be sliced from a string of the given size.
+    def key_size(self, size):
+        """key_size(size)
 
-        >>> aes.key_size(16)
-        16
-        >>> aes.key_size(17)
-        16
-        >>> aes.key_size(128)
-        32
+        The largest key that can be sliced from a string of the given size.
+
+        :param int key_size: Length of availible key material.
+        :returns int: The size that can be sliced from the string.
+        :raises LibError: if the size is too small.
+
+        ::
+
+            >>> aes.key_size(16)
+            16
+
+            >>> aes.key_size(128)
+            32
+
+            >>> aes.key_size(8)
+            Traceback (most recent call last):
+            ...
+            LibError: Invalid keysize for block cipher.
 
         """
-        cdef int out = key_size
+        cdef int out = size
         check_for_error(self.desc.key_size(&out))
         return out
     
     def __call__(self, *args, **kwargs):
-        """Initialize a cipher state.
+        """__call__(*args, **kwargs)
+
+        Initialize a cipher state.
 
         This is a convenience for constructing Cipher objects.
 
@@ -159,16 +178,6 @@ cdef union symmetric_all:
 cdef class Cipher(Descriptor):
     """All state required to encrypt/decrypt with a symmetric cipher.
     
-    :param bytes key: Symmetric key.
-    :param bytes iv: Initialization vector; None is treated as all null bytes.
-    :param str cipher: The name of the cipher to use; defaults to "aes".
-    :param str mode: Cipher block chaining more to use; defaults to "ctr".
-    
-    Mode Specific Parameters:
-
-    :param bytes nonce: Only for "eax" mode.
-    :param bytes tweak: Only for "lrw" mode.
-    :param bytes salt_key: Only for "f8" mode.
 
     >>> cipher = Cipher(b'0123456789abcdef', b'0123456789abcdef', 'aes', 'cbc')
 
@@ -181,6 +190,22 @@ cdef class Cipher(Descriptor):
     cdef int mode_i
     
     def __init__(self, bytes key, bytes iv=None, cipher='aes', mode='ctr', **kwargs):
+        """__init__(key, iv=None, cipher='aes', mode='ctr', **kw)
+
+        :param bytes key: Symmetric key.
+        :param bytes iv: Initialization vector; ``None`` -> null IV.
+        :param str cipher: The name of the cipher to use.
+        :param str mode: Cipher block chaining more to use.
+        
+        Mode Specific Parameters (by keyword only):
+
+        :param bytes header: Only for "eax" mode.
+        :param bytes nonce: Only for "eax" mode.
+        :param bytes salt_key: Only for "f8" mode.
+        :param bytes tweak: Only for "lrw" mode.
+
+        """
+
         self.mode = mode
         ## We must keep these indices as magic numbers in the source.
         self.mode_i = {
@@ -273,7 +298,9 @@ cdef class Cipher(Descriptor):
         return iv
     
     cpdef set_iv(self, iv):
-        """ Sets the current IV, for modes that use it.
+        """set_iv(iv)
+
+        Sets the current IV, for modes that use it.
 
         See the LibTomCrypt manual section 3.4.6 for what, precisely, this
         function will do depending on the chaining mode.
@@ -298,7 +325,9 @@ cdef class Cipher(Descriptor):
             raise Error('%r mode does not use an IV' % self.mode)
     
     cpdef add_header(self, bytes header):
-        """Add the given string to the EAX header. Only for EAX mode.
+        """add_header(header)
+
+        Add the given string to the EAX header. Only for EAX mode.
 
         >>> cipher = aes(b'0123456789abcdef', mode='eax', nonce=b'random')
         >>> cipher.add_header(b'a header')
@@ -321,7 +350,9 @@ cdef class Cipher(Descriptor):
 
     % for type in 'encrypt decrypt'.split():
     cpdef ${type}(self, bytes input):
-        """${type.capitalize()} a string.
+        """${type}(input)
+
+        ${type.capitalize()} a string.
         
         % if type == 'encrypt':
         >>> cipher = aes(b'0123456789abcdef')
@@ -355,7 +386,7 @@ cdef class Cipher(Descriptor):
     cpdef done(self):
         """Return authentication tag for EAX mode.
 
-        See Cipher.add_header(...) for example.
+        See :meth:`Cipher.add_header(...) <tomcrypt.cipher.Cipher.add_header>` for example.
 
         """
         cdef unsigned long length = 1024

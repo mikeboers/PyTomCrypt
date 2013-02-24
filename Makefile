@@ -50,3 +50,7 @@ clean-all: clean
 docs: build
 	PYTHONPATH=.. make -C docs html
 
+deploy-docs: docs
+	rsync -avx docs/_build/html/ mikeboers.com:/srv/mikeboers.com/files/docs/pytomcrypt/
+
+

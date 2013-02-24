@@ -3,7 +3,13 @@ import datetime
 
 from distutils.core import setup
 from distutils.extension import Extension
-# from Cython.Distutils import build_ext
+
+
+# RTD: Build the sources first.
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if on_rtd:
+    from subprocess import call
+    call(['make', 'sources'])
 
 
 # Allow us to specify a single extension to build.
@@ -13,6 +19,7 @@ if ext_name:
     if ext_name not in ext_names:
         raise ValueError('unknown extension %r' % ext_name)
     ext_names = [ext_name]
+
 
 ext_sources = {'_core': '''
 

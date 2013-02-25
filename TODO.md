@@ -1,6 +1,7 @@
 Short-term goals:
 
   1. Convert README.md into Sphinx docs.
+  1a. make deploy-docs to docs.mikeboers.com/pytomcrypt/0.7.0/...
   2. Integrate library tests into startup.
       - check each cipher as the module is imported; keep a list of the ones
       that fail

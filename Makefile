@@ -8,6 +8,10 @@ C_NAMES = $(MOD_NAMES:%=tomcrypt/%.c)
 MAKO_SRCS := $(wildcard src/*.pyx) $(wildcard src/*.pxd)
 CYTHON_SRCS = $(MAKO_SRCS:src/%=build/src/tomcrypt.%)
 
+VERSION = 0.7.0
+REMOTE_DOCS_HOST = mikeboers.com
+REMOTE_DOCS_PATH = /srv/mikeboers.com/docs/pytomcrypt
+
 .PHONY : default build test readme clean clean-all docs
 
 default : build
@@ -51,6 +55,9 @@ docs: build
 	PYTHONPATH=.. make -C docs html
 
 deploy-docs: docs
-	rsync -avx docs/_build/html/ mikeboers.com:/srv/mikeboers.com/files/docs/pytomcrypt/
+	rsync -avx docs/_build/html/ ${REMOTE_DOCS_HOST}:${REMOTE_DOCS_PATH}/${VERSION}
+	ssh ${REMOTE_DOCS_HOST} ln -sf ${REMOTE_DOCS_PATH}/${VERSION} ${REMOTE_DOCS_PATH}/latest
+
+
 
 

@@ -8,6 +8,8 @@ python:
 install:
     - pip install --use-mirrors -r requirements.txt
     - pip install --use-mirrors nose2
+    - git submodule init
+    - git submodule update
     - make build
 
 script: nose2

@@ -32,7 +32,11 @@ If you have the original source (ie. from GitHub):
 
     # Install "mako" and "cython"; they are required to generate the C source of the primary module.
     $ pip install mako cython
- 
+    
+    # Grab libtomcrypt and libtommath.
+    $ git submodule init
+    $ git submodule update
+    
     # Preprocess the Cython sources.
     $ make sources
     

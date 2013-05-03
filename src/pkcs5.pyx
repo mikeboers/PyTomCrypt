@@ -13,7 +13,9 @@ cpdef bytes pkcs5_alg1(bytes password, bytes salt, int iteration_count, hash):
     return out[:outlen]
 
 
-cpdef bytes pkcs5_alg2(bytes password, bytes salt, int iteration_count, hash):  
+cpdef bytes pkcs5_alg2(bytes password, bytes salt, int iteration_count, hash):
+    """pkcs5(password, salt, iteration_count, hash)"""
+
     cdef HashDescriptor desc = conform_hash(hash)
     cdef unsigned long outlen = desc.digest_size
     out = PyBytes_FromStringAndSize(NULL, outlen)

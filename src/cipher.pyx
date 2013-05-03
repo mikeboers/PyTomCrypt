@@ -181,7 +181,7 @@ cdef class Cipher(Descriptor):
 
     >>> cipher = Cipher(b'0123456789abcdef', b'0123456789abcdef', 'aes', 'cbc')
 
-    See Cipher.add_header(...) for example of EAX mode.
+    See :meth:`Cipher.add_header` for example of EAX mode.
 
     """
     

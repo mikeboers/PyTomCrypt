@@ -1,9 +1,11 @@
 Pythonic Cryptography with PyTomCrypt
 =====================================
 
-.. todo:: Write these docs.
+This package is a Python 2/3 wrapper around LibTomCrypt_. The API is designed to be conceptually similar to LibTomCrypt_, but to be as "Pythonic" as possible.
 
-Contents:
+
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
@@ -26,3 +28,6 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+
+.. _LibTomCrypt: http://www.libtom.org/?page=features&newsitems=5&whatfile=crypt
+.. _README: https://github.com/mikeboers/PyTomCrypt/blob/master/README.md

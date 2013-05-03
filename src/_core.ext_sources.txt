@@ -2,7 +2,7 @@
 ### LIBTOMCRYPT
 
 
-vendor/libtomcrypt/src/ciphers/aes/aes_enc.c
+vendor/patched/libtomcrypt/aes_enc.c
 vendor/libtomcrypt/src/ciphers/aes/aes.c
 vendor/libtomcrypt/src/ciphers/anubis.c
 vendor/libtomcrypt/src/ciphers/blowfish.c

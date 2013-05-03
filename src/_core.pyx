@@ -1,4 +1,4 @@
-
+from tomcrypt import Error, LibError
 
 
 # Setup TomsFastMath for use.
@@ -13,9 +13,15 @@ cpdef error_to_string(int err):
     return str(raw_error_to_string(err).decode())
 
 
-from tomcrypt import Error, LibError
+cdef void check_for_error(int code) except *:
 
+    if code == CRYPT_OK:
+        return
 
-cdef void check_for_error(int res) except *:
-    if res != CRYPT_OK:
-        raise LibError(error_to_string(res), code=res)
+    cdef str msg = error_to_string(code)
+
+    # if code == CRYPT_INVALID_KEYSIZE:
+    #     raise ValueError(msg)
+    
+    raise LibError(msg, code=code)
+

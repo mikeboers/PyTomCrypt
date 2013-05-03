@@ -37,20 +37,23 @@ for name in ext_names:
 
     ext_modules.append(Extension(
         'tomcrypt.%s' % name, ["tomcrypt/%s.c" % name] + ext_sources,
+
         include_dirs=[
-                    '.', # Buh?
+                    '.',
                     './src',
                     './vendor/libtomcrypt/src/headers',
                     './vendor/libtommath',
         ],
+
         define_macros=list(dict(
         
             # These macros are needed for the math library.
             LTM_DESC=None,
             LTC_SOURCE=None,
-            # TFM_NO_ASM=None,
         
         ).items()),
+
+        extra_compile_args=['-O3', '-funroll-loops', ]
     ))
 
 

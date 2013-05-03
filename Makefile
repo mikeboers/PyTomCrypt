@@ -8,7 +8,7 @@ C_NAMES = $(MOD_NAMES:%=tomcrypt/%.c)
 MAKO_SRCS := $(wildcard src/*.pyx) $(wildcard src/*.pxd)
 CYTHON_SRCS = $(MAKO_SRCS:src/%=build/src/tomcrypt.%)
 
-VERSION := $(shell python setup.py --version)
+# VERSION := $(shell python setup.py --version)
 REMOTE_DOCS_HOST = mikeboers.com
 REMOTE_DOCS_PATH = /srv/mikeboers.com/docs/pytomcrypt
 
@@ -50,6 +50,8 @@ clean:
 
 clean-all: clean
 	- rm -rf build
+	- make -C vendor/libtomcrypt clean
+	- make -C vendor/libtommath clean
 
 docs: build
 	PYTHONPATH=.. make -C docs html

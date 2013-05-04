@@ -70,18 +70,21 @@ cdef unsigned long conform_saltlen(key, saltlen, HashDescriptor hash, padding) e
 
 
 def max_payload(int key_size, padding=PAD_OAEP, hash=None):
-    """Find the maximum length of the payload that is safe to encrypt/sign.
+    """max_payload(key_size, padding='oaep', hash='sha1')
 
-    Params:
-        padding -- One of 'none', 'v1.5', 'oaep', or 'pss'. Defaults to 'oaep'.
-        hash -- The hash that will be used. Defaults to 'sha1'.
+    Find the maximum length of the payload that is safe to encrypt/sign.
 
-    >>> max_payload(1024)
-    86
-    >>> max_payload(2048, hash='sha512')
-    126
-    >>> max_payload(1024, padding='none')
-    128
+    :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+    :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
+
+    ::
+
+        >>> max_payload(1024)
+        86
+        >>> max_payload(2048, hash='sha512')
+        126
+        >>> max_payload(1024, padding='none')
+        128
 
     """
     padding = conform_padding(padding)
@@ -98,18 +101,21 @@ def max_payload(int key_size, padding=PAD_OAEP, hash=None):
 
 
 def key_size_for_payload(int length, padding=PAD_OAEP, hash=None):
-    """Determine the min keysize for a payload of a given length.
+    """key_size_for_payload(length, padding='oaep', hash='sha1')
+
+    Determine the min keysize for a payload of a given length.
     
-    Params:
-        length -- The length of the payload.
-        padding -- One of 'none', 'v1.5', 'oaep', or 'pss'. Defaults to 'oaep'.
-        hash -- The hash that will be used. Defaults to 'sha1'.
+    :param int length: The length of the payload.
+    :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+    :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
+    
+    ::
+
+        >>> key_size_for_payload(86)
+        1024
         
-    key_size_for_payload(86)
-    1024
-    
-    key_size_for_payload(128, padding='none')
-    1024
+        >>> key_size_for_payload(128, padding='none')
+        1024
 
     """
     padding = conform_padding(padding)
@@ -148,13 +154,17 @@ cdef class Key(object):
 
     This key can be imported from an encoded string, or randomly generated.
 
-    >>> # Generate a key.
-    >>> key = Key(1024)
-    >>> key.size
-    1024
+    ::
 
-    >>> # Import a key.
-    >>> key = Key(open('/path/to/key.pem').read()) #doctest: +SKIP
+        >>> # Generate a key.
+        >>> key = Key(1024)
+        >>> key.size
+        1024
+
+    ::
+
+        >>> # Import a key.
+        >>> key = Key(open('/path/to/key.pem').read()) #doctest: +SKIP
 
     """
 
@@ -229,28 +239,31 @@ cdef class Key(object):
             raise
 
     def as_string(self, type=None, format=FORMAT_PEM):
-        """Build the string representation of a key.
+        """as_string(type=None, format='pem')
+
+        Build the string representation of a key.
 
         Both the availible formats are compatible with OpenSSL. We default to
         the same one that OpenSSL does (PEM).
 
-        Params:
-            type -- None (as is), 'private' or 'public'.
-            format -- 'pem' (default), or 'der'.
+        :param str type: ``None`` (as is), ``'private'`` or ``'public'``.
+        :param str format: ``'pem'`` or ``'der'``.
 
-        >>> k = Key(1024)
+        ::
 
-        >>> k.as_string() # doctest: +ELLIPSIS
-        '-----BEGIN RSA PRIVATE KEY-----...-----END RSA PRIVATE KEY-----\\n'
+            >>> k = Key(1024)
 
-        >>> k.public.as_string() # doctest: +ELLIPSIS
-        '-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\\n'
+            >>> k.as_string() # doctest: +ELLIPSIS
+            '-----BEGIN RSA PRIVATE KEY-----...-----END RSA PRIVATE KEY-----\\n'
 
-        >>> k.as_string(type='public') # doctest: +ELLIPSIS
-        '-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\\n'
+            >>> k.public.as_string() # doctest: +ELLIPSIS
+            '-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\\n'
 
-        >>> isinstance(k.as_string(format='der'), bytes)
-        True
+            >>> k.as_string(type='public') # doctest: +ELLIPSIS
+            '-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\\n'
+
+            >>> isinstance(k.as_string(format='der'), bytes)
+            True
 
         """
 
@@ -298,10 +311,11 @@ cdef class Key(object):
             raise
 
     def as_dict(self, int radix=16):
-        """Return a dict of all of the key parts encoded into strings.
+        """as_dict(radix=16)
 
-        Params:
-            radix -- The base into which to convert the bignum. From 2-64.
+        Return a dict of all of the key parts encoded into strings.
+
+        :param int radix: The base into which to convert the bignum; from 2 to 64.
 
         """
 
@@ -316,14 +330,16 @@ cdef class Key(object):
 
     @property
     def type(self):
-        """'private' or 'public'
+        """``'private'`` or ``'public'``
         
-        >>> k = Key(1024)
-        >>> k.type
-        'private'
-        >>> k.public.type
-        'public'
-        
+        ::
+
+            >>> k = Key(1024)
+            >>> k.type
+            'private'
+            >>> k.public.type
+            'public'
+            
         """
         return TYPE_PRIVATE if self.is_private else TYPE_PUBLIC
 
@@ -331,12 +347,14 @@ cdef class Key(object):
     def is_private(self):
         """True if this is a private key.
         
-        >>> k = Key(1024)
-        >>> k.is_private
-        True
-        >>> k.public.is_private
-        False
-        
+        ::
+
+            >>> k = Key(1024)
+            >>> k.is_private
+            True
+            >>> k.public.is_private
+            False
+            
         """
         return self.key.type == c_RSA_TYPE_PRIVATE
 
@@ -344,12 +362,14 @@ cdef class Key(object):
     def is_public(self):
         """True if this is a public key.
         
-        >>> k = Key(1024)
-        >>> k.is_public
-        False
-        >>> k.public.is_public
-        True
-        
+        ::
+
+            >>> k = Key(1024)
+            >>> k.is_public
+            False
+            >>> k.public.is_public
+            True
+            
         """
         return self.key.type == c_RSA_TYPE_PUBLIC
 
@@ -361,20 +381,23 @@ cdef class Key(object):
         but that is not a requirement for others. (It is easy to make any
         size key with openssl, for instance.)
 
-        >>> Key(1024).size
-        1024
+        ::
+
+            >>> Key(1024).size
+            1024
 
         """
         return mp.count_bits(self.key.N)
 
     def max_payload(self, padding=PAD_OAEP, hash=None):
-        """The maximum length of the payload that is safe to encrypt/sign.
+        """max_payload(padding='oaep', hash='sha1')
 
-        Params:
-            padding -- One of 'none', 'v1.5', 'oaep', or 'pss'. Defaults to 'oaep'.
-            hash -- The hash that will be used. Defaults to 'sha1'.
+        The maximum length of the payload that is safe to encrypt/sign.
 
-        See tomcrypt.rsa.max_payload(...) for examples.
+        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
+
+        .. seealso:: :func:`max_payload` for examples.
 
         """
         return max_payload(self.size, padding, hash)
@@ -402,13 +425,15 @@ cdef class Key(object):
 
         If this is already a public key, this will be the same object.
 
-        >>> k = Key(1024)
-        >>> a = k.public
-        >>> a.type
-        'public'
-        >>> b = k.public
-        >>> a is b
-        True
+        ::
+
+            >>> k = Key(1024)
+            >>> a = k.public
+            >>> a.type
+            'public'
+            >>> b = k.public
+            >>> a is b
+            True
 
         """
         if self._public is None:
@@ -441,13 +466,14 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef encrypt(self, bytes input, prng=None, hash=None, padding=PAD_OAEP):
-        """Encrypt some bytes.
+        """encrypt(input, prng='sprng', hash='sha1', padding='oaep')
 
-        Parameters:
-            bytes input -- The data to encrypt.
-            prng -- The PRNG to use; defaults to 'sprng'.
-            hash -- The Hash to use; defaults to 'sha1'.
-            padding -- One of 'none', 'v1.5', or 'oaep'. Defaults to 'oaep'.
+        Encrypt some bytes.
+
+        :param bytes input: The bytes to encrypt.
+        :param str prng: The PRNG to use; ``str`` or :class:`PRNG`.
+        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
 
         """
 
@@ -472,14 +498,15 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef decrypt(self, bytes input, hash=None, padding=PAD_OAEP):
-        """Decrypt some bytes.
+        """decrypt(input, hash='sha1', padding='oaep')
+
+        Decrypt some bytes.
 
         Only usable on private keys.
 
-        Parameters:
-            bytes input -- The data to decrypt.
-            hash -- The Hash used; defaults to 'sha1'.
-            padding -- One of 'none', 'v1.5', or 'oaep'. Defaults to 'oaep'.
+        :param bytes input: The bytes to decrypt.
+        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
 
         """
 
@@ -506,15 +533,16 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef sign(self, bytes input, prng=None, hash=None, padding=PAD_PSS, saltlen=None):
-        """Sign some bytes.
+        """sign(input, prng='sprng', hash='sha512', padding='pss', saltlen=None)
+
+        Sign some bytes.
 
         Only usable on private keys.
 
-        Parameters:
-            bytes input -- The data to sign.
-            prng -- The PRNG to use; defaults to 'sprng'.
-            hash -- The Hash to use; defaults to 'sha512'.
-            padding -- One of 'none', 'v1.5', or 'pss'. Defaults to 'pss'.
+        :param bytes input: The bytes to sign.
+        :param str prng: The PRNG to use; ``str`` or :class:`PRNG`.
+        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
 
         """
         cdef unsigned long c_padding = conform_padding(padding)
@@ -539,15 +567,16 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef verify(self, bytes input, bytes sig, hash=None, padding=PAD_PSS, saltlen=None):
-        """Verify the signature of some bytes.
+        """verify(input, sign, hash='sha512', padding='pss', saltlen=None)
 
-        Parameters:
-            bytes input -- The signed data.
-            bytes sig -- The signature.
-            hash -- The Hash used; defaults to 'sha512'.
-            padding -- One of 'none', 'v1.5', or 'pss'. Defaults to 'pss'.
+        Verify the signature of some bytes.
 
-        Returns True if the signature is valid. Raises an exception if the
+        :param bytes input: The bytes that were signed.
+        :param bytes sig: The signature.
+        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
+
+        Returns ``True`` if the signature is valid. Raises an exception if the
         signature is the wrong format.
 
         """

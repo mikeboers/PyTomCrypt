@@ -4,6 +4,12 @@ PyTomCrypt
 
 This package is a Python 2/3 wrapper around LibTomCrypt. The API is designed to be conceptually similar to LibTomCrypt, but to be as "Pythonic" as possible.
 
+[Read the Docs](http://mikeboers.github.io/PyTomCrypt/), and good luck!
+
+
+Limitations
+-----------
+
 PyTomCrypt does not yet wrap the entirety of LibTomCrypt; this is planned in the future. Currently, this package provides:
 
 - symmetric ciphers
@@ -18,11 +24,9 @@ PyTomCrypt does not yet wrap the entirety of LibTomCrypt; this is planned in the
 - **incomplete** ECC
 - **no** DSA
 
-[Read the Docs](http://docs.mikeboers.com/pytomcrypt/latest/), and good luck!
-
 
 Installation
-=============
+------------
 
 To get the latest stable release (use `easy_install` if you don't have `pip`):
 

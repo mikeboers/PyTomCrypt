@@ -19,7 +19,7 @@ default : build
 # Evaluating Mako templates.
 build/src/tomcrypt.%: src/%
 	@ mkdir -p build/src
-	./preprocess $< > $@
+	PYTHONPATH=. ./scripts/preprocess $< > $@
 
 # Translating Cython to C.
 tomcrypt/%.c: build/src/tomcrypt.%.pyx
@@ -55,8 +55,7 @@ docs: build
 	PYTHONPATH=.. make -C docs html
 
 deploy-docs: docs
-	rsync -avx docs/_build/html/ ${REMOTE_DOCS_HOST}:${REMOTE_DOCS_PATH}/${VERSION}
-	ssh ${REMOTE_DOCS_HOST} ln -sf ${REMOTE_DOCS_PATH}/${VERSION} ${REMOTE_DOCS_PATH}/latest
+	./scripts/sphinx-to-github docs
 
 
 

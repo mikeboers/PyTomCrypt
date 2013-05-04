@@ -8,7 +8,7 @@ Overview
 
     >>> from tomcrypt import mac
 
-This module contains a :class:`MAC` class, and a convenience function for every MAC provided::
+This module contains a :class:`.MAC` class, and a convenience function for every MAC provided::
 
     >>> mymac = mac.MAC('hmac', 'sha256', b'secret')
     >>> # OR

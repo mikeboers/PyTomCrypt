@@ -9,12 +9,16 @@ Short-term goals:
   4. Use libtomcrypt and libtommath from GitHub
 - Investigate why `nose2` requires `PYTHONPATH=tests`
 
+- Investigate why kseed test vectors fail on my laptop.
+- Investigate why rc4 gives different answer on 3.3 on Travis.
+
 - Document how Python 3 implementation works.
     - cipher names should be strings
     - keys and ivs are bytes
     - pick upper or lower case for all hex output
     - test all api types
     - update docs to have string prefixes
+
 - Document ECC.
 - Test EAX.
 

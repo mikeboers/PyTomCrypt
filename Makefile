@@ -35,7 +35,7 @@ build: $(CYTHON_SRCS) $(C_NAMES)
 	python setup.py build_ext --inplace
 
 test: build
-	nose2
+	PYTHONPATH=tests nose2
 
 readme: README.html
 

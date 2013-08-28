@@ -7,6 +7,7 @@ Short-term goals:
       that fail
   3. Replace all generic errors with appropriate standard lib errors.
   4. Use libtomcrypt and libtommath from GitHub
+- Investigate why `nose2` requires `PYTHONPATH=tests`
 
 - Document how Python 3 implementation works.
     - cipher names should be strings

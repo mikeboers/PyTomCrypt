@@ -12,4 +12,4 @@ install:
     - git submodule update
     - make build
 
-script: nose2
+script: PYTHONPATH=tests nose2

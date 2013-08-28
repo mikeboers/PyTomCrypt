@@ -1,0 +1,446 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Symmetric Ciphers &mdash; PyTomCrypt 0.7.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.7.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyTomCrypt 0.7.0 documentation" href="index.html" />
+    <link rel="next" title="Elliptic Curve Crypto" href="ecc.html" />
+    <link rel="prev" title="Pythonic Cryptography with PyTomCrypt" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ecc.html" title="Elliptic Curve Crypto"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Pythonic Cryptography with PyTomCrypt"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.7.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="symmetric-ciphers">
+<h1>Symmetric Ciphers<a class="headerlink" href="#symmetric-ciphers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">tomcrypt</span> <span class="kn">import</span> <span class="n">cipher</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">tomcrypt.cipher</span></tt> module contains a <a class="reference internal" href="#tomcrypt.cipher.Descriptor" title="tomcrypt.cipher.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">Descriptor</span></tt></a> class which describes a cipher, and a <a class="reference internal" href="#tomcrypt.cipher.Cipher" title="tomcrypt.cipher.Cipher"><tt class="xref py py-class docutils literal"><span class="pre">Cipher</span></tt></a> class for using a cipher (eg. keys, IVs, etc.). As a convenience there is a pre-made <a class="reference internal" href="#tomcrypt.cipher.Descriptor" title="tomcrypt.cipher.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">Descriptor</span></tt></a> for every cipher provided.</p>
+<p>The module also contains a list of the names of all ciphers provided,
+and the modes that they can operate in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">cipher</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+<span class="go">[&#39;aes&#39;, &#39;anubis&#39;, &#39;blowfish&#39;, &#39;cast5&#39;, &#39;des&#39;, &#39;des3&#39;, &#39;kasumi&#39;, &#39;khazad&#39;, &#39;kseed&#39;, &#39;noekeon&#39;, &#39;rc2&#39;, &#39;rc5&#39;, &#39;rc6&#39;, &#39;rijndael&#39;, &#39;saferp&#39;, &#39;twofish&#39;, &#39;xtea&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">cipher</span><span class="o">.</span><span class="n">modes</span><span class="p">)</span>
+<span class="go">[&#39;cbc&#39;, &#39;cfb&#39;, &#39;ctr&#39;, &#39;ecb&#39;, &#39;f8&#39;, &#39;lrw&#39;, &#39;ofb&#39;]</span>
+</pre></div>
+</div>
+<p>We can inspect some of the properties of a cipher via attributes on a <a class="reference internal" href="#tomcrypt.cipher.Descriptor" title="tomcrypt.cipher.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">Descriptor</span></tt></a> or <a class="reference internal" href="#tomcrypt.cipher.Cipher" title="tomcrypt.cipher.Cipher"><tt class="xref py py-class docutils literal"><span class="pre">Cipher</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">aes</span><span class="o">.</span><span class="n">block_size</span>
+<span class="go">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">aes</span><span class="o">.</span><span class="n">min_key_size</span>
+<span class="go">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">aes</span><span class="o">.</span><span class="n">max_key_size</span>
+<span class="go">32</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#tomcrypt.cipher.Descriptor.key_size" title="tomcrypt.cipher.Descriptor.key_size"><tt class="xref py py-meth docutils literal"><span class="pre">Descriptor.key_size</span></tt></a> returns the size of the largest key than can be constructed from a string of a given size:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">aes</span><span class="o">.</span><span class="n">key_size</span><span class="p">(</span><span class="mi">18</span><span class="p">)</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+<p>We can construct a <tt class="xref py py-class docutils literal"><span class="pre">Cipher</span></tt> object directly (and pass a cipher name via the <tt class="docutils literal"><span class="pre">cipher</span></tt> kwarg) or, as a shortcut, use an instantiated <tt class="xref py py-class docutils literal"><span class="pre">Descriptor</span></tt> as a factory. You can pass a <tt class="docutils literal"><span class="pre">key</span></tt>, <tt class="docutils literal"><span class="pre">iv</span></tt>, <tt class="docutils literal"><span class="pre">cipher</span></tt> (if calling <tt class="docutils literal"><span class="pre">Cipher</span></tt>; defaults to <tt class="docutils literal"><span class="pre">&quot;aes&quot;</span></tt>), <tt class="docutils literal"><span class="pre">mode</span></tt> (defaults to <tt class="docutils literal"><span class="pre">&quot;ctr&quot;</span></tt>), <tt class="docutils literal"><span class="pre">tweak</span></tt> (only for <tt class="docutils literal"><span class="pre">&quot;lrw&quot;</span></tt> mode), and <tt class="docutils literal"><span class="pre">salt_key</span></tt> (only for &#8220;f8&#8221; mode).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">encryptor</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="n">Cipher</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">iv</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">cipher</span><span class="o">=</span><span class="s">&#39;aes&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;ctr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># OR</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">encryptor</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="n">aes</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">iv</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;ctr&#39;</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">message</span> <span class="o">=</span> <span class="n">encryptor</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;This is a message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">message</span>
+<span class="go">b&#39;&amp;\x1a\x17\xfb&gt;\xb5\x8e!a\x87u\r\nz\xd4\x02\x94&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">decryptor</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="n">aes</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">iv</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;ctr&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">decryptor</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="go">b&#39;This is a message&#39;</span>
+</pre></div>
+</div>
+<p>For those modes which support an IV, you can explicitly get and set it via <a class="reference internal" href="#tomcrypt.cipher.Cipher.get_iv" title="tomcrypt.cipher.Cipher.get_iv"><tt class="xref py py-meth docutils literal"><span class="pre">Cipher.get_iv</span></tt></a> and <a class="reference internal" href="#tomcrypt.cipher.Cipher.set_iv" title="tomcrypt.cipher.Cipher.set_iv"><tt class="xref py py-meth docutils literal"><span class="pre">Cipher.set_iv</span></tt></a> methods.</p>
+</div>
+<div class="section" id="descriptor-api">
+<h2>Descriptor API<a class="headerlink" href="#descriptor-api" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tomcrypt.cipher.Descriptor">
+<em class="property">class </em><tt class="descclassname">tomcrypt.cipher.</tt><tt class="descname">Descriptor</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>LibTomCrypt descriptor of a symmetric cipher.</p>
+<p>Can be called as convenience to calling Cipher, passing the cipher name
+via kwargs.</p>
+<dl class="method">
+<dt id="tomcrypt.cipher.Descriptor.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Descriptor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) &#8211; Name of a cipher, e.g. &#8220;aes&#8221; or &#8220;3des&#8221;.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span> <span class="o">=</span> <span class="n">Descriptor</span><span class="p">(</span><span class="s">&#39;aes&#39;</span><span class="p">)</span> <span class="c"># Same as tomcrypt.cipher.aes.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.cipher.Descriptor.__call__">
+<tt class="descname">__call__</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Descriptor.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a cipher state.</p>
+<p>This is a convenience for constructing Cipher objects.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+<span class="go">b&#39;c\xfey\xb6$&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.cipher.Descriptor.name">
+<tt class="descname">name</tt><a class="headerlink" href="#tomcrypt.cipher.Descriptor.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of this cipher.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;aes&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.cipher.Descriptor.block_size">
+<tt class="descname">block_size</tt><a class="headerlink" href="#tomcrypt.cipher.Descriptor.block_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Block size of this cipher.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span><span class="o">.</span><span class="n">block_size</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.cipher.Descriptor.default_rounds">
+<tt class="descname">default_rounds</tt><a class="headerlink" href="#tomcrypt.cipher.Descriptor.default_rounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default number of &#8220;rounds&#8221; for this cipher.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span><span class="o">.</span><span class="n">default_rounds</span>
+<span class="go">10</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.cipher.Descriptor.max_key_size">
+<tt class="descname">max_key_size</tt><a class="headerlink" href="#tomcrypt.cipher.Descriptor.max_key_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum key size for this cipher, in bytes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span><span class="o">.</span><span class="n">max_key_size</span>
+<span class="go">32</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.cipher.Descriptor.min_key_size">
+<tt class="descname">min_key_size</tt><a class="headerlink" href="#tomcrypt.cipher.Descriptor.min_key_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum key size for this cipher, in bytes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span><span class="o">.</span><span class="n">min_key_size</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.cipher.Descriptor.key_size">
+<tt class="descname">key_size</tt><big>(</big><em>size</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Descriptor.key_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>The largest key that can be sliced from a string of the given size.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key_size</strong> (<em>int</em>) &#8211; Length of availible key material.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns int:</th><td class="field-body">The size that can be sliced from the string.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Raises LibError:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">if the size is too small.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span><span class="o">.</span><span class="n">key_size</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+<span class="go">16</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span><span class="o">.</span><span class="n">key_size</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+<span class="go">32</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aes</span><span class="o">.</span><span class="n">key_size</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">LibError</span>: <span class="n">Invalid keysize for block cipher.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="cipher-api">
+<h2>Cipher API<a class="headerlink" href="#cipher-api" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tomcrypt.cipher.Cipher">
+<em class="property">class </em><tt class="descclassname">tomcrypt.cipher.</tt><tt class="descname">Cipher</tt><big>(</big><em>key</em>, <em>iv=None</em>, <em>cipher='aes'</em>, <em>mode='ctr'</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Cipher" title="Permalink to this definition">¶</a></dt>
+<dd><p>All state required to encrypt/decrypt with a symmetric cipher.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">Cipher</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="s">&#39;aes&#39;</span><span class="p">,</span> <span class="s">&#39;cbc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <tt class="xref py py-meth docutils literal"><span class="pre">Cipher.add_header()</span></tt> for example of EAX mode.</p>
+</dd></dl>
+
+<div class="section" id="basics">
+<h3>Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="method">
+<dt id="tomcrypt.cipher.Cipher.__init__">
+<tt class="descclassname">Cipher.</tt><tt class="descname">__init__</tt><big>(</big><em>key</em>, <em>iv=None</em>, <em>cipher='aes'</em>, <em>mode='ctr'</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Cipher.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> (<em>bytes</em>) &#8211; Symmetric key.</li>
+<li><strong>iv</strong> (<em>bytes</em>) &#8211; Initialization vector; <tt class="docutils literal"><span class="pre">None</span></tt> -&gt; null IV.</li>
+<li><strong>cipher</strong> (<em>str</em>) &#8211; The name of the cipher to use.</li>
+<li><strong>mode</strong> (<em>str</em>) &#8211; Cipher block chaining more to use.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Mode Specific Parameters (by keyword only):</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>header</strong> (<em>bytes</em>) &#8211; Only for &#8220;eax&#8221; mode.</li>
+<li><strong>nonce</strong> (<em>bytes</em>) &#8211; Only for &#8220;eax&#8221; mode.</li>
+<li><strong>salt_key</strong> (<em>bytes</em>) &#8211; Only for &#8220;f8&#8221; mode.</li>
+<li><strong>tweak</strong> (<em>bytes</em>) &#8211; Only for &#8220;lrw&#8221; mode.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.cipher.Cipher.encrypt">
+<tt class="descclassname">Cipher.</tt><tt class="descname">encrypt</tt><big>(</big><em>input</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Cipher.encrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypt a string.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;this is a message&#39;</span><span class="p">)</span>
+<span class="go">b&#39;\x7f\xf3|\xa9k-\xd3\xd5t=\xa2\xa1\xb3lT\xb2d&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.cipher.Cipher.decrypt">
+<tt class="descclassname">Cipher.</tt><tt class="descname">decrypt</tt><big>(</big><em>input</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Cipher.decrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypt a string.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\x7f\xf3</span><span class="s">|</span><span class="se">\xa9</span><span class="s">k-</span><span class="se">\xd3\xd5</span><span class="s">t=</span><span class="se">\xa2\xa1\xb3</span><span class="s">lT</span><span class="se">\xb2</span><span class="s">d&#39;</span><span class="p">)</span>
+<span class="go">b&#39;this is a message&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="initialization-vectors">
+<h3>Initialization Vectors<a class="headerlink" href="#initialization-vectors" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="method">
+<dt id="tomcrypt.cipher.Cipher.get_iv">
+<tt class="descclassname">Cipher.</tt><tt class="descname">get_iv</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Cipher.get_iv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current IV, for modes that use it.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;ThisWillSetTheIV&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">get_iv</span><span class="p">()</span>
+<span class="go">b&#39;ThisWillSetTheIV&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;ecb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">get_iv</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">Error</span>: <span class="n">&#39;ecb&#39; mode does not use an IV</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.cipher.Cipher.set_iv">
+<tt class="descclassname">Cipher.</tt><tt class="descname">set_iv</tt><big>(</big><em>iv</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Cipher.set_iv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the current IV, for modes that use it.</p>
+<p>See the LibTomCrypt manual section 3.4.6 for what, precisely, this
+function will do depending on the chaining mode.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">set_iv</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;ThisWillSetTheIV&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+<span class="go">b&#39;\xe2\xef\xc5\xe6\x9e&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;ecb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">set_iv</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;does not matter&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">Error</span>: <span class="n">&#39;ecb&#39; mode does not use an IV</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="eax-specific-methods">
+<h3>EAX-Specific Methods<a class="headerlink" href="#eax-specific-methods" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="method">
+<dt id="tomcrypt.cipher.Cipher.add_header">
+<tt class="descclassname">Cipher.</tt><tt class="descname">add_header</tt><big>(</big><em>header</em><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Cipher.add_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the given string to the EAX header. Only for EAX mode.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;eax&#39;</span><span class="p">,</span> <span class="n">nonce</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;random&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;a header&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+<span class="go">b&#39;Y\x9b\xe5\x87\xcc&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+<span class="go">b&#39;A(|\x9f@I#\x0f\x93\x90Z,\xb5A\x9bN&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span> <span class="o">=</span> <span class="n">aes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;eax&#39;</span><span class="p">,</span> <span class="n">nonce</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;random&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">b</span><span class="s">&#39;a header&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;Y</span><span class="se">\x9b\xe5\x87\xcc</span><span class="s">&#39;</span><span class="p">)</span>
+<span class="go">b&#39;hello&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cipher</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+<span class="go">b&#39;A(|\x9f@I#\x0f\x93\x90Z,\xb5A\x9bN&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.cipher.Cipher.done">
+<tt class="descclassname">Cipher.</tt><tt class="descname">done</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.cipher.Cipher.done" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return authentication tag for EAX mode.</p>
+<p>See <a class="reference internal" href="#tomcrypt.cipher.Cipher.add_header" title="tomcrypt.cipher.Cipher.add_header"><tt class="xref py py-meth docutils literal"><span class="pre">Cipher.add_header(...)</span></tt></a> for example.</p>
+</dd></dl>
+
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Symmetric Ciphers</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#descriptor-api">Descriptor API</a></li>
+<li><a class="reference internal" href="#cipher-api">Cipher API</a><ul>
+<li><a class="reference internal" href="#basics">Basics</a></li>
+<li><a class="reference internal" href="#initialization-vectors">Initialization Vectors</a></li>
+<li><a class="reference internal" href="#eax-specific-methods">EAX-Specific Methods</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Pythonic Cryptography with PyTomCrypt</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ecc.html"
+                        title="next chapter">Elliptic Curve Crypto</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/cipher.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ecc.html" title="Elliptic Curve Crypto"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Pythonic Cryptography with PyTomCrypt"
+             >previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.7.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Mike Boers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

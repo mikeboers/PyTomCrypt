@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PKCS5 &mdash; PyTomCrypt 0.7.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.7.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyTomCrypt 0.7.0 documentation" href="index.html" />
+    <link rel="next" title="Pseudo-Random Number Generators (PRNGs)" href="prng.html" />
+    <link rel="prev" title="PKCS1" href="pkcs1.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="prng.html" title="Pseudo-Random Number Generators (PRNGs)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pkcs1.html" title="PKCS1"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.7.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pkcs5">
+<h1>PKCS5<a class="headerlink" href="#pkcs5" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tomcrypt.pkcs5</span> <span class="kn">import</span> <span class="n">pkcs5</span>
+</pre></div>
+</div>
+<p>This module contains a function which performs the pkcs5 password hashing scheme. Arguments are available to specify the iteration count (defaults to 1024), hash algo (defaults to sha256), and the hash length (defaults to the full hash).</p>
+<dl class="function">
+<dt id="tomcrypt.pkcs5.pkcs5">
+<tt class="descclassname">tomcrypt.pkcs5.</tt><tt class="descname">pkcs5</tt><big>(</big><em>password</em>, <em>salt</em>, <em>iteration_count</em>, <em>hash</em><big>)</big><a class="headerlink" href="#tomcrypt.pkcs5.pkcs5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates PKCS #5 Password-based Encryption Standard (version 2) of a
+given string with a given salt.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>password</strong> (<em>bytes</em>) &#8211; The password to hash.</li>
+<li><strong>salt</strong> (<em>bytes</em>) &#8211; The salt to use.</li>
+<li><strong>iteration_count</strong> (<em>int</em>) &#8211; The number of times to hash.</li>
+<li><strong>hash</strong> &#8211; The algorithm to use: a <tt class="docutils literal"><span class="pre">str</span></tt> or <a class="reference internal" href="hash.html#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">hash.Descriptor</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pkcs5</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;password&#39;</span><span class="p">,</span> <span class="n">salt</span><span class="o">=</span><span class="s">&#39;salt&#39;</span><span class="p">,</span> <span class="n">iteration_count</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="s">&#39;sha256&#39;</span><span class="p">)</span>
+<span class="go">b&#39;#\x1a\xfb}\xcd.\x86\x0c\xfdX\xab\x137+\xd1,\x920v\xc3Y\x8a\x12\x19`2\x0fo\xec\x8aV\x98&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pkcs1.html"
+                        title="previous chapter">PKCS1</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="prng.html"
+                        title="next chapter">Pseudo-Random Number Generators (PRNGs)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pkcs5.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="prng.html" title="Pseudo-Random Number Generators (PRNGs)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pkcs1.html" title="PKCS1"
+             >previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.7.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Mike Boers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

@@ -1,6 +1,14 @@
+
+- Better explain padding modes in docs. See: https://github.com/mikeboers/PyTomCrypt/issues/17
+
 - Investigate why `nose2` requires `PYTHONPATH=tests`
 - Replace all generic errors with appropriate standard lib errors.
+  To ease the transition, make a new ValueError which extends from the real
+  ValueError AND tomcrypt.LibError
 
+- Should we expose the rsa.Key.raw_crypt functionality? It seems like it
+  can only lead to bad places...
+  
 - Investigate why kseed test vectors fail on my laptop.
 - Investigate why rc4 gives different answer on 3.3 on Travis.
 

@@ -567,7 +567,7 @@ cdef class Key(object):
         return out[:out_length]
 
     cpdef verify(self, bytes input, bytes sig, hash=None, padding=PAD_PSS, saltlen=None):
-        """verify(input, sign, hash='sha512', padding='pss', saltlen=None)
+        """verify(input, sig, hash='sha512', padding='pss', saltlen=None)
 
         Verify the signature of some bytes.
 

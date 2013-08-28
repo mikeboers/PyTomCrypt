@@ -25,7 +25,7 @@ if True:
 		des3
 		kasumi
 		khazad
-		kseed
+		#kseed
 		noekeon
 		rc2
 		rc5
@@ -41,6 +41,8 @@ else:
 		blowfish
 		des
 	'''.strip().split())
+
+cipher_names = [x for x in cipher_names if not x.startswith('#')]
 
 cipher_properties = 'name min_key_size max_key_size block_size default_rounds'.split()
 

@@ -41,6 +41,7 @@ for name in ext_names:
         include_dirs=[
                     '.',
                     './src',
+                    './vendor/patched/libtomcrypt',
                     './vendor/libtomcrypt/src/headers',
                     './vendor/libtommath',
         ],

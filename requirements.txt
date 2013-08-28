@@ -1,2 +1,2 @@
-Cython==0.18
+Cython==0.19.1
 Mako==0.7.3

@@ -10,9 +10,8 @@ import time
 
 
 def fix_doctests(suite):
-    if sys.version_info[0] >= 3:
-        return
     for case in suite._tests:
+
         # Add some more flags.
         case._dt_optionflags = (
             (case._dt_optionflags or 0) |
@@ -20,8 +19,11 @@ def fix_doctests(suite):
             doctest.ELLIPSIS |
             doctest.NORMALIZE_WHITESPACE
         )
-        test = case._dt_test
-        for example in test.examples:
+
+        if sys.version_info[0] >= 3:
+            continue
+        
+        for example in case._dt_test.examples:
             # Remove b prefix from strings.
             if example.want.startswith("b'"):
                 example.want = example.want[1:]

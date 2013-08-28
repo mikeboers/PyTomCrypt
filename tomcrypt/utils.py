@@ -21,7 +21,7 @@ def pem_encode(type, mode, content):
     type = ('%s %s' % (type, mode)) if mode == 'PRIVATE' else 'PUBLIC'
     content = str(base64.b64encode(content).decode())
     content = '\n'.join(content[i:i+78] for i in range(0, len(content), 78))
-    return '-----BEGIN %(type)s KEY-----\n%(content)s-----END %(type)s KEY-----\n' % dict(
+    return '-----BEGIN %(type)s KEY-----\n%(content)s\n-----END %(type)s KEY-----\n' % dict(
         type=type,
         content=content,
     )

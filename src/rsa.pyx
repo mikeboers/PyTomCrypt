@@ -254,13 +254,13 @@ cdef class Key(object):
             >>> k = Key(1024)
 
             >>> k.as_string() # doctest: +ELLIPSIS
-            '-----BEGIN RSA PRIVATE KEY-----...-----END RSA PRIVATE KEY-----\\n'
+            '-----BEGIN RSA PRIVATE KEY-----\\n...\\n-----END RSA PRIVATE KEY-----\\n'
 
             >>> k.public.as_string() # doctest: +ELLIPSIS
-            '-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\\n'
+            '-----BEGIN PUBLIC KEY-----\\n...\\n-----END PUBLIC KEY-----\\n'
 
             >>> k.as_string(type='public') # doctest: +ELLIPSIS
-            '-----BEGIN PUBLIC KEY-----...-----END PUBLIC KEY-----\\n'
+            '-----BEGIN PUBLIC KEY-----\\n...\\n-----END PUBLIC KEY-----\\n'
 
             >>> isinstance(k.as_string(format='der'), bytes)
             True

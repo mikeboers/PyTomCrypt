@@ -472,7 +472,7 @@ cdef class Key(object):
 
         :param bytes input: The bytes to encrypt.
         :param str prng: The PRNG to use; ``str`` or :class:`PRNG`.
-        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param str padding: One of ``'none'``, ``'v1.5'``, or ``'oaep'``.
         :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
 
         """
@@ -505,7 +505,7 @@ cdef class Key(object):
         Only usable on private keys.
 
         :param bytes input: The bytes to decrypt.
-        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param str padding: One of ``'none'``, ``'v1.5'``, or ``'oaep'``.
         :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
 
         """
@@ -541,9 +541,8 @@ cdef class Key(object):
 
         :param bytes input: The bytes to sign.
         :param str prng: The PRNG to use; ``str`` or :class:`PRNG`.
-        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param str padding: One of ``'none'``, ``'v1.5'``, or ``'pss'``.
         :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
-
         """
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:
@@ -573,7 +572,7 @@ cdef class Key(object):
 
         :param bytes input: The bytes that were signed.
         :param bytes sig: The signature.
-        :param str padding: One of ``'none'``, ``'v1.5'``, ``'oaep'``, or ``'pss'``.
+        :param str padding: One of ``'none'``, ``'v1.5'``, or ``'pss'``.
         :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
 
         Returns ``True`` if the signature is valid. Raises an exception if the

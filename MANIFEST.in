@@ -1,12 +1,11 @@
 include *.txt
 include *.md
 
-recursive-include tests *.py
 recursive-include tomcrypt *.c *.py
-
-include src/libtom*-*/LICENSE
-
-recursive-include lib/libtomcrypt-1.17/src *.h *.c
-recursive-include lib/libtommath-0.41      *.h *.c
 recursive-include src *.h
+recursive-include tests *.py
 
+include vendor/*/LICENSE
+recursive-include vendor/libtomcrypt/src *.h *.c
+recursive-include vendor/libtommath      *.h *.c
+recursive-include vendor/patched         *.h *.c

@@ -60,8 +60,17 @@
 </pre></div>
 </div>
 <p>This module contains a <a class="reference internal" href="#tomcrypt.rsa.Key" title="tomcrypt.rsa.Key"><tt class="xref py py-class docutils literal"><span class="pre">Key</span></tt></a> class for encrypting, decrypting, signing, and verifying data with a RSA private or public key.</p>
-<p>By default the keys will use <tt class="docutils literal"><span class="pre">&quot;oaep&quot;</span></tt> and <tt class="docutils literal"><span class="pre">&quot;pss&quot;</span></tt> padding, but you can manually specify <tt class="docutils literal"><span class="pre">&quot;v1.5&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;none&quot;</span></tt> via the <tt class="docutils literal"><span class="pre">padding</span></tt> keyword arg on many methods.</p>
+<div class="section" id="padding">
+<h3>Padding<a class="headerlink" href="#padding" title="Permalink to this headline">¶</a></h3>
+<p>By default, encryption will use <a class="reference external" href="http://www.emc.com/emc-plus/rsa-labs/standards-initiatives/what-is-oaep.htm">OAEP</a> padding, and signing will use <a class="reference external" href="http://www.emc.com/emc-plus/rsa-labs/standards-initiatives/what-is-pss-pss-r.htm">PSS</a> padding.</p>
+<p>For greater compatibility (e.g. with OpenSSL which does not support PSS padding via the <tt class="docutils literal"><span class="pre">openssl</span> <span class="pre">rsautl</span></tt> command), you can use <a class="reference external" href="http://tools.ietf.org/html/rfc2313">PKCS1</a> padding by setting the keyword argument <tt class="docutils literal"><span class="pre">padding=&quot;v1.5&quot;</span></tt> on many methods. If padding has already been applied, you can also use <tt class="docutils literal"><span class="pre">padding=&quot;none&quot;</span></tt> to disable it entirely.</p>
+</div>
+<div class="section" id="hashing">
+<h3>Hashing<a class="headerlink" href="#hashing" title="Permalink to this headline">¶</a></h3>
 <p>By default the keys will use <tt class="docutils literal"><span class="pre">sha1</span></tt> for part of the encryption padding, and <tt class="docutils literal"><span class="pre">sha512</span></tt> for the signature, but these can be changed via the <tt class="docutils literal"><span class="pre">hash</span></tt> keyword arg on many methods.</p>
+</div>
+<div class="section" id="use">
+<h3>Use<a class="headerlink" href="#use" title="Permalink to this headline">¶</a></h3>
 <p>You can generate new keys:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">key</span> <span class="o">=</span> <span class="n">rsa</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
 </pre></div>
@@ -84,7 +93,7 @@
 <span class="go">-----END RSA PRIVATE KEY-----&#39;&#39;&#39;)</span>
 </pre></div>
 </div>
-<p>The public key is accessible via the <a class="reference internal" href="ecc.html#tomcrypt.ecc.Key.public" title="tomcrypt.ecc.Key.public"><tt class="xref py py-attr docutils literal"><span class="pre">public</span></tt></a> attribute, and the encoded version of a key is available via the <a class="reference internal" href="ecc.html#tomcrypt.ecc.Key.as_string" title="tomcrypt.ecc.Key.as_string"><tt class="xref py py-meth docutils literal"><span class="pre">as_string()</span></tt></a> method:</p>
+<p>The public key is accessible via the <a class="reference internal" href="ecc.html#tomcrypt.ecc.Key.public" title="tomcrypt.ecc.Key.public"><tt class="xref py py-attr docutils literal"><span class="pre">public</span></tt></a> attribute, and the encoded version of a key is available via the <a class="reference internal" href="#tomcrypt.rsa.Key.as_string" title="tomcrypt.rsa.Key.as_string"><tt class="xref py py-meth docutils literal"><span class="pre">as_string()</span></tt></a> method:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">public</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">pub</span><span class="o">.</span><span class="n">as_string</span><span class="p">()</span>
 <span class="go">-----BEGIN PUBLIC KEY-----</span>
@@ -137,6 +146,7 @@ True
 Traceback (most recent call last):
 &lt;snip&gt;
 tomcrypt.LibError: A private PK key is required.</pre>
+</div>
 </div>
 </div>
 <div class="section" id="module-tomcrypt.rsa">
@@ -445,7 +455,12 @@ signature is the wrong format.</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">RSA</a><ul>
-<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#padding">Padding</a></li>
+<li><a class="reference internal" href="#hashing">Hashing</a></li>
+<li><a class="reference internal" href="#use">Use</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#module-tomcrypt.rsa">RSA API</a></li>
 </ul>
 </li>

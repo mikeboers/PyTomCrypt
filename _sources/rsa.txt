@@ -10,9 +10,27 @@ Overview
 
 This module contains a :class:`.Key` class for encrypting, decrypting, signing, and verifying data with a RSA private or public key.
 
-By default the keys will use ``"oaep"`` and ``"pss"`` padding, but you can manually specify ``"v1.5"`` or ``"none"`` via the ``padding`` keyword arg on many methods.
+
+Padding
+^^^^^^^
+
+By default, encryption will use OAEP_ padding, and signing will use PSS_ padding.
+
+For greater compatibility (e.g. with OpenSSL which does not support PSS padding via the ``openssl rsautl`` command), you can use PKCS1_ padding by setting the keyword argument ``padding="v1.5"`` on many methods. If padding has already been applied, you can also use ``padding="none"`` to disable it entirely.
+
+.. _PKCS1: http://tools.ietf.org/html/rfc2313
+.. _OAEP: http://www.emc.com/emc-plus/rsa-labs/standards-initiatives/what-is-oaep.htm
+.. _PSS: http://www.emc.com/emc-plus/rsa-labs/standards-initiatives/what-is-pss-pss-r.htm
+
+
+Hashing
+^^^^^^^
 
 By default the keys will use ``sha1`` for part of the encryption padding, and ``sha512`` for the signature, but these can be changed via the ``hash`` keyword arg on many methods.
+
+
+Use
+^^^
 
 You can generate new keys::
 

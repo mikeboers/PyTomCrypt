@@ -11,7 +11,7 @@ def load_tests(loader, tests, ignore):
     return tests
 
 
-class TestRSA(TestCase):
+class TestRSABasics(TestCase):
     
     def test_key_size_for_payload(self):
         payload = 100
@@ -51,7 +51,47 @@ class TestRSA(TestCase):
         self.assertTrue(key.verify(msg, sig))
         # Not testing failure.
 
-        
+
+class TestRsaWithOpenssl(TestCase):
+
+    def setUp(self):
+
+        self.key = Key(1024)
+        self.private_path = os.path.join(self.sandbox, 'private.pem')
+        self.public_path = os.path.join(self.sandbox, 'public.pem')
+
+        with open(self.private_path, 'w') as key_fh:
+            key_fh.write(self.key.as_string())
+        with open(self.public_path, 'w') as key_fh:
+            key_fh.write(self.key.public.as_string())
+
+    def test_decrypt_oaep(self):
+
+        message = 'This is a test message.'
+        proc = Popen(
+            ['openssl', 'rsautl', '-encrypt', '-oaep', '-pubin', '-inkey', self.public_path],
+            stdin=PIPE,
+            stdout=PIPE,
+        )
+        ct, err = proc.communicate(message)
+
+        pt = self.key.decrypt(ct)
+        self.assertEqual(message, pt)
+
+    def test_decrypt_pkcs(self):
+
+        message = 'This is a test message.'
+        proc = Popen(
+            ['openssl', 'rsautl', '-encrypt', '-pkcs', '-pubin', '-inkey', self.public_path],
+            stdin=PIPE,
+            stdout=PIPE,
+        )
+        ct, err = proc.communicate(message)
+
+        pt = self.key.decrypt(ct, padding='v1.5')
+        self.assertEqual(message, pt)
+
+  
 if __name__ == '__main__':
     
     main()

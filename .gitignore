@@ -23,4 +23,5 @@
 *.o
 *.a
 *.so
-tomcrypt/*.c
+/tomcrypt/*.c
+/tests/sandbox

@@ -1,12 +1,21 @@
-from base64 import b64encode, b64decode, b16encode, b16decode
-from pprint import pprint, pformat
-from subprocess import Popen, PIPE
-from unittest import TestCase
+import datetime
 import doctest
+import errno
 import hashlib
 import os
 import sys
 import time
+from base64 import b64encode, b64decode, b16encode, b16decode
+from pprint import pprint, pformat
+from subprocess import Popen, PIPE, check_call
+from unittest import TestCase as BaseTestCase
+
+
+sandbox = os.path.join(
+    os.path.dirname(__file__),
+    'sandbox',
+    datetime.datetime.now().strftime('%Y%m%d-%H%M%S'),
+)
 
 
 def fix_doctests(suite):
@@ -33,4 +42,35 @@ def get_doctests(mod):
     suite = doctest.DocTestSuite(mod)
     fix_doctests(suite)
     return suite
+
+
+
+class TestCase(BaseTestCase):
+
+    @property
+    def full_name(self):
+        
+        try:
+            return self._full_name
+        except AttributeError:
+            pass
+        
+        module = sys.modules.get(self.__class__.__module__)
+        if module and module.__file__:
+            file_name = os.path.basename(os.path.splitext(module.__file__)[0])
+        else:
+            file_name = 'unknown'
+        
+        self._full_name = file_name + '.' + self.__class__.__name__
+        return self._full_name
+        
+    @property
+    def sandbox(self):
+        path = os.path.join(sandbox, self.full_name)
+        try:
+            os.makedirs(path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+        return path
 

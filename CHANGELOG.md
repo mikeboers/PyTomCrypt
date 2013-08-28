@@ -1,8 +1,7 @@
-0.7.0-dev
----------
+0.7.0
+-----
 - Sphinx-based API documentation.
-- Standard exception types (in progress). This introduces limited backwards incompatibility.
-- Test vectors run on first instanciation (planned).
+- Dropped "kseed" cipher due to compiling issues on OS X.
 
 0.6.1
 -----

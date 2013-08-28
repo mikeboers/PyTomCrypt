@@ -1,13 +1,5 @@
-Short-term goals:
-
-  1. Convert README.md into Sphinx docs.
-  1a. make deploy-docs to docs.mikeboers.com/pytomcrypt/0.7.0/...
-  2. Integrate library tests into startup.
-      - check each cipher as the module is imported; keep a list of the ones
-      that fail
-  3. Replace all generic errors with appropriate standard lib errors.
-  4. Use libtomcrypt and libtommath from GitHub
 - Investigate why `nose2` requires `PYTHONPATH=tests`
+- Replace all generic errors with appropriate standard lib errors.
 
 - Investigate why kseed test vectors fail on my laptop.
 - Investigate why rc4 gives different answer on 3.3 on Travis.

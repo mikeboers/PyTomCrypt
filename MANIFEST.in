@@ -2,10 +2,7 @@ include *.txt
 include *.md
 
 recursive-include tomcrypt *.c *.py
-recursive-include src *.h
+recursive-include src *.h *.ext_sources.txt
 recursive-include tests *.py
 
-include vendor/*/LICENSE
-recursive-include vendor/libtomcrypt/src *.h *.c
-recursive-include vendor/libtommath      *.h *.c
-recursive-include vendor/patched         *.h *.c
+recursive-include vendor *.h *.c LICENSE

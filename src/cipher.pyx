@@ -143,7 +143,7 @@ cdef class Descriptor(object):
             >>> aes.key_size(8)
             Traceback (most recent call last):
             ...
-            LibError: Invalid keysize for block cipher.
+            tomcrypt.LibError: Invalid keysize for block cipher.
 
         """
         cdef int out = size
@@ -283,7 +283,7 @@ cdef class Cipher(Descriptor):
         >>> cipher.get_iv()
         Traceback (most recent call last):
         ...
-        Error: 'ecb' mode does not use an IV
+        tomcrypt.Error: 'ecb' mode does not use an IV
         
         """
         cdef unsigned long length
@@ -314,7 +314,7 @@ cdef class Cipher(Descriptor):
         >>> cipher.set_iv(b'does not matter')
         Traceback (most recent call last):
         ...
-        Error: 'ecb' mode does not use an IV
+        tomcrypt.Error: 'ecb' mode does not use an IV
 
         """
         % for i, (mode, mode_i) in enumerate(sorted(cipher_iv_modes.items())):

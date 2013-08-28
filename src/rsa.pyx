@@ -543,6 +543,7 @@ cdef class Key(object):
         :param str prng: The PRNG to use; ``str`` or :class:`PRNG`.
         :param str padding: One of ``'none'``, ``'v1.5'``, or ``'pss'``.
         :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
+        :param saltlen: Length of the salt, in bytes. By default, the strict maximum is used.
         """
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:

@@ -58,14 +58,14 @@ class TestRSABasics(TestCase):
 
     def test_raw_passthrough_forwards(self):
         msg = b'hello world'
-        ct = self.public.raw_encrypt(msg)
-        pt = self.private.raw_decrypt(ct).strip('\0')
+        ct = self.public.encrypt(msg, padding='none')
+        pt = self.private.decrypt(ct, padding='none').strip('\0')
         self.assertEqual(msg, pt)
 
     def test_raw_passthrough_backwards(self):
         msg = b'hello world'
-        ct = self.private.raw_decrypt(msg)
-        pt = self.public.raw_encrypt(ct).strip('\0')
+        ct = self.private.decrypt(msg, padding='none')
+        pt = self.public.encrypt(ct, padding='none').strip('\0')
         self.assertEqual(msg, pt)
 
 
@@ -119,7 +119,7 @@ class TestRsaWithOpenssl(TestCase):
         )
         sig, err = proc.communicate(hash_)
 
-        pt = self.key.raw_verify(sig)
+        pt = self.key.encrypt(sig, padding='none')
         pt = pt[pt.index('\0', 1) + 1:]
         self.assertEqual(hash_, pt)
 

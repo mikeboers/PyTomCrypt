@@ -465,6 +465,15 @@ cdef class Key(object):
             &self.key))
         return out[:out_length]
 
+    def raw_encrypt(self, bytes input):
+        return self.raw_crypt(PK_PUBLIC, input)
+    def raw_verify(self, bytes input):
+        return self.raw_crypt(PK_PUBLIC, input)
+    def raw_decrypt(self, bytes input):
+        return self.raw_crypt(PK_PRIVATE, input)
+    def raw_sign(self, bytes input):
+        return self.raw_crypt(PK_PRIVATE, input)
+
     cpdef encrypt(self, bytes input, prng=None, hash=None, padding=PAD_OAEP):
         """encrypt(input, prng='sprng', hash='sha1', padding='oaep')
 

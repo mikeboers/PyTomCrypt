@@ -1,16 +1,21 @@
+- expose all the pkcs5/oaep/pss padding functions
+- passing `hash=None` to sign/verify will cause it to assume it was passed a digest
+- raw_sign and raw_verify would allow for you to do it manually
 
-- Better explain padding modes in docs. See: https://github.com/mikeboers/PyTomCrypt/issues/17
+- consider allowing `padding='pkcs1'` or `padding='pkcs1.5'
+
+- Find where variables are being replaced for constants, which may likely be
+  messing with kseed and fortuna.
+
+  - `B0` from CCM (that was patched) fails on my laptop
+  - Investigate why kseed test vectors fail on my laptop.
+  - Investigate why rc4 gives different answer on 3.3 on Travis.
 
 - Investigate why `nose2` requires `PYTHONPATH=tests`
 - Replace all generic errors with appropriate standard lib errors.
   To ease the transition, make a new ValueError which extends from the real
   ValueError AND tomcrypt.LibError
-
-- Should we expose the rsa.Key.raw_crypt functionality? It seems like it
-  can only lead to bad places...
   
-- Investigate why kseed test vectors fail on my laptop.
-- Investigate why rc4 gives different answer on 3.3 on Travis.
 
 - Document how Python 3 implementation works.
     - cipher names should be strings

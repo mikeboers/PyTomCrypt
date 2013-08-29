@@ -566,7 +566,7 @@ cdef class Key(object):
         ))
         return out[:out_length]
 
-    cpdef verify(self, bytes input, bytes sig, hash=None, padding=PAD_PSS, saltlen=None):
+    cpdef verify(self, bytes input, bytes sig=None, hash=None, padding=PAD_PSS, saltlen=None):
         """verify(input, sig, hash='sha512', padding='pss', saltlen=None)
 
         Verify the signature of some bytes.
@@ -584,7 +584,9 @@ cdef class Key(object):
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:
             return self.raw_crypt(PK_PUBLIC, input)
-
+        if sig is None:
+            raise ValueError('missing sig')
+        
         cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_SIG_HASH)
         cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
 

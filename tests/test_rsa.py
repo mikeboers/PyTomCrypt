@@ -119,7 +119,7 @@ class TestRsaWithOpenssl(TestCase):
         )
         sig, err = proc.communicate(hash_)
 
-        pt = self.key.encrypt(sig, padding='none')
+        pt = self.key.verify(sig, padding='none')
         pt = pt[pt.index('\0', 1) + 1:]
         self.assertEqual(hash_, pt)
 

@@ -3,6 +3,7 @@ from __future__ import division, print_function
 from . import *
 
 from tomcrypt import prng, rsa
+from tomcrypt.hash import md5, sha1
 from tomcrypt.rsa import *
 
 
@@ -13,6 +14,10 @@ def load_tests(loader, tests, ignore):
 
 class TestRSABasics(TestCase):
     
+    def setUp(self):
+        self.private = self.key = Key(1024)
+        self.public = self.key.public
+
     def test_key_size_for_payload(self):
         payload = 100
         size = key_size_for_payload(payload)
@@ -51,6 +56,18 @@ class TestRSABasics(TestCase):
         self.assertTrue(key.verify(msg, sig))
         # Not testing failure.
 
+    def test_raw_passthrough_forwards(self):
+        msg = b'hello world'
+        ct = self.public.raw_encrypt(msg)
+        pt = self.private.raw_decrypt(ct).strip('\0')
+        self.assertEqual(msg, pt)
+
+    def test_raw_passthrough_backwards(self):
+        msg = b'hello world'
+        ct = self.private.raw_decrypt(msg)
+        pt = self.public.raw_encrypt(ct).strip('\0')
+        self.assertEqual(msg, pt)
+
 
 class TestRsaWithOpenssl(TestCase):
 
@@ -65,7 +82,7 @@ class TestRsaWithOpenssl(TestCase):
         with open(self.public_path, 'w') as key_fh:
             key_fh.write(self.key.public.as_string())
 
-    def test_decrypt_oaep(self):
+    def test_tomcrypt_decrypt_openssl_oaep(self):
 
         message = 'This is a test message.'
         proc = Popen(
@@ -78,7 +95,7 @@ class TestRsaWithOpenssl(TestCase):
         pt = self.key.decrypt(ct)
         self.assertEqual(message, pt)
 
-    def test_decrypt_pkcs(self):
+    def test_tomcrypt_decrypt_openssl_pkcs(self):
 
         message = 'This is a test message.'
         proc = Popen(
@@ -90,6 +107,21 @@ class TestRsaWithOpenssl(TestCase):
 
         pt = self.key.decrypt(ct, padding='v1.5')
         self.assertEqual(message, pt)
+
+    def test_tomcrypt_verify_openssl(self):
+
+        message = 'This is a test message.'
+        hash_ = sha1(message).digest()
+        proc = Popen(
+            ['openssl', 'rsautl', '-sign', '-inkey', self.private_path],
+            stdin=PIPE,
+            stdout=PIPE,
+        )
+        sig, err = proc.communicate(hash_)
+
+        pt = self.key.raw_verify(sig)
+        pt = pt[pt.index('\0', 1) + 1:]
+        self.assertEqual(hash_, pt)
 
   
 if __name__ == '__main__':

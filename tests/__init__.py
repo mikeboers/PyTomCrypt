@@ -1,4 +1,3 @@
-import datetime
 import doctest
 import errno
 import hashlib
@@ -14,7 +13,6 @@ from unittest import TestCase as BaseTestCase
 sandbox = os.path.join(
     os.path.dirname(__file__),
     'sandbox',
-    datetime.datetime.now().strftime('%Y%m%d-%H%M%S'),
 )
 
 

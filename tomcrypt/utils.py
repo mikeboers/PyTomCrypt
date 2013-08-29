@@ -7,10 +7,19 @@ from . import Error
 def pem_encode(type, mode, content):
     """PEM encode a key.
 
-    Params:
-        type -- "RSA", "EC", etc.
-        mode -- "PUBLIC" or "PRIVATE"
-        content -- The thing to encode.
+    :param str type: ``"RSA"``, ``"EC"``, etc.
+    :param str mode: ``"PUBLIC"`` or ``"PRIVATE"``
+    :param str content: The content to encode.
+
+    >>> print pem_encode('TEST', 'PRIVATE', 'private content')
+    -----BEGIN TEST PRIVATE KEY-----
+    cHJpdmF0ZSBjb250ZW50
+    -----END TEST PRIVATE KEY-----
+
+    >>> print pem_encode('TEST', 'PUBLIC', 'public content')
+    -----BEGIN PUBLIC KEY-----
+    cHVibGljIGNvbnRlbnQ=
+    -----END PUBLIC KEY-----
 
     """
 
@@ -34,13 +43,15 @@ _pem_re = re.compile(r"""
     \s*$
 """, re.VERBOSE | re.DOTALL)
 
+
 def pem_decode(content):
     """PEM decode a key.
 
     Returns a tuple of:
-        type -- "RSA", "EC", or None (likely if public)
-        mode -- "PRIVATE" or "PUBLIC"
-        content -- Decoded content.
+    
+    - type: E.g. ``"RSA"``, ``"EC"``, or None (likely if public);
+    - mode: ``"PRIVATE"`` or ``"PUBLIC"``;
+    - content: original content.
 
     Throws a tomcrypt.Error if content is not PEM encoded.
 

@@ -83,14 +83,14 @@ class CipherTests(TestCase):
                 keysize, mode, b16encode(ct).decode(), b16encode(out).decode()))
             
     def test_vectors(self):
-        for filename in os.listdir('test_vectors'):
+        for filename in os.listdir('tests/cipher_vectors'):
             if 'CFB1' in filename:
                 continue
             self.check_vectors(filename)
 
     def check_vectors(self, filename):
         mode = filename[:3].lower()
-        fh = open('test_vectors/' + filename, 'r')
+        fh = open('tests/cipher_vectors/' + filename, 'r')
         type = fh.readline().strip()[1:-1].lower()
         fh.readline()
         data = {}

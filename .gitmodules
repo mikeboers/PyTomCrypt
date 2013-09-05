@@ -1,6 +1,6 @@
 [submodule "vendor/libtomcrypt"]
 	path = vendor/libtomcrypt
-	url = https://github.com/libtom/libtomcrypt.git
+	url = https://github.com/mikeboers/libtomcrypt.git
 [submodule "vendor/libtommath"]
 	path = vendor/libtommath
 	url = https://github.com/libtom/libtommath.git

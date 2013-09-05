@@ -41,6 +41,7 @@ def pprint(bytes encoded):
 cdef indent(int depth):
     return '  ' * depth
 
+
 cdef void _pprint(ltc_asn1_list *value, int depth):
     
     # TODO: Figure out ideal size for this.
@@ -56,9 +57,22 @@ cdef void _pprint(ltc_asn1_list *value, int depth):
 
     elif value.type == LTC_ASN1_INTEGER:
         check_for_error(mp.write_radix(value.data, buf, 16))
-        print '%s0x%s' % (indent(depth), buf)
+        print '%s%s: 0x%s' % (indent(depth), type_str, buf)
 
+    elif value.type == LTC_ASN1_OBJECT_IDENTIFIER:
+        longs = []
+        for i in range(value.size):
+            longs.append(int((<unsigned long *>value.data)[i]))
+        print '%s%s: %r' % (indent(depth), type_str, tuple(longs))
 
+    elif value.type == LTC_ASN1_BIT_STRING:
+        bools = []
+        for i in range(value.size):
+            bools.append(int((<unsigned char *>value.data)[i]))
+        print '%s%s: %r' % (indent(depth), type_str, tuple(bools))
+
+    elif value.type == LTC_ASN1_NULL:
+        print '%s%s' % (indent(depth), type_str)
 
     else:
         print '%s%s: Not decodable.' % (indent(depth), type_str)

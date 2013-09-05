@@ -6,7 +6,12 @@
 - Replace all generic errors with appropriate standard lib errors.
   To ease the transition, make a new ValueError which extends from the real
   ValueError AND tomcrypt.LibError
-  
+
+- Implement tomcrypt.der
+  - encode/decode
+  - each type extends a native Python type
+  - shortcuts for each type
+
 - Document how Python 3 implementation works.
     - cipher names should be strings
     - keys and ivs are bytes

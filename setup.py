@@ -13,7 +13,7 @@ if on_rtd:
 
 
 # Allow us to specify a single extension to build.
-ext_names = ['_core', 'cipher', 'hash', 'mac', 'prng', 'rsa', 'pkcs1', 'pkcs5', 'ecc']
+ext_names = ['_core', 'cipher', 'der', 'hash', 'mac', 'prng', 'rsa', 'pkcs1', 'pkcs5', 'ecc']
 ext_name = os.environ.get('PyTomCrypt_ext_name')
 if ext_name:
     if ext_name not in ext_names:

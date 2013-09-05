@@ -81,4 +81,5 @@ include "tomcrypt.rsa-core.pxd"
 include "tomcrypt.pkcs1-core.pxd"
 include "tomcrypt.pkcs5-core.pxd"
 include "tomcrypt.ecc-core.pxd"
+include "tomcrypt.der-core.pxd"
 

@@ -8,6 +8,9 @@
   messing with kseed and fortuna.
 
   - `B0` from CCM (that was patched) fails on my laptop
+    toy with:
+      $ gcc -dM -E -I. -Isrc -I vendor/libtomcrypt/src/headers -I vendor/libtommath vendor/libtomcrypt/src/encauth/ccm/ccm_memory_ex.c | sort -u | grep -v '#define _'
+
   - Investigate why kseed test vectors fail on my laptop.
   - Investigate why rc4 gives different answer on 3.3 on Travis.
 
@@ -20,6 +23,12 @@
   - encode/decode
   - each type extends a native Python type
   - shortcuts for each type
+  - fix a few segfaults in libtomcrypt's DER implementation:
+    1. Invalid packet length will segfault.
+    2. Invalid initial packet type will segfault.
+
+    The trouble is that the ASN1 functions are supposed to "soft" fail, and so
+    I don't really know how to deal with this stuff.
 
 - Document how Python 3 implementation works.
     - cipher names should be strings

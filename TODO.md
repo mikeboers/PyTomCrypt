@@ -4,13 +4,6 @@
 
 - consider allowing `padding='pkcs1'` or `padding='pkcs1.5'
 
-- Find where variables are being replaced for constants, which may likely be
-  messing with kseed and fortuna.
-
-  - `B0` from CCM (that was patched) fails on my laptop
-  - Investigate why kseed test vectors fail on my laptop.
-  - Investigate why rc4 gives different answer on 3.3 on Travis.
-
 - Investigate why `nose2` requires `PYTHONPATH=tests`
 - Replace all generic errors with appropriate standard lib errors.
   To ease the transition, make a new ValueError which extends from the real

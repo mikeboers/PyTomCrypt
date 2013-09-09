@@ -1,5 +1,3 @@
-# vim: set syntax=pyrex
-
 from tomcrypt._core cimport *
 from tomcrypt._core import Error
 
@@ -65,7 +63,9 @@ cdef class PRNG(object):
     def __init__(self, prng, entropy=None):
         self.idx = get_prng_idx(prng)
         self.desc = &prng_descriptors[self.idx]
+
         check_for_error(self.desc.start(&self.state))
+
         self.ready = False
         if isinstance(entropy, int):
             self.auto_seed(entropy)
@@ -139,7 +139,11 @@ cdef class PRNG(object):
     def read(self, int length):
         """Retrieve binary data from the PRNG."""
         self._autoready()
-        out = PyBytes_FromStringAndSize(NULL, length)
+
+        # Create a zeroed buffer to write into, since some of the PRNGs
+        # operate by XORing the random stream against the existing content of
+        # the buffer (e.g. RC4, since that is its primary use).
+        out = b'\0' * length
         cdef unsigned long len_read = self.desc.read(out, length, &self.state)
         return out[:len_read]
     
@@ -157,8 +161,8 @@ cdef class PRNG(object):
         >>> state = a.get_state()
         >>> b = yarrow()
         >>> b.set_state(state)
-        >>> b.read(8)
-        b'\\xa8\\xe6\\xbc\\xbf \\xb2\\x18!'
+        >>> len(b.read(8))
+        8
 
         """
         self._autoready()

@@ -10,6 +10,9 @@ from subprocess import Popen, PIPE, check_call
 from unittest import TestCase as BaseTestCase
 
 
+is_py3 = sys.version_info[0] >= 3
+
+
 sandbox = os.path.join(
     os.path.dirname(__file__),
     'sandbox',

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import re
 import base64
@@ -9,14 +10,14 @@ def pem_encode(type, mode, content):
 
     :param str type: ``"RSA"``, ``"EC"``, etc.
     :param str mode: ``"PUBLIC"`` or ``"PRIVATE"``
-    :param str content: The content to encode.
+    :param bytes content: The content to encode.
 
-    >>> print pem_encode('TEST', 'PRIVATE', 'private content')
+    >>> print(pem_encode('TEST', 'PRIVATE', b'private content'))
     -----BEGIN TEST PRIVATE KEY-----
     cHJpdmF0ZSBjb250ZW50
     -----END TEST PRIVATE KEY-----
 
-    >>> print pem_encode('TEST', 'PUBLIC', 'public content')
+    >>> print(pem_encode('TEST', 'PUBLIC', b'public content'))
     -----BEGIN PUBLIC KEY-----
     cHVibGljIGNvbnRlbnQ=
     -----END PUBLIC KEY-----

@@ -59,13 +59,13 @@ class TestRSABasics(TestCase):
     def test_raw_passthrough_forwards(self):
         msg = b'hello world'
         ct = self.public.encrypt(msg, padding='none')
-        pt = self.private.decrypt(ct, padding='none').strip('\0')
+        pt = self.private.decrypt(ct, padding='none').strip(b'\0')
         self.assertEqual(msg, pt)
 
     def test_raw_passthrough_backwards(self):
         msg = b'hello world'
         ct = self.private.decrypt(msg, padding='none')
-        pt = self.public.encrypt(ct, padding='none').strip('\0')
+        pt = self.public.encrypt(ct, padding='none').strip(b'\0')
         self.assertEqual(msg, pt)
 
 
@@ -84,7 +84,7 @@ class TestRsaWithOpenssl(TestCase):
 
     def test_tomcrypt_decrypt_openssl_oaep(self):
 
-        message = 'This is a test message.'
+        message = b'This is a test message.'
         proc = Popen(
             ['openssl', 'rsautl', '-encrypt', '-oaep', '-pubin', '-inkey', self.public_path],
             stdin=PIPE,
@@ -97,7 +97,7 @@ class TestRsaWithOpenssl(TestCase):
 
     def test_tomcrypt_decrypt_openssl_pkcs(self):
 
-        message = 'This is a test message.'
+        message = b'This is a test message.'
         proc = Popen(
             ['openssl', 'rsautl', '-encrypt', '-pkcs', '-pubin', '-inkey', self.public_path],
             stdin=PIPE,
@@ -110,7 +110,7 @@ class TestRsaWithOpenssl(TestCase):
 
     def test_tomcrypt_verify_openssl(self):
 
-        message = 'This is a test message.'
+        message = b'This is a test message.'
         hash_ = sha1(message).digest()
         proc = Popen(
             ['openssl', 'rsautl', '-sign', '-inkey', self.private_path],
@@ -120,7 +120,7 @@ class TestRsaWithOpenssl(TestCase):
         sig, err = proc.communicate(hash_)
 
         pt = self.key.verify(sig, padding='none')
-        pt = pt[pt.index('\0', 1) + 1:]
+        pt = pt[pt.index(b'\0', 1) + 1:]
         self.assertEqual(hash_, pt)
 
   

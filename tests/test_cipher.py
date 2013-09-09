@@ -16,13 +16,13 @@ class CipherAPITests(TestCase):
     def test_convience_args(self):
 
         # Args should be: key, iv, mode.
-        nonzero = '0123456789abcdef'
+        nonzero = b'0123456789abcdef'
         z = cipher.aes(nonzero, nonzero, 'cbc')
 
     def test_iv_requirements(self):
 
-        zero = '\0' * 16
-        nonzero = '0123456789abcdef'
+        zero = b'\0' * 16
+        nonzero = b'0123456789abcdef'
         
         # ECC
         x = cipher.aes(nonzero, mode='ecb')
@@ -38,7 +38,7 @@ class CipherAPITests(TestCase):
 
     def test_iv_getset(self):
 
-        nonzero = '0123456789abcdef'
+        nonzero = b'0123456789abcdef'
         x = cipher.aes(nonzero, None, 'ecb')
         self.assertRaises(ValueError, x.get_iv)
         self.assertRaises(ValueError, x.set_iv, nonzero)

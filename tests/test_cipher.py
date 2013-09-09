@@ -36,6 +36,12 @@ class CipherAPITests(TestCase):
         x = cipher.aes(nonzero, zero, 'ctr')
         y = cipher.aes(nonzero, nonzero, 'ctr')
 
+    def test_iv_getset(self):
+
+        nonzero = '0123456789abcdef'
+        x = cipher.aes(nonzero, None, 'ecb')
+        self.assertRaises(ValueError, x.get_iv)
+        self.assertRaises(ValueError, x.set_iv, nonzero)
 
 
 class CipherTests(TestCase):

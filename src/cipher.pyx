@@ -280,15 +280,12 @@ cdef class Cipher(Descriptor):
     cpdef get_iv(self):
         """Returns the current IV, for modes that use it.
 
+        :returns bytes: The current IV.
+        :raises tomcrypt.Error: when the mode does not use IVs.
+
         >>> cipher = aes(b'0123456789abcdef', b'ThisWillSetTheIV')
         >>> cipher.get_iv()
         b'ThisWillSetTheIV'
-
-        >>> cipher = aes(b'0123456789abcdef', mode='ecb')
-        >>> cipher.get_iv()
-        Traceback (most recent call last):
-        ...
-        tomcrypt.Error: 'ecb' mode does not use an IV
         
         """
         cdef unsigned long length
@@ -310,16 +307,13 @@ cdef class Cipher(Descriptor):
         See the LibTomCrypt manual section 3.4.6 for what, precisely, this
         function will do depending on the chaining mode.
 
+        :param bytes iv: The current IV.
+        :raises tomcrypt.Error: When the mode does not use IVs.
+
         >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16)
         >>> cipher.set_iv(b'ThisWillSetTheIV')
         >>> cipher.encrypt(b'hello')
         b'\\xe2\\xef\\xc5\\xe6\\x9e'
-
-        >>> cipher = aes(b'0123456789abcdef', mode='ecb')
-        >>> cipher.set_iv(b'does not matter')
-        Traceback (most recent call last):
-        ...
-        tomcrypt.Error: 'ecb' mode does not use an IV
 
         """
         % for i, (mode, mode_i) in enumerate(sorted(cipher_iv_modes.items())):

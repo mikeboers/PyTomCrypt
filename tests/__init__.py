@@ -30,8 +30,8 @@ def fix_doctests(suite):
         if sys.version_info[0] >= 3:
             continue
         
+        # Remove b prefix from strings.
         for example in case._dt_test.examples:
-            # Remove b prefix from strings.
             if example.want.startswith("b'"):
                 example.want = example.want[1:]
 
@@ -40,7 +40,6 @@ def get_doctests(mod):
     suite = doctest.DocTestSuite(mod)
     fix_doctests(suite)
     return suite
-
 
 
 class TestCase(BaseTestCase):

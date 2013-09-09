@@ -58,7 +58,7 @@ cdef class Descriptor(object):
     def __init__(self, cipher):
         """__init__(name)
 
-        :param str name: Name of a cipher, e.g. "aes" or "3des".
+        :param str name: Name of a cipher, e.g. ``"aes"`` or ``"3des"``.
 
         ::
 

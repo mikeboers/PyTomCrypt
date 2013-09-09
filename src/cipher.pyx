@@ -143,7 +143,7 @@ cdef class Descriptor(object):
             >>> aes.key_size(8)
             Traceback (most recent call last):
             ...
-            tomcrypt.LibError: Invalid keysize for block cipher.
+            LibError: Invalid keysize for block cipher.
 
         """
         cdef int out = size

@@ -11,6 +11,15 @@ def load_tests(loader, tests, ignore):
     return tests
 
 
+class CipherAPITests(TestCase):
+
+    def test_convience_args(self):
+
+        # Args should be: key, iv, mode.
+        nonzero = '0123456789abcdef'
+        z = cipher.aes(nonzero, nonzero, 'cbc')
+
+
 class CipherTests(TestCase):
     
     def test_library(self):

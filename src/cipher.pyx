@@ -150,7 +150,7 @@ cdef class Descriptor(object):
         check_for_error(self.desc.key_size(&out))
         return out
     
-    def __call__(self, *args, **kwargs):
+    def __call__(self, bytes key, bytes iv=None, mode='ctr', *args, **kwargs):
         """__call__(*args, **kwargs)
 
         Initialize a cipher state.
@@ -162,7 +162,7 @@ cdef class Descriptor(object):
         b'c\\xfey\\xb6$'
         
         """
-        return Cipher(*args, cipher=self.name, **kwargs)
+        return Cipher(key, iv, self.name, mode, *args, **kwargs)
 
 
 # Define a type to masquarade as ANY of the mode states.

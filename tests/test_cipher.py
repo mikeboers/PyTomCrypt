@@ -19,16 +19,22 @@ class CipherAPITests(TestCase):
         nonzero = '0123456789abcdef'
         z = cipher.aes(nonzero, nonzero, 'cbc')
 
-    def test_ecc_iv_error(self):
+    def test_iv_requirements(self):
 
         zero = '\0' * 16
         nonzero = '0123456789abcdef'
         
+        # ECC
         x = cipher.aes(nonzero, mode='ecb')
         y = cipher.aes(nonzero, None, 'ecb')
-        z = cipher.aes(nonzero, zero, 'ecb')
-
+        self.assertRaises(ValueError, cipher.aes, nonzero, zero, 'ecb')
         self.assertRaises(ValueError, cipher.aes, nonzero, nonzero, 'ecb')
+
+        # Not ECC
+        self.assertRaises(ValueError, cipher.aes, nonzero, mode='ctr')
+        self.assertRaises(ValueError, cipher.aes, nonzero, None, 'ctr')
+        x = cipher.aes(nonzero, zero, 'ctr')
+        y = cipher.aes(nonzero, nonzero, 'ctr')
 
 
 
@@ -53,11 +59,8 @@ class CipherTests(TestCase):
         cipher_desc = Descriptor(cipher=cipher_name)
         for i in range(1, 2):
             key = os.urandom(keysize//8)
-            if mode == 'ecb':
-                iv = '\0' * cipher_desc.block_size
-            else:
-                iv  = os.urandom(cipher_desc.block_size)
-            pt  = os.urandom(i * 128 // 8)
+            iv = None if mode == 'ecb' else os.urandom(cipher_desc.block_size)
+            pt = os.urandom(i * 128 // 8)
             if cipher_name == 'aes':
                 cipher_spec = 'aes-%d-%s' % (keysize, mode)
             elif cipher_name == 'des':
@@ -65,7 +68,7 @@ class CipherTests(TestCase):
             elif cipher_name == 'blowfish':
                 cipher_spec = 'bf-%s' % mode
             proc = Popen(('openssl enc -e -%s -nopad -nosalt -K %s -iv %s' %
-                (cipher_spec, b16encode(key).decode(), b16encode(iv).decode())).split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                (cipher_spec, b16encode(key).decode(), b16encode(iv or b'\0').decode())).split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
             out, err = proc.communicate(pt)
             self.assertFalse(err, err)
             cipher = Cipher(key=key, iv=iv, cipher=cipher_name, mode=mode)
@@ -107,6 +110,7 @@ class CipherTests(TestCase):
     def test_api(self):
         self.assertTrue('aes' in cipher.names, 'no AES')
         key = b'0123456789abcdef'
+        iv  = b'0' * 16
         msg = b'hello, world'
-        enc = cipher.aes(key).encrypt(msg)
-        self.assertEqual(cipher.aes(key).decrypt(enc), msg)
+        enc = cipher.aes(key, iv).encrypt(msg)
+        self.assertEqual(cipher.aes(key, iv).decrypt(enc), msg)

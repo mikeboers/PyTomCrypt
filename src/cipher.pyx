@@ -155,9 +155,10 @@ cdef class Descriptor(object):
 
         Initialize a cipher state.
 
-        This is a convenience for constructing Cipher objects.
+        This is a convenience for constructing :class:`~tomcrypt.cipher.Cipher`
+        objects; any keyword arguments will be passed to the constructor.
 
-        >>> cipher = aes(b'0123456789abcdef')
+        >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16)
         >>> cipher.encrypt(b'hello')
         b'c\\xfey\\xb6$'
         
@@ -193,7 +194,7 @@ cdef class Cipher(Descriptor):
         """__init__(key, iv=None, cipher='aes', mode='ctr', **kw)
 
         :param bytes key: Symmetric key.
-        :param bytes iv: Initialization vector; ``None`` -> null IV.
+        :param bytes iv: Initialization vector; required for non-ECB modes.
         :param str cipher: The name of the cipher to use.
         :param str mode: Cipher block chaining more to use.
         
@@ -217,10 +218,14 @@ cdef class Cipher(Descriptor):
             raise Error('no mode %r' % mode)
         Descriptor.__init__(self, cipher)
         
-        # Create null IV.
-        if iv is None:
-            iv = b'\0' * self.desc.block_size
-        if not isinstance(iv, bytes) or len(iv) != self.desc.block_size:
+        # Make sure we do or do not have an IV when it is required.
+        if self.mode_i == ${cipher_modes['ecb']} and iv is not None:
+            raise ValueError('IV not used in "ecb" mode')
+        if self.mode_i != ${cipher_modes['ecb']} and iv is None:
+            raise ValueError('IV required in "%s" mode' % self.mode)
+
+        # IVs, when given, are bytes, and the right length.
+        if iv is not None and (not isinstance(iv, bytes) or len(iv) != self.desc.block_size):
             raise Error('iv must be %d bytes; got %r' % (self.desc.block_size, iv))
         
         # Initialize the various modes.
@@ -228,8 +233,6 @@ cdef class Cipher(Descriptor):
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
 
             % if mode == 'ecb':
-            if iv is not None and iv != b'\0' * self.desc.block_size:
-                raise ValueError('non-NULL IV in ECB mode')
             check_for_error(ecb_start(self.idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'ctr':
@@ -307,7 +310,7 @@ cdef class Cipher(Descriptor):
         See the LibTomCrypt manual section 3.4.6 for what, precisely, this
         function will do depending on the chaining mode.
 
-        >>> cipher = aes(b'0123456789abcdef')
+        >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16)
         >>> cipher.set_iv(b'ThisWillSetTheIV')
         >>> cipher.encrypt(b'hello')
         b'\\xe2\\xef\\xc5\\xe6\\x9e'
@@ -331,14 +334,14 @@ cdef class Cipher(Descriptor):
 
         Add the given string to the EAX header. Only for EAX mode.
 
-        >>> cipher = aes(b'0123456789abcdef', mode='eax', nonce=b'random')
+        >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16, mode='eax', nonce=b'random')
         >>> cipher.add_header(b'a header')
         >>> cipher.encrypt(b'hello')
         b'Y\\x9b\\xe5\\x87\\xcc'
         >>> cipher.done()
         b'A(|\\x9f@I#\\x0f\\x93\\x90Z,\\xb5A\\x9bN'
 
-        >>> cipher = aes(b'0123456789abcdef', mode='eax', nonce=b'random', header=b'a header')
+        >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16, mode='eax', nonce=b'random', header=b'a header')
         >>> cipher.decrypt(b'Y\\x9b\\xe5\\x87\\xcc')
         b'hello'
         >>> cipher.done()
@@ -357,12 +360,12 @@ cdef class Cipher(Descriptor):
         ${type.capitalize()} a string.
         
         % if type == 'encrypt':
-        >>> cipher = aes(b'0123456789abcdef')
+        >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16)
         >>> cipher.encrypt(b'this is a message')
         b'\\x7f\\xf3|\\xa9k-\\xd3\\xd5t=\\xa2\\xa1\\xb3lT\\xb2d'
 
         % else:
-        >>> cipher = aes(b'0123456789abcdef')
+        >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16)
         >>> cipher.decrypt(b'\\x7f\\xf3|\\xa9k-\\xd3\\xd5t=\\xa2\\xa1\\xb3lT\\xb2d')
         b'this is a message'
 

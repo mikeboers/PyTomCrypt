@@ -179,7 +179,7 @@ cdef class Cipher(Descriptor):
     """All state required to encrypt/decrypt with a symmetric cipher.
     
 
-    >>> cipher = Cipher(b'0123456789abcdef', b'0123456789abcdef', 'aes', 'cbc')
+    >>> cipher = Cipher(b'0123456789abcdef', b'0123456789abcdef', cipher='aes', mode='cbc')
 
     See :meth:`Cipher.add_header` for example of EAX mode.
 
@@ -228,6 +228,8 @@ cdef class Cipher(Descriptor):
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
 
             % if mode == 'ecb':
+            if iv is not None and iv != b'\0' * self.desc.block_size:
+                raise ValueError('non-NULL IV in ECB mode')
             check_for_error(ecb_start(self.idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'ctr':

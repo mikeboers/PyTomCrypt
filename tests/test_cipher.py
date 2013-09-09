@@ -19,6 +19,18 @@ class CipherAPITests(TestCase):
         nonzero = '0123456789abcdef'
         z = cipher.aes(nonzero, nonzero, 'cbc')
 
+    def test_ecc_iv_error(self):
+
+        zero = '\0' * 16
+        nonzero = '0123456789abcdef'
+        
+        x = cipher.aes(nonzero, mode='ecb')
+        y = cipher.aes(nonzero, None, 'ecb')
+        z = cipher.aes(nonzero, zero, 'ecb')
+
+        self.assertRaises(ValueError, cipher.aes, nonzero, nonzero, 'ecb')
+
+
 
 class CipherTests(TestCase):
     
@@ -41,7 +53,10 @@ class CipherTests(TestCase):
         cipher_desc = Descriptor(cipher=cipher_name)
         for i in range(1, 2):
             key = os.urandom(keysize//8)
-            iv  = os.urandom(cipher_desc.block_size)
+            if mode == 'ecb':
+                iv = '\0' * cipher_desc.block_size
+            else:
+                iv  = os.urandom(cipher_desc.block_size)
             pt  = os.urandom(i * 128 // 8)
             if cipher_name == 'aes':
                 cipher_spec = 'aes-%d-%s' % (keysize, mode)

@@ -1,3 +1,10 @@
+0.8.0
+-----
+- Fixed RC4 and Sober128 PRNG output. These were dependent upon calling
+  conditions and have been made to pass known test vectors.
+- ECB cipher mode only accepts `None` as an IV.
+- Non-ECB cipher modes no longer accept `None` as an IV.
+
 0.7.0
 -----
 - Sphinx-based API documentation.

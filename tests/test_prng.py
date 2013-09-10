@@ -16,10 +16,10 @@ class TestPRNG(TestCase):
     def test_isolation(self):
         for name in ('rc4', 'yarrow', 'fortuna', 'sober128'):
             for seed in (
-                '12345678',
-                b16decode('0123456789ABCDEF'),
+                b'12345678',
+                b16decode(b'0123456789ABCDEF'),
             ):
-                yield (self._test_isolation, name, seed)
+                self._test_isolation(name, seed)
 
     def _test_isolation(self, name, seed):
         constructor = getattr(prng, name)

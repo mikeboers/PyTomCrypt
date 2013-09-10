@@ -50,13 +50,13 @@ cdef class PRNG(object):
     >>> # Manual seeding:
     >>> myprng = PRNG('yarrow') # or yarrow()
     >>> myprng.add_entropy(b'from a random oracle')
-    >>> myprng.read(8)
-    b'\\xa5\\x0f\\xc3\\x84\\xd9\\xb1LK'
+    >>> len(myprng.read(8))
+    8
 
     >>> # Auto-seeding (with 1KB of data from the system PRNG):
     >>> myprng = PRNG('yarrow', 1024)
-    >>> myprng.read(8) # doctest: +ELLIPSIS
-    b'...'
+    >>> len(myprng.read(8))
+    8
 
     """
 

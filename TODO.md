@@ -47,17 +47,6 @@
     - instead of conform_hash and conform_prng
     - name it better
 
-- utils.is_pem_encoded, pem_encode, pem_decode -> headers, body
-       The PEM private key format uses the header and footer lines:
-
-        -----BEGIN EC PRIVATE KEY-----
-        -----END EC PRIVATE KEY-----
-
-       The PEM public key format uses the header and footer lines:
-
-        -----BEGIN PUBLIC KEY-----
-        -----END PUBLIC KEY-----
-
 
 - signature verification should accept message and signature in any
   order

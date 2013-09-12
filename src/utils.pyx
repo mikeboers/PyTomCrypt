@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+cimport cpython
+
 import re
 import base64
 
@@ -66,5 +68,69 @@ def pem_decode(content):
     mode = mode.upper()
     content = base64.b64decode(''.join(content.strip().split()).encode())
     return type, mode, content
+
+
+def xor_bytes(bytes a, bytes b):
+    """XOR two sequences of bytes.
+
+    :param bytes a: One sequence of bytes.
+    :param bytes b: Another sequence of bytes.
+    :return bytes: A sequence of bytes, the same length of ``a`` and ``b``
+        in which each byte is the XOR of the respective bytes from ``a`` and
+        ``b``.
+
+    :raises ValueError: When the byte sequences have different lengths.
+
+    >>> xor_bytes(b'hello', b'world')
+    b'\\x1f\\n\\x1e\\x00\\x0b'
+    >>> xor_bytes(b'hello', b'hello')
+    b'\\x00\\x00\\x00\\x00\\x00'
+
+    """
+
+    cdef unsigned long len_ = len(a)
+    if len_ != len(b):
+        raise ValueError('arguments must have matching lengths; given %d and %d' % (
+            len(a), len(b),
+        ))
+
+    cdef bytes res = cpython.PyBytes_FromStringAndSize(NULL, len_)
+
+    cdef unsigned long i
+    for i in range(len_):
+        (<unsigned char*>res)[i] = (<unsigned char*>a)[i] ^ (<unsigned char*>b)[i]
+    
+    return res
+
+
+def bytes_equal(bytes a, bytes b):
+    """Constant-time byte sequence equality.
+
+    Good for removing a huge potential timing attack.
+
+    :param bytes a: One sequence of bytes.
+    :param bytes b: Another sequence of bytes.
+    :return bool: ``True`` if the sequences are the same.
+
+    :raises ValueError: When the byte sequences have different lengths.
+
+    >>> bytes_equal(b'hello', b'world')
+    False
+
+    """
+
+    cdef unsigned long len_ = len(a)
+    if len_ != len(b):
+        raise ValueError('arguments must have matching lengths; given %d and %d' % (
+            len(a), len(b),
+        ))
+
+    cdef unsigned int are_different = 0
+
+    cdef unsigned long i
+    for i in range(len_):
+        are_different |= (<unsigned char*>a)[i] ^ (<unsigned char*>b)[i]
+
+    return not are_different
 
 

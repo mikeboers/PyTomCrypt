@@ -1,10 +1,11 @@
+import base64
 import doctest
 import errno
 import hashlib
 import os
 import sys
 import time
-from base64 import b64encode, b64decode, b16encode, b16decode
+from base64 import b64encode, b64decode
 from pprint import pprint, pformat
 from subprocess import Popen, PIPE, check_call
 from unittest import TestCase as BaseTestCase
@@ -17,6 +18,10 @@ sandbox = os.path.join(
     os.path.dirname(__file__),
     'sandbox',
 )
+
+
+b16encode = lambda x: base64.b16encode(x).lower()
+b16decode = lambda x, casefold=True: base64.b16decode(x, casefold)
 
 
 def fix_doctests(suite):

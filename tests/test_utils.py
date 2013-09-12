@@ -2,6 +2,8 @@ from __future__ import division
 
 import time
 
+from six.moves import xrange
+
 from . import *
 
 from tomcrypt import utils
@@ -16,7 +18,7 @@ def load_tests(loader, tests, ignore):
 class TestUtils(TestCase):
 
     def test_xor_bytes_len_mismatch(self):
-        self.assertRaises(ValueError, utils.xor_bytes, '', 'a')
+        self.assertRaises(ValueError, utils.xor_bytes, b'', b'a')
 
     def test_xor_bytes(self):
         self.assertEqual(

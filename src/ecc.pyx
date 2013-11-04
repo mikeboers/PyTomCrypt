@@ -126,10 +126,13 @@ cdef class Key(object):
         try:
             check_for_error(ecc_import(input, len(input), &self.key))
         except:
-            # Mark that this doesn't need deallocating.
-            self.key.public.x = NULL
-            raise
-        
+            try:
+                check_for_error(ecc_ansi_x963_import(input, len(input), &self.key))
+            except:
+                # Mark that this doesn't need deallocating.
+                self.key.public.x = NULL
+                raise
+
         if self.key.idx < 1:
             raise Error('unknown curve in imported key')
         self.curve = Curve(ecc_nist_curves[self.key.idx].size)

@@ -1,0 +1,2 @@
+Mike Boers, mikeboers on GitHub, <github@mikeboers.com>
+David Van Duzer, dvanduzer on GitHub, dvd@tennica.net: ECC ANSI X9.63 import.

@@ -1,3 +1,7 @@
+0.9.0
+-----
+- Can import ECC keys in ANSI X9.63 format via constructor.
+
 0.8.0
 -----
 - Fixed RC4 and Sober128 PRNG output. These were dependent upon calling

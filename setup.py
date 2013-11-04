@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
         name='PyTomCrypt',
             description='Python+Cython wrapper around LibTomCrypt',
-            version='0.8.0',
+            version='0.9.0',
             license='BSD-3',
             platforms=['any'],
             packages=['tomcrypt'],

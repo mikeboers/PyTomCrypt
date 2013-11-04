@@ -52,3 +52,6 @@ class TestECC(TestCase):
                 Key(a.public.as_string()).as_dict())
         self.assertEqual(a.public.as_dict(),
                 Key(a.as_string(type='public')).as_dict())
+        self.assertEqual(a.public.as_dict(),
+                Key(a.as_string(type='public', ansi=True)).as_dict())
+

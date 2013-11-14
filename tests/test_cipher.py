@@ -120,3 +120,11 @@ class CipherTests(TestCase):
         msg = b'hello, world'
         enc = cipher.aes(key, iv).encrypt(msg)
         self.assertEqual(cipher.aes(key, iv).decrypt(enc), msg)
+
+    def test_bytearrays(self):
+        key = b'0123456789abcdef'
+        iv  = b'0' * 16
+        msg = bytearray(b'hello, world')
+        enc = cipher.aes(key, iv).encrypt(msg)
+        self.assertEqual(cipher.aes(key, iv).decrypt(enc), msg)
+

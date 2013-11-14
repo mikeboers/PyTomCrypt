@@ -1,6 +1,7 @@
 from . import *
 
 from tomcrypt import prng
+from tomcrypt import utils
 
 
 def load_tests(loader, tests, ignore):
@@ -28,17 +29,17 @@ class TestPRNG(TestCase):
         a = x.read(8)
         b = y.read(8)
         self.assertEqual(a, b, '%s != %s on %s with seed %s' % (
-            b16encode(a).lower(),
-            b16encode(b).lower(),
+            b16encode(a),
+            b16encode(b),
             name,
-            b16encode(seed).lower(),
+            b16encode(seed),
         ))
 
     def test_fortuna_vector(self):
         x = prng.fortuna()
         x.add_entropy(b'12345678')
         self.assertEqual(
-            b16encode(x.read(8)).lower(),
+            b16encode(x.read(8)),
             b'b1f2630e4b56ff6f'
         )
     
@@ -46,15 +47,12 @@ class TestPRNG(TestCase):
         x = prng.rc4()
         seed = b16decode(b'0123456789ABCDEF')
         x.add_entropy(seed)
+        
         output = x.read(8)
-
-        if is_py3:
-            output = bytes(a ^ b for a, b in zip(seed, output))
-        else:
-            output = b''.join(chr(ord(a) ^ ord(b)) for a, b in zip(seed, output))
+        output = utils.xor_bytes(output, seed)
 
         self.assertEqual(
-            b16encode(output).lower(),
+            b16encode(output),
             b'75b7878099e0c596'
         )
 
@@ -62,7 +60,7 @@ class TestPRNG(TestCase):
         x = prng.rc4()
         x.add_entropy(b'12345678')
         self.assertEqual(
-            b16encode(x.read(8)).lower(),
+            b16encode(x.read(8)),
             b'bbf339d409b1dea7'
         )
     
@@ -70,7 +68,7 @@ class TestPRNG(TestCase):
         x = prng.sober128()
         x.add_entropy(b'12345678')
         self.assertEqual(
-            b16encode(x.read(8)).lower(),
+            b16encode(x.read(8)),
             b'33e05486884e8384'
         )
     

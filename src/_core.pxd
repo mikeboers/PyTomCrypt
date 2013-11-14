@@ -71,6 +71,7 @@ cdef extern from "tomcrypt.h" nogil:
 
 # Prototypes
 cdef void check_for_error(int res) except *
+cdef unsigned char* get_readonly_buffer(object input_, size_t *length) except? NULL
 
 
 include "tomcrypt.cipher-core.pxd"

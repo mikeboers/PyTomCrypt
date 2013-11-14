@@ -19,3 +19,18 @@ from tomcrypt import Error, LibError
 cdef void check_for_error(int res) except *:
     if res != CRYPT_OK:
         raise LibError(error_to_string(res), code=res)
+
+
+cdef unsigned char* get_readonly_buffer(object input_, size_t *length) except? NULL:
+    
+    # Accept something that can be coerced into a writable buffer, or
+    # directly into a pointer.
+    cdef unsigned char[::1] view
+    try:
+        view = input_
+        length[0] = view.shape[0] * view.itemsize
+        return &view[0]
+    except BufferError:
+        length[0] = len(input_)
+        return <unsigned char*>input_
+

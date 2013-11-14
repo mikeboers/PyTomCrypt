@@ -366,30 +366,19 @@ cdef class Cipher(Descriptor):
         % endif
         """
 
-        # Accept something that can be coerced into a writable buffer, or
-        # directly into a pointer.
-        # TODO: abstract this into a utility somewhere for further use.
-        cdef unsigned char[::1] input_view
-        cdef unsigned char *input_ptr
-        cdef int length
-        try:
-            input_view = input_
-            length = input_view.shape[0] * input_view.itemsize
-            input_ptr = &input_view[0]
-        except BufferError:
-            input_ptr = input_
-            length = len(input_)
+        cdef size_t length
+        cdef unsigned char *c_input = get_readonly_buffer(input_, &length)
 
         # We need to make sure we have a brand new string as it is going to be
         # modified. The input will not be, so we can use the python one.
         output = PyBytes_FromStringAndSize(NULL, length)
-        
+
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
             % if mode in cipher_auth_modes:
-            check_for_error(${mode}_${type}(<${mode}_state*>&self.state, input_ptr, output, length))
+            check_for_error(${mode}_${type}(<${mode}_state*>&self.state, c_input, output, length))
             % else:
-            check_for_error(${mode}_${type}(input_ptr, output, length, <symmetric_${mode}*>&self.state))
+            check_for_error(${mode}_${type}(c_input, output, length, <symmetric_${mode}*>&self.state))
             % endif
         % endfor
         return output

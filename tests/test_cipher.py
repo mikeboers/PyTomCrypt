@@ -24,17 +24,23 @@ class CipherAPITests(TestCase):
         zero = b'\0' * 16
         nonzero = b'0123456789abcdef'
         
-        # ECC
-        x = cipher.aes(nonzero, mode='ecb')
-        y = cipher.aes(nonzero, None, 'ecb')
-        self.assertRaises(ValueError, cipher.aes, nonzero, zero, 'ecb')
-        self.assertRaises(ValueError, cipher.aes, nonzero, nonzero, 'ecb')
+        # ECC does not need an IV
+        aes = cipher.aes(nonzero, mode='ecb')
+        ct = aes.encrypt(nonzero)
 
-        # Not ECC
-        self.assertRaises(ValueError, cipher.aes, nonzero, mode='ctr')
-        self.assertRaises(ValueError, cipher.aes, nonzero, None, 'ctr')
-        x = cipher.aes(nonzero, zero, 'ctr')
-        y = cipher.aes(nonzero, nonzero, 'ctr')
+        # ECC does not accept an IV
+        self.assertRaises(ValueError, aes.set_iv, nonzero)
+        self.assertRaises(ValueError, cipher.aes, nonzero, zero, 'ecb')
+
+        # Others fail when crypting without an IV, but okay after you set it.
+        aes = cipher.aes(nonzero, mode='ctr')
+        self.assertRaises(ValueError, aes.encrypt, b'plaintext')
+        aes.set_iv(zero)
+        ct = aes.encrypt(b'plaintext')
+
+        # These are okay, obviously.
+        ct = cipher.aes(nonzero, zero, 'ctr').encrypt(b'plaintext')
+        ct = cipher.aes(nonzero, nonzero, 'ctr').encrypt(b'plaintext')
 
     def test_iv_getset(self):
 

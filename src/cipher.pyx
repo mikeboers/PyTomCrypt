@@ -166,16 +166,6 @@ cdef class Descriptor(object):
         return Cipher(key, iv, self.name, mode, **kwargs)
 
 
-# Define a type to masquarade as ANY of the mode states.
-cdef union symmetric_all:
-    % for mode in cipher_no_auth_modes:
-    symmetric_${mode} ${mode}
-    % endfor
-    % for mode in cipher_auth_modes:
-    ${mode}_state ${mode}
-    % endfor
-
-
 cdef class Cipher(Descriptor):
     """All state required to encrypt/decrypt with a symmetric cipher.
     
@@ -185,10 +175,6 @@ cdef class Cipher(Descriptor):
     See :meth:`Cipher.add_header` for example of EAX mode.
 
     """
-    
-    cdef symmetric_all state
-    cdef readonly object mode
-    cdef int mode_i
     
     def __init__(self, bytes key, bytes iv=None, cipher='aes', mode='ctr', **kwargs):
         """__init__(key, iv=None, cipher='aes', mode='ctr', **kw)
@@ -222,7 +208,8 @@ cdef class Cipher(Descriptor):
         if self.mode_i == ${cipher_modes['ecb']} and iv is not None:
             raise ValueError('IV not used in "ecb" mode')
         if self.mode_i != ${cipher_modes['ecb']} and iv is None:
-            raise ValueError('IV required in "%s" mode' % self.mode)
+            self.missing_iv = True
+            iv = b'\0' * self.desc.block_size
 
         # IVs, when given, are bytes, and the right length.
         if iv is not None and (not isinstance(iv, bytes) or len(iv) != self.desc.block_size):
@@ -322,6 +309,8 @@ cdef class Cipher(Descriptor):
         % endfor
         else:
             raise Error('%r mode does not use an IV' % self.mode)
+
+        self.missing_iv = False
     
     cpdef add_header(self, bytes header):
         """add_header(header)
@@ -365,6 +354,9 @@ cdef class Cipher(Descriptor):
 
         % endif
         """
+        if self.missing_iv:
+            raise ValueError('IV has not been set')
+
         cdef int length
         length = len(input)
         # We need to make sure we have a brand new string as it is going to be

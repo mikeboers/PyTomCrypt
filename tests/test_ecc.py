@@ -55,3 +55,18 @@ class TestECC(TestCase):
         self.assertEqual(a.public.as_dict(),
                 Key(a.as_string(type='public', ansi=True)).as_dict())
 
+    def test_encrypt(self):
+        key = Key(128)
+        msg = b"Hello, world!"
+        ct1 = key.encrypt(bytearray(msg))
+        ct2 = key.encrypt(msg)
+
+        self.assertNotEqual(ct1, ct2)
+
+        self.assertEqual(key.decrypt(ct1), msg)
+        self.assertEqual(key.decrypt(bytearray(ct1)), msg)
+        self.assertEqual(key.decrypt(ct2), msg)
+        self.assertEqual(key.decrypt(bytearray(ct2)), msg)
+
+
+

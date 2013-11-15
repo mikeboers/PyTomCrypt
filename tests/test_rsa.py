@@ -40,14 +40,18 @@ class TestRSABasics(TestCase):
         self.assertEqual(pt, b"hello")
 
     def test_encrypt(self):
-        key = Key(1024)
-        pt1 = b"hello world"
-        ct1 = key.encrypt(bytearray(pt1))
-        ct2 = key.encrypt(pt1)
-        pt2 = key.decrypt(ct1)
 
-        self.assertEqual(pt1, pt2)
+        key = Key(1024)
+        msg = b"Hello, world!"
+        ct1 = key.encrypt(bytearray(msg))
+        ct2 = key.encrypt(msg)
+
         self.assertNotEqual(ct1, ct2)
+
+        self.assertEqual(key.decrypt(ct1), msg)
+        self.assertEqual(key.decrypt(bytearray(ct1)), msg)
+        self.assertEqual(key.decrypt(ct2), msg)
+        self.assertEqual(key.decrypt(bytearray(ct2)), msg)
 
     def test_sign(self):
         key = Key(1024)

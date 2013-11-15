@@ -42,7 +42,7 @@ class TestRSABasics(TestCase):
     def test_encrypt(self):
         key = Key(1024)
         pt1 = b"hello world"
-        ct1 = key.encrypt(pt1)
+        ct1 = key.encrypt(bytearray(pt1))
         ct2 = key.encrypt(pt1)
         pt2 = key.decrypt(ct1)
 

@@ -366,19 +366,18 @@ cdef class Cipher(Descriptor):
         % endif
         """
 
-        cdef size_t length
-        cdef unsigned char *c_input = get_readonly_buffer(input_, &length)
+        cdef ByteSource src = ByteSource(input_)
 
         # We need to make sure we have a brand new string as it is going to be
         # modified. The input will not be, so we can use the python one.
-        output = PyBytes_FromStringAndSize(NULL, length)
+        output = PyBytes_FromStringAndSize(NULL, src.length)
 
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
             % if mode in cipher_auth_modes:
-            check_for_error(${mode}_${type}(<${mode}_state*>&self.state, c_input, output, length))
+            check_for_error(${mode}_${type}(<${mode}_state*>&self.state, src.ptr, output, src.length))
             % else:
-            check_for_error(${mode}_${type}(c_input, output, length, <symmetric_${mode}*>&self.state))
+            check_for_error(${mode}_${type}(src.ptr, output, src.length, <symmetric_${mode}*>&self.state))
             % endif
         % endfor
         return output

@@ -71,7 +71,13 @@ cdef extern from "tomcrypt.h" nogil:
 
 # Prototypes
 cdef void check_for_error(int res) except *
-cdef unsigned char* get_readonly_buffer(object input_, size_t *length) except? NULL
+
+cdef class ByteSource(object):
+
+    cdef object owner
+    cdef unsigned char[::1] view
+    cdef unsigned char *ptr
+    cdef size_t length
 
 
 include "tomcrypt.cipher-core.pxd"

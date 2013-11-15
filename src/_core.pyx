@@ -1,6 +1,4 @@
 
-
-
 # Setup TomsFastMath for use.
 mp = ltm_desc
 
@@ -21,16 +19,16 @@ cdef void check_for_error(int res) except *:
         raise LibError(error_to_string(res), code=res)
 
 
-cdef unsigned char* get_readonly_buffer(object input_, size_t *length) except? NULL:
-    
-    # Accept something that can be coerced into a writable buffer, or
-    # directly into a pointer.
-    cdef unsigned char[::1] view
-    try:
-        view = input_
-        length[0] = view.shape[0] * view.itemsize
-        return &view[0]
-    except BufferError:
-        length[0] = len(input_)
-        return <unsigned char*>input_
+cdef class ByteSource(object):
+
+    def __init__(self, owner):
+        self.owner = owner
+
+        try:
+            self.view = owner
+            self.ptr = &self.view[0]
+            self.length = self.view.shape[0] * self.view.itemsize
+        except BufferError:
+            self.length = len(owner)
+            self.ptr = owner
 

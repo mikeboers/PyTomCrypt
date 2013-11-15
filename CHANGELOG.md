@@ -1,3 +1,7 @@
+0.10.0
+------
+- Can use `bytes` or `bytearray` in most places.
+
 0.9.0
 -----
 - Can import ECC keys in ANSI X9.63 format via constructor.

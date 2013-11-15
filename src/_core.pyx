@@ -25,12 +25,23 @@ cdef class ByteSource(object):
         self.owner = owner
 
         try:
+            self.ptr = owner
+        except TypeError:
+            pass
+        else:
+            self.length = len(owner)
+            return
+
+        try:
             self.view = owner
+        except BufferError:
+            pass
+        else:
             self.ptr = &self.view[0]
             self.length = self.view.shape[0] * self.view.itemsize
-        except BufferError:
-            self.length = len(owner)
-            self.ptr = owner
+            return
+
+        raise TypeError('expected bytes or bytearray')
 
 
 cdef ByteSource bytesource(obj, bint allow_none=False):

@@ -64,7 +64,17 @@ class TestMAC(TestCase):
             assert False, 'failed on %d-%d: %r' % (i, j, e)
 
 
-    def test_api(self):
+    def test_bytes_api(self):
+
         assert 'hmac' in mac.names
+
         msg = b'hello, world'
-        assert mac.hmac('sha256', msg).hexdigest() == 'bf9498672a3fc6c06a7b13f7b0a7c24d2c9aeb8f797dbfc00cb4e1a1ab5cb420'
+        self.assertEqual(
+            mac.hmac('sha256', b'key', msg).hexdigest(),
+            '05f54fa636be6f66761a26fcb19eabf339c934798b65bce8b31027d91078264c'
+        )
+
+        self.assertEqual(
+            mac.hmac('sha256', bytearray(b'key'), bytearray(msg)).hexdigest(),
+            '05f54fa636be6f66761a26fcb19eabf339c934798b65bce8b31027d91078264c',
+        )

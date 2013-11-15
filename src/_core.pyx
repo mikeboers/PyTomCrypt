@@ -21,7 +21,7 @@ cdef void check_for_error(int res) except *:
 
 cdef class ByteSource(object):
 
-    def __init__(self, owner):
+    def __cinit__(self, owner):
         self.owner = owner
 
         try:

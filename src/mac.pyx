@@ -57,9 +57,9 @@ cdef class MAC(object):
     cdef readonly object desc
     
     cdef mac_state state
-    cdef object key
+    cdef ByteSource key
     
-    def __init__(self, mode, idx, bytes key, bytes input=b''):
+    def __init__(self, mode, idx, key, input=b''):
         self.mode = mode
         % for mac, i in mac_items:
         ${'el' if i else ''}if mode == ${repr(mac)}:
@@ -76,14 +76,13 @@ cdef class MAC(object):
         else:
             self.desc = CipherDescriptor(idx)
         
-        self.key = key
+        self.key = bytesource(key)
         
         
         % for mac, i in mac_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mac}
-            check_for_error(${mac}_init(<${mac}_state *>&self.state, self.desc.idx, key, len(key)))
+            check_for_error(${mac}_init(<${mac}_state *>&self.state, self.desc.idx, self.key.ptr, self.key.length))
         % endfor
-        
         
         self.update(input)
     
@@ -97,7 +96,7 @@ cdef class MAC(object):
             self.__class__.__module__, self.__class__.__name__, self.mode,
             self.desc.name, id(self))
     
-    cpdef update(self, bytes input):
+    cpdef update(self, input):
         """Add more data to the mac.
 
         >>> mac = hmac('md5', b'secret')
@@ -106,9 +105,10 @@ cdef class MAC(object):
         '7e0d0767775312154ba16fd3af9771a2'
 
         """
+        cdef ByteSource c_input = bytesource(input)
         % for mac, i in mac_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mac}
-            check_for_error(${mac}_process(<${mac}_state *>&self.state, input, len(input)))
+            check_for_error(${mac}_process(<${mac}_state *>&self.state, c_input.ptr, c_input.length))
         % endfor
     
     cpdef digest(self, length=None):

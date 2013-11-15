@@ -5,7 +5,9 @@ cimport cpython
 import re
 import base64
 
+from tomcrypt._core cimport *
 from . import Error
+
 
 def pem_encode(type, mode, content):
     """PEM encode a key.
@@ -70,7 +72,7 @@ def pem_decode(content):
     return type, mode, content
 
 
-def xor_bytes(bytes a, bytes b):
+def xor_bytes(a, b):
     """XOR two sequences of bytes.
 
     :param bytes a: One sequence of bytes.
@@ -88,22 +90,23 @@ def xor_bytes(bytes a, bytes b):
 
     """
 
-    cdef unsigned long len_ = len(a)
-    if len_ != len(b):
+    cdef ByteSource x = bytesource(a)
+    cdef ByteSource y = bytesource(b)
+    if x.length != y.length:
         raise ValueError('arguments must have matching lengths; given %d and %d' % (
-            len(a), len(b),
+            x.length, y.length
         ))
 
-    cdef bytes res = cpython.PyBytes_FromStringAndSize(NULL, len_)
+    cdef bytes res = cpython.PyBytes_FromStringAndSize(NULL, x.length)
 
     cdef unsigned long i
-    for i in range(len_):
-        (<unsigned char*>res)[i] = (<unsigned char*>a)[i] ^ (<unsigned char*>b)[i]
+    for i in range(x.length):
+        (<unsigned char*>res)[i] = x.ptr[i] ^ y.ptr[i]
     
     return res
 
 
-def bytes_equal(bytes a, bytes b):
+def bytes_equal(a, b):
     """Constant-time byte sequence equality.
 
     Good for removing a huge potential timing attack.
@@ -114,22 +117,26 @@ def bytes_equal(bytes a, bytes b):
 
     :raises ValueError: When the byte sequences have different lengths.
 
+    >>> bytes_equal(b'hello', b'hello')
+    True
+
     >>> bytes_equal(b'hello', b'world')
     False
 
     """
 
-    cdef unsigned long len_ = len(a)
-    if len_ != len(b):
+    cdef ByteSource x = bytesource(a)
+    cdef ByteSource y = bytesource(b)
+    if x.length != y.length:
         raise ValueError('arguments must have matching lengths; given %d and %d' % (
-            len(a), len(b),
+            x.length, y.length
         ))
 
     cdef unsigned int are_different = 0
 
     cdef unsigned long i
-    for i in range(len_):
-        are_different |= (<unsigned char*>a)[i] ^ (<unsigned char*>b)[i]
+    for i in range(x.length):
+        are_different |= x.ptr[i] ^ y.ptr[i]
 
     return not are_different
 

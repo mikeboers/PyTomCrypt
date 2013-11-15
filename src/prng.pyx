@@ -114,7 +114,7 @@ cdef class PRNG(object):
             raise Error('only read %d of requested %d' % (read_len, length))
         self.add_entropy(entropy)
         
-    def add_entropy(self, bytes input):
+    def add_entropy(self, input):
         """Stir in some bytes to the entropy pool.
 
         Some PRNGs have length restrictions on entropy. "fortuna", for instance
@@ -126,9 +126,10 @@ cdef class PRNG(object):
         b'\\xa5\\x0f\\xc3\\x84\\xd9\\xb1LK'
 
         """
-        if self.name == 'fortuna' and len(input) > 32:
+        cdef ByteSource c_input = bytesource(input)
+        if self.name == 'fortuna' and c_input.length > 32:
             raise Error('can only add 32 bytes of entropy to fortuna')
-        check_for_error(self.desc.add_entropy(input, len(input), &self.state))
+        check_for_error(self.desc.add_entropy(c_input.ptr, c_input.length, &self.state))
         self.ready = False
     
     cdef _autoready(self):
@@ -171,13 +172,14 @@ cdef class PRNG(object):
         check_for_error(self.desc.get_state(out, &outlen, &self.state))
         return out[:outlen]
     
-    def set_state(self, bytes input):
+    def set_state(self, input):
         """Seed from an old entropy pool.
 
         See PRNG.get_state() for an example.
 
         """
-        check_for_error(self.desc.set_state(input, len(input), &self.state))
+        cdef ByteSource c_input = bytesource(input)
+        check_for_error(self.desc.set_state(c_input.ptr, c_input.length, &self.state))
         self.ready = False
     
     

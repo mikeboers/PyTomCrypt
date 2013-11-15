@@ -37,7 +37,13 @@ class TestHashed(TestCase):
         assert x2.digest() != y.digest()
 
 
-    def test_api(self):
+    def test_bytes_api(self):
         assert 'sha256' in hash.names
-        msg = b'hello, world'
-        assert hash.sha256(msg).hexdigest() == '09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b'
+        obj = hash.sha256(b'hello,')
+        obj.update(b' world')
+        assert obj.hexdigest() == '09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b'
+
+    def test_bytearray_api(self):
+        obj = hash.sha256(bytearray(b'hello,'))
+        obj.update(bytearray(b' world'))
+        assert obj.hexdigest() == '09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b'

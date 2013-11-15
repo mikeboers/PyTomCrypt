@@ -1,3 +1,7 @@
+- Anything which takes bytes should be able to take a bytearray or memoryview
+  as well. See: http://docs.cython.org/src/userguide/memoryviews.html
+  
+
 - expose all the pkcs5/oaep/pss padding functions
 - passing `hash=None` to sign/verify will cause it to assume it was passed a digest
 

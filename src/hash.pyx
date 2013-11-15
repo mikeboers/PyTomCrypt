@@ -154,7 +154,7 @@ cdef class Hash(Descriptor):
     cdef hash_state state
     cdef bint allocated
     
-    def __init__(self, hash, bytes input=b''):
+    def __init__(self, hash, input=b''):
         self.allocated = False
         Descriptor.__init__(self, hash)
         self.allocated = True
@@ -174,7 +174,7 @@ cdef class Hash(Descriptor):
             self.__class__.__module__, self.__class__.__name__, self.name,
             id(self))       
 
-    cpdef update(self, bytes input):
+    cpdef update(self, input):
         """Add more data to the digest.
 
         >>> hash = md5()
@@ -183,7 +183,9 @@ cdef class Hash(Descriptor):
         '78e731027d8fd50ed642340b7c9a63b3'
 
         """
-        check_for_error(self.desc.process(&self.state, input, len(input)))
+        cdef ByteSource c_input = bytesource(input)
+        if c_input.length:
+            check_for_error(self.desc.process(&self.state, c_input.ptr, c_input.length))
     
     cpdef digest(self):
         """Return binary digest.
@@ -249,7 +251,7 @@ cdef class CHC(Hash):
 
     cdef readonly CipherDescriptor cipher
     
-    def __init__(self, cipher, bytes input=b''):
+    def __init__(self, cipher, input=b''):
         self.cipher = CipherDescriptor(cipher)
         self.assert_chc_cipher()
         Hash.__init__(self, 'chc_hash', input)
@@ -296,7 +298,7 @@ cdef class CHC(Hash):
         """
         return self.cipher.block_size
     
-    cpdef update(self, bytes input):
+    cpdef update(self, input):
         """Add more data to the digest.
 
         >>> hash = chc('aes')
@@ -305,7 +307,6 @@ cdef class CHC(Hash):
         '2597c4c0b4411482f8a7798c5a015626'
 
         """
-
         self.assert_chc_cipher()
         Hash.update(self, input)
     

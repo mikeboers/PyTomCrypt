@@ -443,7 +443,7 @@ cdef class Key(object):
                 self._public = self._public_copy()
         return self._public
 
-    cdef bytes raw_crypt(self, int mode, bytes input):
+    cdef bytes raw_crypt(self, int mode, ByteSource input):
         """Raw RSA encryption/decryption.
 
         Used by encrypt/decrypt/sign/verify when the user requests no padding.
@@ -459,13 +459,13 @@ cdef class Key(object):
         cdef unsigned long out_length = self.size / 8 + 1
         out = PyBytes_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_exptmod(
-            input, len(input),
+            input.ptr, input.length,
             out, &out_length,
             mode,
             &self.key))
         return out[:out_length]
 
-    cpdef encrypt(self, bytes input, prng=None, hash=None, padding=PAD_OAEP):
+    cpdef encrypt(self, input, prng=None, hash=None, padding=PAD_OAEP):
         """encrypt(input, prng='sprng', hash='sha1', padding='oaep')
 
         Encrypt some bytes.
@@ -477,9 +477,11 @@ cdef class Key(object):
 
         """
 
+        cdef ByteSource c_input = bytesource(input)
+
         padding = conform_padding(padding)
         if padding == c_RSA_PAD_NONE:
-            return self.raw_crypt(PK_PUBLIC, input)
+            return self.raw_crypt(PK_PUBLIC, c_input)
 
         cdef PRNG c_prng = conform_prng(prng)
         cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_ENC_HASH)
@@ -487,7 +489,7 @@ cdef class Key(object):
         cdef unsigned long out_length = self.size / 8 + 1
         out = PyBytes_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_encrypt_key_ex(
-            input, len(input),
+            c_input.ptr, c_input.length,
             out, &out_length,
             NULL, 0,
             &c_prng.state, c_prng.idx,
@@ -497,7 +499,7 @@ cdef class Key(object):
         ))
         return out[:out_length]
 
-    cpdef decrypt(self, bytes input, hash=None, padding=PAD_OAEP):
+    cpdef decrypt(self, input, hash=None, padding=PAD_OAEP):
         """decrypt(input, hash='sha1', padding='oaep')
 
         Decrypt some bytes.
@@ -510,9 +512,11 @@ cdef class Key(object):
 
         """
 
+        cdef ByteSource c_input = bytesource(input)
+
         padding = conform_padding(padding)
         if padding == c_RSA_PAD_NONE:
-            return self.raw_crypt(PK_PRIVATE, input)
+            return self.raw_crypt(PK_PRIVATE, c_input)
 
         cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_ENC_HASH)
 
@@ -520,7 +524,7 @@ cdef class Key(object):
         out = PyBytes_FromStringAndSize(NULL, out_length)
         cdef int status = 0
         check_for_error(rsa_decrypt_key_ex(
-            input, len(input),
+            c_input.ptr, c_input.length,
             out, &out_length,
             NULL, 0,
             c_hash.idx,
@@ -532,7 +536,7 @@ cdef class Key(object):
             raise Error('Invalid padding.')
         return out[:out_length]
 
-    cpdef sign(self, bytes input, prng=None, hash=None, padding=PAD_PSS, saltlen=None):
+    cpdef sign(self, input, prng=None, hash=None, padding=PAD_PSS, saltlen=None):
         """sign(input, prng='sprng', hash='sha512', padding='pss', saltlen=None)
 
         Sign some bytes.
@@ -545,9 +549,12 @@ cdef class Key(object):
         :param hash: The hash that will be used: ``str`` or :class:`hash.Descriptor <tomcrypt.hash.Descriptor>`.
         :param saltlen: Length of the salt, in bytes. By default, the strict maximum is used.
         """
+
+        cdef ByteSource c_input = bytesource(input)
+
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:
-            return self.raw_crypt(PK_PRIVATE, input)
+            return self.raw_crypt(PK_PRIVATE, c_input)
 
         cdef PRNG c_prng = conform_prng(prng)
         cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_SIG_HASH)
@@ -556,7 +563,7 @@ cdef class Key(object):
         cdef unsigned long out_length = self.size / 8 + 1
         out = PyBytes_FromStringAndSize(NULL, out_length)
         check_for_error(rsa_sign_hash_ex(
-            input, len(input),
+            c_input.ptr, c_input.length,
             out, &out_length,
             c_padding,
             &c_prng.state, c_prng.idx,
@@ -566,7 +573,7 @@ cdef class Key(object):
         ))
         return out[:out_length]
 
-    cpdef verify(self, bytes input, bytes sig=None, hash=None, padding=PAD_PSS, saltlen=None):
+    cpdef verify(self, input, sig=None, hash=None, padding=PAD_PSS, saltlen=None):
         """verify(input, sig, hash='sha512', padding='pss', saltlen=None)
 
         Verify the signature of some bytes.
@@ -581,11 +588,14 @@ cdef class Key(object):
 
         """
 
+        cdef ByteSource c_input = bytesource(input)
+
         cdef unsigned long c_padding = conform_padding(padding)
         if c_padding == c_RSA_PAD_NONE:
-            return self.raw_crypt(PK_PUBLIC, input)
-        if sig is None:
-            raise ValueError('missing sig')
+            return self.raw_crypt(PK_PUBLIC, c_input)
+
+        # After to allow sig to be None if padding is 'none'.
+        cdef ByteSource c_sig = bytesource(sig)
         
         cdef HashDescriptor c_hash = conform_hash(hash or DEFAULT_SIG_HASH)
         cdef unsigned long c_saltlen = conform_saltlen(self, saltlen, c_hash, padding)
@@ -594,8 +604,8 @@ cdef class Key(object):
         out = PyBytes_FromStringAndSize(NULL, out_length)
         cdef int status = 0
         check_for_error(rsa_verify_hash_ex(
-            sig, len(sig),
-            input, len(input),
+            c_sig.ptr, c_sig.length,
+            c_input.ptr, c_input.length,
             c_padding,
             c_hash.idx,
             c_saltlen,

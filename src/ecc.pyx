@@ -256,12 +256,13 @@ cdef class Key(object):
         return output[:length]
 
     def encrypt(self, message, hash=None, prng=None):
+        cdef ByteSource c_msg = bytesource(message)
         cdef HashDescriptor c_hash = conform_hash(hash or 'sha256')
         cdef PRNG c_prng = conform_prng(prng)
-        cdef unsigned long length = 1024 + max(len(message), c_hash.desc.block_size)
+        cdef unsigned long length = 1024 + max(c_msg.length, c_hash.desc.block_size)
         output = PyBytes_FromStringAndSize(NULL, length)
         check_for_error(ecc_encrypt_key(
-            message, len(message),
+            c_msg.ptr, c_msg.length,
             output, &length,
             &c_prng.state, c_prng.idx,
             c_hash.idx,
@@ -270,32 +271,36 @@ cdef class Key(object):
         return output[:length]
 
     def decrypt(self, message):
-        cdef unsigned long length = len(message)
-        output = PyBytes_FromStringAndSize(NULL, length)
+        cdef ByteSource c_msg = bytesource(message)
+        cdef unsigned long out_length = c_msg.length
+        output = PyBytes_FromStringAndSize(NULL, out_length)
         check_for_error(ecc_decrypt_key(
-            message, length,
-            output, &length,
+            c_msg.ptr, c_msg.length,
+            output, &out_length,
             &self.key
         ))
-        return output[:length]
+        return output[:out_length]
 
     def sign(self, message, prng=None):
+        cdef ByteSource c_msg = bytesource(message)
         cdef PRNG c_prng = conform_prng(prng)
-        cdef unsigned long length = 1024 + self.curve.size
-        output = PyBytes_FromStringAndSize(NULL, length)
+        cdef unsigned long out_length = 1024 + self.curve.size
+        output = PyBytes_FromStringAndSize(NULL, out_length)
         check_for_error(ecc_sign_hash(
-            message, len(message),
-            output, &length,
+            c_msg.ptr, c_msg.length,
+            output, &out_length,
             &c_prng.state, c_prng.idx,
             &self.key
         ))
-        return output[:length]
+        return output[:out_length]
 
     def verify(self, message, sig):
+        cdef ByteSource c_msg = bytesource(message)
+        cdef ByteSource c_sig = bytesource(sig)
         cdef int stat
         check_for_error(ecc_verify_hash(
-            sig, len(sig),
-            message, len(message),
+            c_sig.ptr, c_sig.length,
+            c_msg.ptr, c_msg.length,
             &stat,
             &self.key
         ))

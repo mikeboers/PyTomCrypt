@@ -1,6 +1,4 @@
 
-
-
 # Setup TomsFastMath for use.
 mp = ltm_desc
 
@@ -19,3 +17,38 @@ from tomcrypt import Error, LibError
 cdef void check_for_error(int res) except *:
     if res != CRYPT_OK:
         raise LibError(error_to_string(res), code=res)
+
+
+cdef class ByteSource(object):
+
+    def __cinit__(self, owner):
+        self.owner = owner
+
+        try:
+            self.ptr = owner
+        except TypeError:
+            pass
+        else:
+            self.length = len(owner)
+            return
+
+        try:
+            self.view = owner
+        except BufferError:
+            pass
+        else:
+            self.ptr = &self.view[0]
+            self.length = self.view.shape[0] * self.view.itemsize
+            return
+
+        raise TypeError('expected bytes or bytearray')
+
+
+cdef ByteSource bytesource(obj, bint allow_none=False):
+    if allow_none and obj is None:
+        return
+    elif isinstance(obj, ByteSource):
+        return obj
+    else:
+        return ByteSource(obj)
+

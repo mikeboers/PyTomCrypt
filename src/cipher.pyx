@@ -190,7 +190,7 @@ cdef class Cipher(Descriptor):
     cdef readonly object mode
     cdef int mode_i
     
-    def __init__(self, bytes key, bytes iv=None, cipher='aes', mode='ctr', **kwargs):
+    def __init__(self, key, iv=None, cipher='aes', mode='ctr', **kwargs):
         """__init__(key, iv=None, cipher='aes', mode='ctr', **kw)
 
         :param bytes key: Symmetric key.
@@ -217,15 +217,19 @@ cdef class Cipher(Descriptor):
         if self.mode_i < 0:
             raise Error('no mode %r' % mode)
         Descriptor.__init__(self, cipher)
-        
+
+        cdef ByteSource c_key, c_iv, tweak, salt_key, nonce, header
+        c_key = bytesource(key)
+        c_iv  = bytesource(iv, allow_none=True)
+
         # Make sure we do or do not have an IV when it is required.
-        if self.mode_i == ${cipher_modes['ecb']} and iv is not None:
+        if self.mode_i == ${cipher_modes['ecb']} and c_iv is not None:
             raise ValueError('IV not used in "ecb" mode')
-        if self.mode_i != ${cipher_modes['ecb']} and iv is None:
+        if self.mode_i != ${cipher_modes['ecb']} and c_iv is None:
             raise ValueError('IV required in "%s" mode' % self.mode)
 
         # IVs, when given, are bytes, and the right length.
-        if iv is not None and (not isinstance(iv, bytes) or len(iv) != self.desc.block_size):
+        if iv is not None and (c_iv.length != self.desc.block_size):
             raise Error('iv must be %d bytes; got %r' % (self.desc.block_size, iv))
         
         # Initialize the various modes.
@@ -233,37 +237,31 @@ cdef class Cipher(Descriptor):
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
 
             % if mode == 'ecb':
-            check_for_error(ecb_start(self.idx, key, len(key), 0, <symmetric_${mode}*>&self.state))
+            check_for_error(ecb_start(self.idx, c_key.ptr, c_key.length, 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'ctr':
-            check_for_error(ctr_start(self.idx, iv, key, len(key), 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.state))
+            check_for_error(ctr_start(self.idx, c_iv.ptr, c_key.ptr, c_key.length, 0, CTR_COUNTER_BIG_ENDIAN, <symmetric_${mode}*>&self.state))
             
             % elif mode in cipher_simple_modes:
-            check_for_error(${mode}_start(self.idx, iv, key, len(key), 0, <symmetric_${mode}*>&self.state))
+            check_for_error(${mode}_start(self.idx, c_iv.ptr, c_key.ptr, c_key.length, 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'lrw':
-            tweak = kwargs.get('tweak')
-            if not isinstance(tweak, str) or len(tweak) != 16:
+            tweak = bytesource(kwargs.get('tweak'))
+            if not tweak.length != 16:
                 raise Error('tweak must be 16 byte string')
-            check_for_error(${mode}_start(self.idx, iv, key, len(key), tweak, 0, <symmetric_${mode}*>&self.state))
+            check_for_error(${mode}_start(self.idx, c_iv.ptr, c_key.ptr, c_key.length, tweak.ptr, 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'f8':
-            salt_key = kwargs.get('salt_key')
-            if not isinstance(salt_key, bytes):
-                raise Error('salt_key must be bytes')
-            check_for_error(${mode}_start(self.idx, iv, key, len(key), salt_key, len(salt_key), 0, <symmetric_${mode}*>&self.state))
+            salt_key = bytesource(kwargs.get('salt_key'))
+            check_for_error(${mode}_start(self.idx, c_iv.ptr, c_key.ptr, c_key.length, salt_key.ptr, salt_key.length, 0, <symmetric_${mode}*>&self.state))
             
             % elif mode == 'eax':
-            nonce = kwargs.get('nonce', iv)
-            if not isinstance(nonce, bytes):
-                raise Error('nonce must be bytes')
-            header = kwargs.get('header', b'')
-            if not isinstance(header, bytes):
-                raise Error('header must be bytes')
+            nonce = bytesource(kwargs.get('nonce', iv))
+            header = bytesource(kwargs.get('header', b''))
             check_for_error(eax_init(<eax_state*>&self.state, self.idx,
-                key, len(key),
-                nonce, len(nonce),
-                header, len(header),
+                c_key.ptr, c_key.length,
+                nonce.ptr, nonce.length,
+                header.ptr, header.length,
             ))
 
             % else:
@@ -316,9 +314,10 @@ cdef class Cipher(Descriptor):
         b'\\xe2\\xef\\xc5\\xe6\\x9e'
 
         """
+        cdef ByteSource c_iv = bytesource(iv)
         % for i, (mode, mode_i) in enumerate(sorted(cipher_iv_modes.items())):
         ${'el' if i else ''}if self.mode_i == ${mode_i}: # ${mode}
-            check_for_error(${mode}_setiv(iv, len(iv), <symmetric_${mode}*>&self.state))
+            check_for_error(${mode}_setiv(c_iv.ptr, c_iv.length, <symmetric_${mode}*>&self.state))
         % endfor
         else:
             raise Error('%r mode does not use an IV' % self.mode)
@@ -342,13 +341,15 @@ cdef class Cipher(Descriptor):
         b'A(|\\x9f@I#\\x0f\\x93\\x90Z,\\xb5A\\x9bN'
 
         """
+        cdef ByteSource c_header = bytesource(header)
         if self.mode_i != ${repr(cipher_modes['eax'])}:
             raise Error('only for EAX mode')
-        check_for_error(eax_addheader(<eax_state*>&self.state, header,
-            len(header)))
+        check_for_error(eax_addheader(<eax_state*>&self.state,
+            c_header.ptr, c_header.length
+        ))
 
     % for type in 'encrypt decrypt'.split():
-    cpdef ${type}(self, input_):
+    cpdef ${type}(self, py_input):
         """${type}(input)
 
         ${type.capitalize()} a string.
@@ -366,18 +367,18 @@ cdef class Cipher(Descriptor):
         % endif
         """
 
-        cdef ByteSource src = ByteSource(input_)
+        cdef ByteSource c_input = bytesource(py_input)
 
         # We need to make sure we have a brand new string as it is going to be
         # modified. The input will not be, so we can use the python one.
-        output = PyBytes_FromStringAndSize(NULL, src.length)
+        output = PyBytes_FromStringAndSize(NULL, c_input.length)
 
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
             % if mode in cipher_auth_modes:
-            check_for_error(${mode}_${type}(<${mode}_state*>&self.state, src.ptr, output, src.length))
+            check_for_error(${mode}_${type}(<${mode}_state*>&self.state, c_input.ptr, output, c_input.length))
             % else:
-            check_for_error(${mode}_${type}(src.ptr, output, src.length, <symmetric_${mode}*>&self.state))
+            check_for_error(${mode}_${type}(c_input.ptr, output, c_input.length, <symmetric_${mode}*>&self.state))
             % endif
         % endfor
         return output

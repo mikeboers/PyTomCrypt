@@ -79,6 +79,8 @@ cdef class ByteSource(object):
     cdef unsigned char *ptr
     cdef size_t length
 
+cdef ByteSource bytesource(object, bint allow_none=*)
+
 
 include "tomcrypt.cipher-core.pxd"
 include "tomcrypt.hash-core.pxd"

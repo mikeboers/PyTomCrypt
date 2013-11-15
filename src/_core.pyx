@@ -32,3 +32,12 @@ cdef class ByteSource(object):
             self.length = len(owner)
             self.ptr = owner
 
+
+cdef ByteSource bytesource(obj, bint allow_none=False):
+    if allow_none and obj is None:
+        return
+    elif isinstance(obj, ByteSource):
+        return obj
+    else:
+        return ByteSource(obj)
+

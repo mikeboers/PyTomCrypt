@@ -1,3 +1,7 @@
+0.10.1
+------
+- Version is exposed as `tomcrypt.__version__`.
+
 0.10.0
 ------
 - Can use `bytes` or `bytearray` in most places.

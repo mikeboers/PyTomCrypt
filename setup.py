@@ -5,7 +5,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 
-version='0.10.0'
+version='0.10.1'
 
 
 # Allow us to specify a single extension to build.

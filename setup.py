@@ -5,11 +5,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 
-# RTD: Build the sources first.
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    from subprocess import call
-    call(['make', 'sources'])
+version='0.10.0'
 
 
 # Allow us to specify a single extension to build.
@@ -62,8 +58,9 @@ for name in ext_names:
             # These macros are needed for the math library.
             LTM_DESC=None,
             LTC_SOURCE=None,
-        
-        ).items()),
+            PTC_VERSION='"%s"' % version,
+
+        ).items()) if name == '_core' else [],
 
         extra_compile_args=['-O3', '-funroll-loops', ]
     ))
@@ -75,7 +72,7 @@ if __name__ == '__main__':
 
         name='PyTomCrypt',
             description='Python+Cython wrapper around LibTomCrypt',
-            version='0.10.0',
+            version=version,
             license='BSD-3',
             platforms=['any'],
             packages=['tomcrypt'],

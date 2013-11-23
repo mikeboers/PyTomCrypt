@@ -1,4 +1,8 @@
 
+
+version = PTC_VERSION
+
+
 # Setup TomsFastMath for use.
 mp = ltm_desc
 

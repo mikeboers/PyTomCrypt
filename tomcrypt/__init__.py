@@ -18,3 +18,7 @@ class LibError(Error):
 # are availible to the core.
 from . import _core
 ctypes.PyDLL(_core.__file__, mode=ctypes.RTLD_GLOBAL)
+
+
+__version__ = _core.version
+

@@ -1,6 +1,7 @@
 # General.
 *.pyc
 .DS_Store
+*.egg-info
 
 # Old venv.
 /.Python

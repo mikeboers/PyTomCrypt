@@ -1,7 +1,8 @@
 
 
 cdef extern from "pytomcrypt.h" nogil:
-    pass
+    const char* PTC_VERSION
+
 
 cdef extern from "stdlib.h" nogil:
 

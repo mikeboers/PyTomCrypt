@@ -17,12 +17,12 @@ class TestVersion(TestCase):
 
         conf_py = os.path.abspath(os.path.join(__file__, '..', '..', 'docs', 'conf.py'))
         namespace = {}
-        execfile(conf_py, namespace)
+        exec(open(conf_py).read(), namespace)
 
         self.assertEqual(namespace['release'], tomcrypt.__version__)
 
         real = tomcrypt.__version__.split('.')
         docs = namespace['version'].split('.')
         self.assertEqual(docs, real[:len(docs)])
-        
+
 

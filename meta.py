@@ -1,15 +1,16 @@
 
 
 
-cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8 eax'.split()))
+cipher_modes = dict((k, i) for i, k in enumerate('ecb cbc ctr cfb ofb lrw f8 eax gcm'.split()))
 
-cipher_no_iv_modes = dict((k, cipher_modes[k]) for k in 'ecb eax'.split())
+# GCM uses an IV, but not during initialization
+cipher_no_iv_modes = dict((k, cipher_modes[k]) for k in 'ecb eax gcm'.split())
 cipher_iv_modes = dict((k, cipher_modes[k]) for k in cipher_modes if k not in cipher_no_iv_modes)
 
 # "Simple" modes which all have the same interface.
 cipher_simple_modes = dict((k, cipher_modes[k]) for k in 'cbc cfb ofb'.split())
 
-cipher_auth_modes = dict((k, cipher_modes[k]) for k in 'eax'.split())
+cipher_auth_modes = dict((k, cipher_modes[k]) for k in 'eax gcm'.split())
 cipher_no_auth_modes = dict((k, cipher_modes[k]) for k in cipher_modes if k not in cipher_auth_modes)
 
 cipher_mode_items = list(sorted(cipher_modes.items(), key=lambda x: x[1]))

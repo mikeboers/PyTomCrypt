@@ -1,6 +1,9 @@
 cdef extern from "tomcrypt.h" nogil:
 
     int CTR_COUNTER_BIG_ENDIAN
+
+    int GCM_ENCRYPT
+    int GCM_DECRYPT
     
     # Symmetric state for all the cipher modes.
     % for name in cipher_no_auth_modes:
@@ -44,6 +47,18 @@ cdef extern from "tomcrypt.h" nogil:
     int eax_decrypt(eax_state *eax, unsigned char *ct, unsigned char *pt, unsigned long length)
     int eax_done(eax_state *eax, unsigned char *tag, unsigned long *taglen)
     int eax_test()
+
+    # GCM functions.
+    int gcm_init(
+        gcm_state *gcm,
+        int cipher,
+        unsigned char *key, unsigned long keylen
+    )
+    int gcm_add_iv(gcm_state *gcm, unsigned char *iv, unsigned long length)
+    int gcm_add_aad(gcm_state *gcm, unsigned char *adata, unsigned long length)
+    int gcm_process(gcm_state *gcm, unsigned char *pt, unsigned long length, unsigned char *ct, int direction)
+    int gcm_done(gcm_state *gcm, unsigned char *tag, unsigned long *taglen)
+    int gcm_reset(gcm_state *gcm)
 
     # OBC functions.
     # int ocb_init(

@@ -184,6 +184,8 @@ cdef class Cipher(Descriptor):
 
     See :meth:`Cipher.add_header` for example of EAX mode.
 
+    See :meth:`Cipher.add_aad` for example of GCM mode.
+
     """
     
     cdef symmetric_all state
@@ -225,7 +227,7 @@ cdef class Cipher(Descriptor):
         # Make sure we do or do not have an IV when it is required.
         if self.mode_i == ${cipher_modes['ecb']} and c_iv is not None:
             raise ValueError('IV not used in "ecb" mode')
-        if self.mode_i != ${cipher_modes['ecb']} and c_iv is None:
+        if self.mode_i not in  ${(cipher_modes['ecb'], cipher_modes['gcm'])} and c_iv is None:
             raise ValueError('IV required in "%s" mode' % self.mode)
 
         # IVs, when given, are bytes, and the right length.
@@ -262,6 +264,11 @@ cdef class Cipher(Descriptor):
                 c_key.ptr, c_key.length,
                 nonce.ptr, nonce.length,
                 header.ptr, header.length,
+            ))
+
+            % elif mode == 'gcm':
+            check_for_error(gcm_init(<gcm_state*>&self.state, self.idx,
+                c_key.ptr, c_key.length
             ))
 
             % else:
@@ -348,6 +355,34 @@ cdef class Cipher(Descriptor):
             c_header.ptr, c_header.length
         ))
 
+    cpdef add_iv(self, bytes iv):
+        """Set the IV for a single GCM session.
+
+        """
+
+        cdef ByteSource c_iv = bytesource(iv)
+        if self.mode_i != ${repr(cipher_modes['gcm'])}:
+            raise Error('only for GCM mode')
+        check_for_error(gcm_add_iv(<gcm_state*>&self.state,
+            c_iv.ptr, c_iv.length
+        ))
+
+    cpdef add_aad(self, bytes aad):
+        """Authenticate additional (optional) data in GCM mode.
+
+        TODO: Explain GCM
+        Roughly, you need to add the IV, add any additional (unencrypted)
+        data, and then .process an encrypt/decrypt on the plaintext. Then
+        .done returns a MAC / tag for verification.
+        """
+
+        cdef ByteSource c_aad = bytesource(aad)
+        if self.mode_i != ${repr(cipher_modes['gcm'])}:
+            raise Error('only for GCM mode')
+        check_for_error(gcm_add_aad(<gcm_state*>&self.state,
+            c_aad.ptr, c_aad.length
+        ))
+
     % for type in 'encrypt decrypt'.split():
     cpdef ${type}(self, py_input):
         """${type}(input)
@@ -375,8 +410,19 @@ cdef class Cipher(Descriptor):
 
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
-            % if mode in cipher_auth_modes:
+            % if mode == 'eax':
             check_for_error(${mode}_${type}(<${mode}_state*>&self.state, c_input.ptr, output, c_input.length))
+            % elif mode == 'gcm':
+            check_for_error(gcm_process(<gcm_state*>&self.state,
+                # As if it isn't bad enough that EAX and GCM argument order
+                # is different, since GCM uses one function for encryption
+                # and decryption, argument order also depends on direction.
+                % if type == 'encrypt':
+                c_input.ptr, c_input.length, output,
+                % else:
+                output, c_input.length, c_input.ptr,
+                % endif
+                ${mode.upper()}_${type.upper()}))
             % else:
             check_for_error(${mode}_${type}(c_input.ptr, output, c_input.length, <symmetric_${mode}*>&self.state))
             % endif
@@ -386,19 +432,23 @@ cdef class Cipher(Descriptor):
     % endfor
 
     cpdef done(self):
-        """Return authentication tag for EAX mode.
+        """Return authentication tag for EAX or GCM mode.
 
-        See :meth:`Cipher.add_header(...) <tomcrypt.cipher.Cipher.add_header>` for example.
+        See :meth:`Cipher.add_header(...) <tomcrypt.cipher.Cipher.add_header>` for EAX example.
+
+        See :meth:`Cipher.add_aad(...) <tomcrypt.cipher.Cipher.add_aad>` for GCM example.
 
         """
         cdef unsigned long length = 1024
 
-        if self.mode_i == ${repr(cipher_modes['eax'])}:
+        % for i, (mode, mode_i) in enumerate(sorted(cipher_auth_modes.items())):
+        ${'el' if i else ''}if self.mode_i == ${mode_i}: # ${mode}
             output = PyBytes_FromStringAndSize(NULL, length)
-            check_for_error(eax_done(<eax_state*>&self.state, output, &length))
-            return output[:length]
+            check_for_error(${mode}_done(<${mode}_state*>&self.state, output, &length))
+        % endfor
         else:
             raise Error('not for %s mode' % self.mode)
+        return output[:length]
 
 
 names = ${repr(set(cipher_names))}

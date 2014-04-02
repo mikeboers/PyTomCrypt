@@ -450,6 +450,13 @@ cdef class Cipher(Descriptor):
             raise Error('not for %s mode' % self.mode)
         return output[:length]
 
+    cpdef reset(self):
+        """Reset GCM state preserving precomputed tables.
+
+        """
+        if self.mode_i != ${repr(cipher_modes['gcm'])}:
+            raise Error('only for GCM mode')
+        check_for_error(gcm_reset(<gcm_state*>&self.state))
 
 names = ${repr(set(cipher_names))}
 modes = ${repr(set(cipher_modes.keys()))}

@@ -410,21 +410,24 @@ cdef class Cipher(Descriptor):
 
         % for mode, i in cipher_mode_items:
         ${'el' if i else ''}if self.mode_i == ${i}: # ${mode}
+
             % if mode == 'eax':
             check_for_error(${mode}_${type}(<${mode}_state*>&self.state, c_input.ptr, output, c_input.length))
+
             % elif mode == 'gcm':
-            check_for_error(gcm_process(<gcm_state*>&self.state,
-                # As if it isn't bad enough that EAX and GCM argument order
-                # is different, since GCM uses one function for encryption
-                # and decryption, argument order also depends on direction.
-                % if type == 'encrypt':
-                c_input.ptr, c_input.length, output,
-                % else:
-                output, c_input.length, c_input.ptr,
-                % endif
-                ${mode.upper()}_${type.upper()}))
+            # As if it isn't bad enough that EAX and GCM argument order
+            # is different, since GCM uses one function for encryption
+            # and decryption, argument order also depends on direction.
+            % if type == 'encrypt':
+            check_for_error(gcm_process(<gcm_state*>&self.state, c_input.ptr, c_input.length, output, GCM_ENCRYPT))
             % else:
+            check_for_error(gcm_process(<gcm_state*>&self.state, output, c_input.length, c_input.ptr, GCM_DECRYPT))
+            % endif
+
+            % else:
+            # Everyone else is pretty straight forward.
             check_for_error(${mode}_${type}(c_input.ptr, output, c_input.length, <symmetric_${mode}*>&self.state))
+
             % endif
         % endfor
         return output
@@ -458,8 +461,10 @@ cdef class Cipher(Descriptor):
             raise Error('only for GCM mode')
         check_for_error(gcm_reset(<gcm_state*>&self.state))
 
+
 names = ${repr(set(cipher_names))}
 modes = ${repr(set(cipher_modes.keys()))}
+
 
 % for name in cipher_names:
 ${name} = Descriptor(${repr(name)})

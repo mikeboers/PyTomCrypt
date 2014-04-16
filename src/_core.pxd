@@ -13,6 +13,7 @@ cdef extern from "stdlib.h" nogil:
 
 from cpython.version cimport PY_MAJOR_VERSION
 from cpython cimport PyBytes_FromStringAndSize
+from cpython.buffer cimport Py_buffer, PyObject_CheckBuffer, PyObject_GetBuffer, PyBUF_SIMPLE, PyBuffer_Release
 
 
 cdef extern from "pyerrors.h":
@@ -76,7 +77,10 @@ cdef void check_for_error(int res) except *
 cdef class ByteSource(object):
 
     cdef object owner
-    cdef unsigned char[::1] view
+    
+    cdef bint has_view
+    cdef Py_buffer view
+
     cdef unsigned char *ptr
     cdef size_t length
 

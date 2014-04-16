@@ -128,3 +128,10 @@ class CipherTests(TestCase):
         enc = cipher.aes(key, iv).encrypt(msg)
         self.assertEqual(cipher.aes(key, iv).decrypt(enc), msg)
 
+    def test_memoryviews(self):
+        key = b'0123456789abcdef'
+        iv  = b'0' * 16
+        msg = memoryview(b'hello, world')
+        enc = cipher.aes(key, iv).encrypt(msg)
+        self.assertEqual(cipher.aes(key, iv).decrypt(enc), msg)
+

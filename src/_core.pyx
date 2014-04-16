@@ -36,16 +36,19 @@ cdef class ByteSource(object):
             self.length = len(owner)
             return
 
-        try:
-            self.view = owner
-        except BufferError:
-            pass
-        else:
-            self.ptr = &self.view[0]
-            self.length = self.view.shape[0] * self.view.itemsize
-            return
+        if PyObject_CheckBuffer(owner):
+            res = PyObject_GetBuffer(owner, &self.view, PyBUF_SIMPLE)
+            if not res:
+                self.has_view = True
+                self.ptr = <unsigned char *>self.view.buf
+                self.length = self.view.len
+                return
+        
+        raise TypeError('expected bytes, bytearray or memoryview')
 
-        raise TypeError('expected bytes or bytearray')
+    def __dealloc__(self):
+        if self.has_view:
+            PyBuffer_Release(&self.view)
 
 
 cdef ByteSource bytesource(obj, bint allow_none=False):

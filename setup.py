@@ -58,6 +58,11 @@ for name in ext_names:
             # These macros are needed for the math library.
             LTM_DESC=None,
             LTC_SOURCE=None,
+
+            # Avoid GCM timing attacks.
+            LTC_NO_TABLES=None, 
+
+            # Pass in our version from above.
             PTC_VERSION='"%s"' % version,
 
         ).items()) if name == '_core' else [],

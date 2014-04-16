@@ -370,10 +370,22 @@ cdef class Cipher(Descriptor):
     cpdef add_aad(self, bytes aad):
         """Authenticate additional (optional) data in GCM mode.
 
-        TODO: Explain GCM
-        Roughly, you need to add the IV, add any additional (unencrypted)
-        data, and then .process an encrypt/decrypt on the plaintext. Then
-        .done returns a MAC / tag for verification.
+        The given string is taken into account when calculating the final tag.
+
+        >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16, mode='gcm')
+        >>> cipher.add_aad(b'some unencrypted data to still authenticate')
+        >>> cipher.encrypt(b'hello')
+        b'i\\xd5 Tu'
+        >>> cipher.done()
+        b'5}\\x06\\x9d]\\xd9$\\xc0\\xb3\\xfc\\xac\\xac\\x88=b\\xe4'
+
+        >>> cipher = aes(b'0123456789abcdef', b'\\0' * 16, mode='gcm')
+        >>> cipher.add_aad(b'some unencrypted data to still authenticate')
+        >>> cipher.decrypt(b'i\\xd5 Tu')
+        b'hello'
+        >>> cipher.done()
+        b'5}\\x06\\x9d]\\xd9$\\xc0\\xb3\\xfc\\xac\\xac\\x88=b\\xe4'
+
         """
 
         cdef ByteSource c_aad = bytesource(aad)
@@ -437,9 +449,12 @@ cdef class Cipher(Descriptor):
     cpdef done(self):
         """Return authentication tag for EAX or GCM mode.
 
-        See :meth:`Cipher.add_header(...) <tomcrypt.cipher.Cipher.add_header>` for EAX example.
+        ALWAYS use :func:`utils.bytes_equal <tomcrypt.utils.bytes_equal>` to
+        check for tag equality (in order to avoid timing attacks).
 
-        See :meth:`Cipher.add_aad(...) <tomcrypt.cipher.Cipher.add_aad>` for GCM example.
+        .. seealso:: :meth:`Cipher.add_header(...) <tomcrypt.cipher.Cipher.add_header>` for EAX example.
+
+        .. seealso:: :meth:`Cipher.add_aad(...) <tomcrypt.cipher.Cipher.add_aad>` for GCM example.
 
         """
         cdef unsigned long length = 1024

@@ -90,9 +90,10 @@ Initialization Vectors
     .. automethod:: tomcrypt.cipher.Cipher.set_iv
 
 
-EAX-Specific Methods
-^^^^^^^^^^^^^^^^^^^^
+Authentication Mode Specific Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     .. automethod:: tomcrypt.cipher.Cipher.add_header
+    .. automethod:: tomcrypt.cipher.Cipher.add_aad
     .. automethod:: tomcrypt.cipher.Cipher.done
 
 

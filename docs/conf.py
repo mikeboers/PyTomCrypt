@@ -40,8 +40,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PyTomCrypt'
-copyright = u'2013, Mike Boers'
+project = 'PyTomCrypt'
+copyright = '2013, Mike Boers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -1,6 +1,6 @@
 
 
-version = PTC_VERSION
+version = str(PTC_VERSION.decode())
 
 
 # Setup TomsFastMath for use.

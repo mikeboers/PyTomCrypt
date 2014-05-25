@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Hash Functions &mdash; PyTomCrypt 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyTomCrypt 0.10.1 documentation" href="index.html" />
+    <link rel="next" title="Message Authentication Codes (MACs)" href="mac.html" />
+    <link rel="prev" title="Symmetric Ciphers" href="cipher.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mac.html" title="Message Authentication Codes (MACs)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cipher.html" title="Symmetric Ciphers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hash-functions">
+<h1>Hash Functions<a class="headerlink" href="#hash-functions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tomcrypt</span> <span class="kn">import</span> <span class="nb">hash</span>
+</pre></div>
+</div>
+<p>This module contains a <a class="reference internal" href="#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">Descriptor</span></tt></a> class which describes a hash, and a <tt class="xref py py-class docutils literal"><span class="pre">Hash</span></tt> class for using a hash. As a convenience there is a pre-made <a class="reference internal" href="#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">Descriptor</span></tt></a> for every hash provided:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">Hash</span><span class="p">(</span><span class="s">&#39;sha256&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># OR:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The module also contains a list of the names of all hashes provided:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="nb">hash</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+<span class="go">[&#39;chc&#39;, &#39;md2&#39;, &#39;md4&#39;, &#39;md5&#39;, &#39;rmd128&#39;, &#39;rmd160&#39;, &#39;rmd256&#39;, &#39;rmd320&#39;, &#39;sha1&#39;, &#39;sha224&#39;, &#39;sha256&#39;, &#39;sha384&#39;, &#39;sha512&#39;, &#39;tiger&#39;, &#39;whirlpool&#39;]</span>
+</pre></div>
+</div>
+<p>The module has been designed to be a drop-in replacement for <tt class="docutils literal"><span class="pre">hashlib</span></tt> (<tt class="xref py py-func docutils literal"><span class="pre">new()</span></tt> is simply another name for <tt class="xref py py-class docutils literal"><span class="pre">Hash</span></tt>):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;sha256&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also provide initial content:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">Hash</span><span class="p">(</span><span class="s">&#39;sha256&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;intial&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># OR:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;sha256&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;intial&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># OR:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;intial&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The rest of the API is the same as hashlib as well:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Digests!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;initial&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Copies!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">copy</span> <span class="o">=</span> <span class="n">hasher</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;something&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">copy</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Binary output!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;2e917b6429310675c7b8020885cbce99f64482a36dba5ee323e9891b8afe1545&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasher</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+<span class="go">b&#39;.\x91{d)1\x06u\xc7\xb8\x02\x08\x85\xcb\xce\x99\xf6D\x82\xa3m\xba^\xe3#\xe9\x89\x1b\x8a\xfe\x15E&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="descriptor-api">
+<h2>Descriptor API<a class="headerlink" href="#descriptor-api" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tomcrypt.hash.Descriptor">
+<em class="property">class </em><tt class="descclassname">tomcrypt.hash.</tt><tt class="descname">Descriptor</tt><a class="headerlink" href="#tomcrypt.hash.Descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>LibTomCrypt descriptor of a hash function.</p>
+<p>Can be called as convenience to calling Hash, passing the hash name
+via kwargs.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">md5</span> <span class="o">=</span> <span class="n">Descriptor</span><span class="p">(</span><span class="s">&#39;md5&#39;</span><span class="p">)</span> <span class="c"># Same as tomcrypt.hash.md5.</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="tomcrypt.hash.Descriptor.block_size">
+<tt class="descname">block_size</tt><a class="headerlink" href="#tomcrypt.hash.Descriptor.block_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internal block size of this hash, in bytes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">md5</span><span class="o">.</span><span class="n">block_size</span>
+<span class="go">64</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.hash.Descriptor.digest">
+<tt class="descname">digest</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.hash.Descriptor.digest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return digest for a single string.</p>
+<p>This is a convenience for constructing a Hash object and calling
+hexdigest on it.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">md5</span><span class="o">.</span><span class="n">digest</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="go">b&#39;x\xe71\x02}\x8f\xd5\x0e\xd6B4\x0b|\x9ac\xb3&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.hash.Descriptor.digest_size">
+<tt class="descname">digest_size</tt><a class="headerlink" href="#tomcrypt.hash.Descriptor.digest_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of final digest, in bytes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">md5</span><span class="o">.</span><span class="n">digest_size</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.hash.Descriptor.hexdigest">
+<tt class="descname">hexdigest</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.hash.Descriptor.hexdigest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return hexdigest for a single string.</p>
+<p>This is a convenience for constructing a Hash object and calling
+hexdigest on it.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">md5</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="go">&#39;78e731027d8fd50ed642340b7c9a63b3&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.hash.Descriptor.name">
+<tt class="descname">name</tt><a class="headerlink" href="#tomcrypt.hash.Descriptor.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of this hash.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">md5</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;md5&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="hasher-api">
+<h2>Hasher API<a class="headerlink" href="#hasher-api" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tomcrypt.hash.Hash">
+<em class="property">class </em><tt class="descclassname">tomcrypt.hash.</tt><tt class="descname">Hash</tt><a class="headerlink" href="#tomcrypt.hash.Hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>All state required to digest messages with a given hash function.</p>
+<p>The API of this class has been designed to be a drop-in replacement for
+the standard library&#8217;s hashlib.</p>
+<p>For CHC hashes see CHC class.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>str hash &#8211; The name of the hash fuction, or a hash Descriptor.
+bytes input &#8211; Initial input.</dd>
+</dl>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span> <span class="o">=</span> <span class="n">Hash</span><span class="p">(</span><span class="s">&#39;md5&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="tomcrypt.hash.Hash.copy">
+<tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.hash.Hash.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a copy of the hash state.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;some more&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;d62b5837649450564c7fc65d1ab2ef85&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;78e731027d8fd50ed642340b7c9a63b3&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.hash.Hash.digest">
+<tt class="descname">digest</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.hash.Hash.digest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return binary digest.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+<span class="go">b&#39;x\xe71\x02}\x8f\xd5\x0e\xd6B4\x0b|\x9ac\xb3&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.hash.Hash.hexdigest">
+<tt class="descname">hexdigest</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.hash.Hash.hexdigest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return hex-encoded string of digest.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;78e731027d8fd50ed642340b7c9a63b3&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.hash.Hash.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.hash.Hash.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add more data to the digest.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span> <span class="o">=</span> <span class="n">md5</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;78e731027d8fd50ed642340b7c9a63b3&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Hash Functions</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#descriptor-api">Descriptor API</a></li>
+<li><a class="reference internal" href="#hasher-api">Hasher API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cipher.html"
+                        title="previous chapter">Symmetric Ciphers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="mac.html"
+                        title="next chapter">Message Authentication Codes (MACs)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/hash.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mac.html" title="Message Authentication Codes (MACs)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cipher.html" title="Symmetric Ciphers"
+             >previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Mike Boers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

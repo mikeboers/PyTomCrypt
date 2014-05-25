@@ -1,0 +1,522 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>RSA &mdash; PyTomCrypt 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyTomCrypt 0.10.1 documentation" href="index.html" />
+    <link rel="next" title="Elliptic Curve Crypto" href="ecc.html" />
+    <link rel="prev" title="Pseudo-Random Number Generators (PRNGs)" href="prng.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ecc.html" title="Elliptic Curve Crypto"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="prng.html" title="Pseudo-Random Number Generators (PRNGs)"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="rsa">
+<h1>RSA<a class="headerlink" href="#rsa" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tomcrypt</span> <span class="kn">import</span> <span class="n">rsa</span>
+</pre></div>
+</div>
+<p>This module contains a <a class="reference internal" href="#tomcrypt.rsa.Key" title="tomcrypt.rsa.Key"><tt class="xref py py-class docutils literal"><span class="pre">Key</span></tt></a> class for encrypting, decrypting, signing, and verifying data with a RSA private or public key.</p>
+<div class="section" id="padding">
+<h3>Padding<a class="headerlink" href="#padding" title="Permalink to this headline">¶</a></h3>
+<p>By default, encryption will use <a class="reference external" href="http://www.emc.com/emc-plus/rsa-labs/standards-initiatives/what-is-oaep.htm">OAEP</a> padding, and signing will use <a class="reference external" href="http://www.emc.com/emc-plus/rsa-labs/standards-initiatives/what-is-pss-pss-r.htm">PSS</a> padding.</p>
+<p>For greater compatibility (e.g. with OpenSSL which does not support PSS padding via the <tt class="docutils literal"><span class="pre">openssl</span> <span class="pre">rsautl</span></tt> command), you can use <a class="reference external" href="http://tools.ietf.org/html/rfc2313">PKCS1</a> padding by setting the keyword argument <tt class="docutils literal"><span class="pre">padding=&quot;v1.5&quot;</span></tt> on many methods. If padding has already been applied, you can also use <tt class="docutils literal"><span class="pre">padding=&quot;none&quot;</span></tt> to disable it entirely.</p>
+</div>
+<div class="section" id="hashing">
+<h3>Hashing<a class="headerlink" href="#hashing" title="Permalink to this headline">¶</a></h3>
+<p>By default the keys will use <tt class="docutils literal"><span class="pre">sha1</span></tt> for part of the encryption padding, and <tt class="docutils literal"><span class="pre">sha512</span></tt> for the signature, but these can be changed via the <tt class="docutils literal"><span class="pre">hash</span></tt> keyword arg on many methods.</p>
+</div>
+<div class="section" id="use">
+<h3>Use<a class="headerlink" href="#use" title="Permalink to this headline">¶</a></h3>
+<p>You can generate new keys:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">key</span> <span class="o">=</span> <span class="n">rsa</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or you can load an existing key from a string:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">key</span> <span class="o">=</span> <span class="n">rsa</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="s">&#39;&#39;&#39;-----BEGIN RSA PRIVATE KEY-----</span>
+<span class="go">MIICXwIBAAKBgQv9V1DrxfhDt56rC1/i18HJE6x/SLs2xu5IDySxI0xhme8U6T6w</span>
+<span class="go">Ess275MacdQMSZh5MJl+8YRErwx6zOilDz8y2GDqKrsuMgAodkvfKAeQlQZp+IPZ</span>
+<span class="go">dJlRhoE1Lk/aHBOiqRGR75LufiTAbaDMG3NWM1SidE9qVZv3HsWJqQU7ywIDAQAB</span>
+<span class="go">AoGBBbw8ppMCco5CKf58RHQI7cQ4Sw3gRt4fLyD9TXoG/qS5tCp2oOwtMVSoKeA+</span>
+<span class="go">j0cJdYyTePnGopUQf5HGr4s1zew14Ks2/91J70MEiABvrvVv9ZfiLT1e9/U/HdYE</span>
+<span class="go">s9Vv4NOpStZHhTcUrQXtiEBG+8VQhCIeuW1J9XKT8gTa7A+xAkED/rTemeSV9hQa</span>
+<span class="go">r9gJ4IHWVgJSNMm4A3bWsEM2R9Dm0Iwif8R/RHHJrsHgTKukYOOwbW7RFHwh+QVU</span>
+<span class="go">fL4pXjVR9wJBAwBORpdlEgWAD4IQK0CR6w3htz7w3KrS6OuckEPItA+W9Edt1n/a</span>
+<span class="go">v8Q7FiIdoHWPI4qaCI1g1GlOCUyXtaJb780CQQDKdafzs0r0sjouQYiDB3EVCdSY</span>
+<span class="go">Wq6xEN+jeUrPoM1wz60suguv0w7oJ71tsDUUcT7GC0Ac3A4lrCZzo3mxCsE1AkEA</span>
+<span class="go">419G7tj/a1dJv6EPW82TNYl+FIdtlrRSMCAmZZkJCLAQ3O65kx7mr6kY1MHV0dSp</span>
+<span class="go">nQQW0dg9JGjuwZcILuNsZQJBAk1MSHz9q4Azr5F3y9gaKyPNJBVpqAyI8acQRoJF</span>
+<span class="go">ioKaum9hlRf3nuXxmSfqv7iXozX6xfrYncjLKbBn/hPhWp8=</span>
+<span class="go">-----END RSA PRIVATE KEY-----&#39;&#39;&#39;)</span>
+</pre></div>
+</div>
+<p>The public key is accessible via the <a class="reference internal" href="ecc.html#tomcrypt.ecc.Key.public" title="tomcrypt.ecc.Key.public"><tt class="xref py py-attr docutils literal"><span class="pre">public</span></tt></a> attribute, and the encoded version of a key is available via the <a class="reference internal" href="ecc.html#tomcrypt.ecc.Key.as_string" title="tomcrypt.ecc.Key.as_string"><tt class="xref py py-meth docutils literal"><span class="pre">as_string()</span></tt></a> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">public</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">pub</span><span class="o">.</span><span class="n">as_string</span><span class="p">()</span>
+<span class="go">-----BEGIN PUBLIC KEY-----</span>
+<span class="go">MIGJAoGBC/1XUOvF+EO3nqsLX+LXwckTrH9IuzbG7kgPJLEjTGGZ7xTpPrASyzbvkxpx1AxJmHkw</span>
+<span class="go">mX7xhESvDHrM6KUPPzLYYOoquy4yACh2S98oB5CVBmn4g9l0mVGGgTUuT9ocE6KpEZHvku5+JMBt</span>
+<span class="go">oMwbc1YzVKJ0T2pVm/cexYmpBTvLAgMBAAE=</span>
+<span class="go">-----END PUBLIC KEY-----</span>
+</pre></div>
+</div>
+<p>You can see how large a payload a given key/padding/hash will support via the <a class="reference internal" href="#tomcrypt.rsa.Key.max_payload" title="tomcrypt.rsa.Key.max_payload"><tt class="xref py py-meth docutils literal"><span class="pre">max_payload()</span></tt></a> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">key</span><span class="o">.</span><span class="n">max_payload</span><span class="p">()</span> <span class="c"># using defaults</span>
+<span class="go">86</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key</span><span class="o">.</span><span class="n">max_payload</span><span class="p">(</span><span class="n">padding</span><span class="o">=</span><span class="s">&#39;none&#39;</span><span class="p">)</span>
+<span class="go">128</span>
+</pre></div>
+</div>
+<p>The reverse is also possible; calculating the key size required for a message payload of at least a given size:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rsa</span><span class="o">.</span><span class="n">key_size_for_payload</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="c"># using defaults</span>
+<span class="go">1136</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rsa</span><span class="o">.</span><span class="n">key_size_for_payload</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s">&#39;none&#39;</span><span class="p">)</span>
+<span class="go">800</span>
+</pre></div>
+</div>
+<p>We can encrypt and decrypt:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;Hello, World!&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ct</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">ct</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">==</span> <span class="n">pt</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Note that you can encrypt with a public key, but you can&#8217;t decrypt:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt;&gt;&gt; ct = pub.encrypt(msg)
+&gt;&gt;&gt; pt = pub.decrypt(ct)
+Traceback (most recent call last):
+&lt;snip&gt;
+tomcrypt.LibError: A private PK key is required.
+</pre></div>
+</div>
+<p>We can also sign/verify signatures:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;Hello, World!&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">sig</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Note that you can verify a signature with a public key, but you can&#8217;t sign:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt;&gt;&gt; pub.verify(msg, sig)
+True
+&gt;&gt;&gt; sig = pub.sign(msg)
+Traceback (most recent call last):
+&lt;snip&gt;
+tomcrypt.LibError: A private PK key is required.
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="module-tomcrypt.rsa">
+<span id="rsa-api"></span><h2>RSA API<a class="headerlink" href="#module-tomcrypt.rsa" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tomcrypt.rsa.Key">
+<em class="property">class </em><tt class="descclassname">tomcrypt.rsa.</tt><tt class="descname">Key</tt><a class="headerlink" href="#tomcrypt.rsa.Key" title="Permalink to this definition">¶</a></dt>
+<dd><p>An RSA key.</p>
+<p>This key can be imported from an encoded string, or randomly generated.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Generate a key.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key</span> <span class="o">=</span> <span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key</span><span class="o">.</span><span class="n">size</span>
+<span class="go">1024</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Import a key.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key</span> <span class="o">=</span> <span class="n">Key</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;/path/to/key.pem&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span> 
+</pre></div>
+</div>
+<dl class="method">
+<dt id="tomcrypt.rsa.Key.as_dict">
+<tt class="descname">as_dict</tt><big>(</big><em>radix=16</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.Key.as_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict of all of the key parts encoded into strings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>radix</strong> (<em>int</em>) &#8211; The base into which to convert the bignum; from 2 to 64.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.rsa.Key.as_string">
+<tt class="descname">as_string</tt><big>(</big><em>type=None</em>, <em>format='pem'</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.Key.as_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the string representation of a key.</p>
+<p>Both the availible formats are compatible with OpenSSL. We default to
+the same one that OpenSSL does (PEM).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>type</strong> (<em>str</em>) &#8211; <tt class="docutils literal"><span class="pre">None</span></tt> (as is), <tt class="docutils literal"><span class="pre">'private'</span></tt> or <tt class="docutils literal"><span class="pre">'public'</span></tt>.</li>
+<li><strong>format</strong> (<em>str</em>) &#8211; <tt class="docutils literal"><span class="pre">'pem'</span></tt> or <tt class="docutils literal"><span class="pre">'der'</span></tt>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">as_string</span><span class="p">()</span> 
+<span class="go">&#39;-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">public</span><span class="o">.</span><span class="n">as_string</span><span class="p">()</span> 
+<span class="go">&#39;-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----\n&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s">&#39;public&#39;</span><span class="p">)</span> 
+<span class="go">&#39;-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----\n&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">as_string</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;der&#39;</span><span class="p">),</span> <span class="nb">bytes</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.rsa.Key.decrypt">
+<tt class="descname">decrypt</tt><big>(</big><em>input</em>, <em>hash='sha1'</em>, <em>padding='oaep'</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.Key.decrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypt some bytes.</p>
+<p>Only usable on private keys.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input</strong> (<em>bytes</em>) &#8211; The bytes to decrypt.</li>
+<li><strong>padding</strong> (<em>str</em>) &#8211; One of <tt class="docutils literal"><span class="pre">'none'</span></tt>, <tt class="docutils literal"><span class="pre">'v1.5'</span></tt>, or <tt class="docutils literal"><span class="pre">'oaep'</span></tt>.</li>
+<li><strong>hash</strong> &#8211; The hash that will be used: <tt class="docutils literal"><span class="pre">str</span></tt> or <a class="reference internal" href="hash.html#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">hash.Descriptor</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.rsa.Key.encrypt">
+<tt class="descname">encrypt</tt><big>(</big><em>input</em>, <em>prng='sprng'</em>, <em>hash='sha1'</em>, <em>padding='oaep'</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.Key.encrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypt some bytes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input</strong> (<em>bytes</em>) &#8211; The bytes to encrypt.</li>
+<li><strong>prng</strong> (<em>str</em>) &#8211; The PRNG to use; <tt class="docutils literal"><span class="pre">str</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">PRNG</span></tt>.</li>
+<li><strong>padding</strong> (<em>str</em>) &#8211; One of <tt class="docutils literal"><span class="pre">'none'</span></tt>, <tt class="docutils literal"><span class="pre">'v1.5'</span></tt>, or <tt class="docutils literal"><span class="pre">'oaep'</span></tt>.</li>
+<li><strong>hash</strong> &#8211; The hash that will be used: <tt class="docutils literal"><span class="pre">str</span></tt> or <a class="reference internal" href="hash.html#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">hash.Descriptor</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.rsa.Key.is_private">
+<tt class="descname">is_private</tt><a class="headerlink" href="#tomcrypt.rsa.Key.is_private" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this is a private key.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">is_private</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">public</span><span class="o">.</span><span class="n">is_private</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.rsa.Key.is_public">
+<tt class="descname">is_public</tt><a class="headerlink" href="#tomcrypt.rsa.Key.is_public" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this is a public key.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">is_public</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">public</span><span class="o">.</span><span class="n">is_public</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.rsa.Key.max_payload">
+<tt class="descname">max_payload</tt><big>(</big><em>padding='oaep'</em>, <em>hash='sha1'</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.Key.max_payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>The maximum length of the payload that is safe to encrypt/sign.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>padding</strong> (<em>str</em>) &#8211; One of <tt class="docutils literal"><span class="pre">'none'</span></tt>, <tt class="docutils literal"><span class="pre">'v1.5'</span></tt>, <tt class="docutils literal"><span class="pre">'oaep'</span></tt>, or <tt class="docutils literal"><span class="pre">'pss'</span></tt>.</li>
+<li><strong>hash</strong> &#8211; The hash that will be used: <tt class="docutils literal"><span class="pre">str</span></tt> or <a class="reference internal" href="hash.html#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">hash.Descriptor</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#tomcrypt.rsa.max_payload" title="tomcrypt.rsa.max_payload"><tt class="xref py py-func docutils literal"><span class="pre">max_payload()</span></tt></a> for examples.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.rsa.Key.public">
+<tt class="descname">public</tt><a class="headerlink" href="#tomcrypt.rsa.Key.public" title="Permalink to this definition">¶</a></dt>
+<dd><p>A view of this key with only the public parts.</p>
+<p>If this is already a public key, this will be the same object.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">public</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">type</span>
+<span class="go">&#39;public&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">public</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="ow">is</span> <span class="n">b</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.rsa.Key.sign">
+<tt class="descname">sign</tt><big>(</big><em>input</em>, <em>prng='sprng'</em>, <em>hash='sha512'</em>, <em>padding='pss'</em>, <em>saltlen=None</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.Key.sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sign some bytes.</p>
+<p>Only usable on private keys.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input</strong> (<em>bytes</em>) &#8211; The bytes to sign.</li>
+<li><strong>prng</strong> (<em>str</em>) &#8211; The PRNG to use; <tt class="docutils literal"><span class="pre">str</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">PRNG</span></tt>.</li>
+<li><strong>padding</strong> (<em>str</em>) &#8211; One of <tt class="docutils literal"><span class="pre">'none'</span></tt>, <tt class="docutils literal"><span class="pre">'v1.5'</span></tt>, or <tt class="docutils literal"><span class="pre">'pss'</span></tt>.</li>
+<li><strong>hash</strong> &#8211; The hash that will be used: <tt class="docutils literal"><span class="pre">str</span></tt> or <a class="reference internal" href="hash.html#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">hash.Descriptor</span></tt></a>.</li>
+<li><strong>saltlen</strong> &#8211; Length of the salt, in bytes. By default, the strict maximum is used.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.rsa.Key.size">
+<tt class="descname">size</tt><a class="headerlink" href="#tomcrypt.rsa.Key.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>The bit length of the modulus of the key.</p>
+<p>This will be a multiple of 8 for any key generated with this library,
+but that is not a requirement for others. (It is easy to make any
+size key with openssl, for instance.)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="o">.</span><span class="n">size</span>
+<span class="go">1024</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.rsa.Key.type">
+<tt class="descname">type</tt><a class="headerlink" href="#tomcrypt.rsa.Key.type" title="Permalink to this definition">¶</a></dt>
+<dd><p><tt class="docutils literal"><span class="pre">'private'</span></tt> or <tt class="docutils literal"><span class="pre">'public'</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span> <span class="o">=</span> <span class="n">Key</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">type</span>
+<span class="go">&#39;private&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">.</span><span class="n">public</span><span class="o">.</span><span class="n">type</span>
+<span class="go">&#39;public&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.rsa.Key.verify">
+<tt class="descname">verify</tt><big>(</big><em>input</em>, <em>sig</em>, <em>hash='sha512'</em>, <em>padding='pss'</em>, <em>saltlen=None</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.Key.verify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify the signature of some bytes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input</strong> (<em>bytes</em>) &#8211; The bytes that were signed.</li>
+<li><strong>sig</strong> (<em>bytes</em>) &#8211; The signature.</li>
+<li><strong>padding</strong> (<em>str</em>) &#8211; One of <tt class="docutils literal"><span class="pre">'none'</span></tt>, <tt class="docutils literal"><span class="pre">'v1.5'</span></tt>, or <tt class="docutils literal"><span class="pre">'pss'</span></tt>.</li>
+<li><strong>hash</strong> &#8211; The hash that will be used: <tt class="docutils literal"><span class="pre">str</span></tt> or <a class="reference internal" href="hash.html#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">hash.Descriptor</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns <tt class="docutils literal"><span class="pre">True</span></tt> if the signature is valid. Raises an exception if the
+signature is the wrong format.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tomcrypt.rsa.key_size_for_payload">
+<tt class="descclassname">tomcrypt.rsa.</tt><tt class="descname">key_size_for_payload</tt><big>(</big><em>length</em>, <em>padding='oaep'</em>, <em>hash='sha1'</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.key_size_for_payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the min keysize for a payload of a given length.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>length</strong> (<em>int</em>) &#8211; The length of the payload.</li>
+<li><strong>padding</strong> (<em>str</em>) &#8211; One of <tt class="docutils literal"><span class="pre">'none'</span></tt>, <tt class="docutils literal"><span class="pre">'v1.5'</span></tt>, <tt class="docutils literal"><span class="pre">'oaep'</span></tt>, or <tt class="docutils literal"><span class="pre">'pss'</span></tt>.</li>
+<li><strong>hash</strong> &#8211; The hash that will be used: <tt class="docutils literal"><span class="pre">str</span></tt> or <a class="reference internal" href="hash.html#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">hash.Descriptor</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">key_size_for_payload</span><span class="p">(</span><span class="mi">86</span><span class="p">)</span>
+<span class="go">1024</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">key_size_for_payload</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s">&#39;none&#39;</span><span class="p">)</span>
+<span class="go">1024</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tomcrypt.rsa.max_payload">
+<tt class="descclassname">tomcrypt.rsa.</tt><tt class="descname">max_payload</tt><big>(</big><em>key_size</em>, <em>padding='oaep'</em>, <em>hash='sha1'</em><big>)</big><a class="headerlink" href="#tomcrypt.rsa.max_payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the maximum length of the payload that is safe to encrypt/sign.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>padding</strong> (<em>str</em>) &#8211; One of <tt class="docutils literal"><span class="pre">'none'</span></tt>, <tt class="docutils literal"><span class="pre">'v1.5'</span></tt>, <tt class="docutils literal"><span class="pre">'oaep'</span></tt>, or <tt class="docutils literal"><span class="pre">'pss'</span></tt>.</li>
+<li><strong>hash</strong> &#8211; The hash that will be used: <tt class="docutils literal"><span class="pre">str</span></tt> or <a class="reference internal" href="hash.html#tomcrypt.hash.Descriptor" title="tomcrypt.hash.Descriptor"><tt class="xref py py-class docutils literal"><span class="pre">hash.Descriptor</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">max_payload</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="go">86</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">max_payload</span><span class="p">(</span><span class="mi">2048</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="s">&#39;sha512&#39;</span><span class="p">)</span>
+<span class="go">126</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">max_payload</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s">&#39;none&#39;</span><span class="p">)</span>
+<span class="go">128</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">RSA</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#padding">Padding</a></li>
+<li><a class="reference internal" href="#hashing">Hashing</a></li>
+<li><a class="reference internal" href="#use">Use</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-tomcrypt.rsa">RSA API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="prng.html"
+                        title="previous chapter">Pseudo-Random Number Generators (PRNGs)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ecc.html"
+                        title="next chapter">Elliptic Curve Crypto</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/rsa.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ecc.html" title="Elliptic Curve Crypto"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="prng.html" title="Pseudo-Random Number Generators (PRNGs)"
+             >previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Mike Boers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

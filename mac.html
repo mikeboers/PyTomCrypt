@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Message Authentication Codes (MACs) &mdash; PyTomCrypt 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyTomCrypt 0.10.1 documentation" href="index.html" />
+    <link rel="next" title="Pseudo-Random Number Generators (PRNGs)" href="prng.html" />
+    <link rel="prev" title="Hash Functions" href="hash.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="prng.html" title="Pseudo-Random Number Generators (PRNGs)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="hash.html" title="Hash Functions"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="message-authentication-codes-macs">
+<h1>Message Authentication Codes (MACs)<a class="headerlink" href="#message-authentication-codes-macs" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tomcrypt</span> <span class="kn">import</span> <span class="n">mac</span>
+</pre></div>
+</div>
+<p>This module contains a <a class="reference internal" href="#tomcrypt.mac.MAC" title="tomcrypt.mac.MAC"><tt class="xref py py-class docutils literal"><span class="pre">MAC</span></tt></a> class, and a convenience function for every MAC provided:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mymac</span> <span class="o">=</span> <span class="n">mac</span><span class="o">.</span><span class="n">MAC</span><span class="p">(</span><span class="s">&#39;hmac&#39;</span><span class="p">,</span> <span class="s">&#39;sha256&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># OR</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mymac</span> <span class="o">=</span> <span class="n">mac</span><span class="o">.</span><span class="n">hmac</span><span class="p">(</span><span class="s">&#39;sha256&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The module also contains a list of the names of all MACS provided, and lists of those which use ciphers or hashes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">mac</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+<span class="go">[&#39;hmac&#39;, &#39;omac&#39;, &#39;pmac&#39;, &#39;xcbc&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">mac</span><span class="o">.</span><span class="n">hash_macs</span><span class="p">)</span>
+<span class="go">[&#39;hmac&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">mac</span><span class="o">.</span><span class="n">cipher_macs</span><span class="p">)</span>
+<span class="go">[&#39;omac&#39;, &#39;pmac&#39;, &#39;xcbc&#39;]</span>
+</pre></div>
+</div>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">MAC</span></tt> will accept either a name or a <tt class="docutils literal"><span class="pre">Descriptor</span></tt> to specify which hash/cipher algorithm to use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span><span class="o">.</span><span class="n">hmac</span><span class="p">(</span><span class="s">&#39;md5&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;content&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;97e5f3684213a40aaaa9ef31f9f4b1a7&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span><span class="o">.</span><span class="n">hmac</span><span class="p">(</span><span class="nb">hash</span><span class="o">.</span><span class="n">md5</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;content&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;97e5f3684213a40aaaa9ef31f9f4b1a7&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span><span class="o">.</span><span class="n">pmac</span><span class="p">(</span><span class="s">&#39;aes&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;content&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;530566cd1c33e874f503b3c3272d0fd4&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span><span class="o">.</span><span class="n">pmac</span><span class="p">(</span><span class="n">cipher</span><span class="o">.</span><span class="n">aes</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;content&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;530566cd1c33e874f503b3c3272d0fd4&#39;</span>
+</pre></div>
+</div>
+<p>The rest of the API is similar to the stdlib <tt class="docutils literal"><span class="pre">hmac</span></tt> (or <tt class="docutils literal"><span class="pre">hashlib</span></tt> or <tt class="docutils literal"><span class="pre">tomcrypt.hash</span></tt>, etc.), offering <tt class="docutils literal"><span class="pre">update</span></tt>, <tt class="docutils literal"><span class="pre">digest</span></tt>, <tt class="docutils literal"><span class="pre">hexdigest</span></tt>, and <tt class="docutils literal"><span class="pre">copy</span></tt> methods.</p>
+</div>
+<div class="section" id="module-tomcrypt.mac">
+<span id="mac-api"></span><h2>MAC API<a class="headerlink" href="#module-tomcrypt.mac" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tomcrypt.mac.MAC">
+<em class="property">class </em><tt class="descclassname">tomcrypt.mac.</tt><tt class="descname">MAC</tt><a class="headerlink" href="#tomcrypt.mac.MAC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculator of keyed hashes.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>str mode &#8211; What type of mac. One of &#8216;hmac&#8217;, &#8216;omac&#8217;, &#8216;pmac&#8217;, or &#8216;xcbc&#8217;.
+idx &#8211; What cipher/hash to use. Either a name or descriptor.
+bytes key &#8211; The key.
+bytes input &#8211; Initial data.</dd>
+</dl>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span> <span class="o">=</span> <span class="n">MAC</span><span class="p">(</span><span class="s">&#39;hmac&#39;</span><span class="p">,</span> <span class="s">&#39;md5&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">)</span> <span class="c"># or hmac(&#39;md5&#39;, b&#39;secret&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span> <span class="o">=</span> <span class="n">MAC</span><span class="p">(</span><span class="s">&#39;omac&#39;</span><span class="p">,</span> <span class="s">&#39;aes&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">)</span> <span class="c"># or omac(...)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span> <span class="o">=</span> <span class="n">MAC</span><span class="p">(</span><span class="s">&#39;pmac&#39;</span><span class="p">,</span> <span class="s">&#39;aes&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">)</span> <span class="c"># or pmac(...)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span> <span class="o">=</span> <span class="n">MAC</span><span class="p">(</span><span class="s">&#39;xcbc&#39;</span><span class="p">,</span> <span class="s">&#39;aes&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;0123456789abcdef&#39;</span><span class="p">)</span> <span class="c"># or xcbc(...)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="tomcrypt.mac.MAC.copy">
+<tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.mac.MAC.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a copy of the mac state.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">(</span><span class="s">&#39;md5&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;some more&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;e0cdc5e1d7af04f800b0e0f0ceee588a&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;7e0d0767775312154ba16fd3af9771a2&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.mac.MAC.digest">
+<tt class="descname">digest</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.mac.MAC.digest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return binary digest.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">(</span><span class="s">&#39;md5&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+<span class="go">b&#39;~\r\x07gwS\x12\x15K\xa1o\xd3\xaf\x97q\xa2&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.mac.MAC.hexdigest">
+<tt class="descname">hexdigest</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.mac.MAC.hexdigest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return hex-encoded string of digest.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">(</span><span class="s">&#39;md5&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;7e0d0767775312154ba16fd3af9771a2&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.mac.MAC.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.mac.MAC.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add more data to the mac.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span> <span class="o">=</span> <span class="n">hmac</span><span class="p">(</span><span class="s">&#39;md5&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;secret&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mac</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+<span class="go">&#39;7e0d0767775312154ba16fd3af9771a2&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tomcrypt.mac.test_library">
+<tt class="descclassname">tomcrypt.mac.</tt><tt class="descname">test_library</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.mac.test_library" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run internal libtomcrypt mac tests.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">test_library</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Message Authentication Codes (MACs)</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#module-tomcrypt.mac">MAC API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="hash.html"
+                        title="previous chapter">Hash Functions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="prng.html"
+                        title="next chapter">Pseudo-Random Number Generators (PRNGs)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mac.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="prng.html" title="Pseudo-Random Number Generators (PRNGs)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="hash.html" title="Hash Functions"
+             >previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Mike Boers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

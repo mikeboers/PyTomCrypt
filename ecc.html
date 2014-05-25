@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Elliptic Curve Crypto &mdash; PyTomCrypt 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyTomCrypt 0.10.1 documentation" href="index.html" />
+    <link rel="next" title="PKCS5" href="pkcs5.html" />
+    <link rel="prev" title="RSA" href="rsa.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pkcs5.html" title="PKCS5"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rsa.html" title="RSA"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-tomcrypt.ecc">
+<span id="elliptic-curve-crypto"></span><h1>Elliptic Curve Crypto<a class="headerlink" href="#module-tomcrypt.ecc" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="tomcrypt.ecc.Curve">
+<em class="property">class </em><tt class="descclassname">tomcrypt.ecc.</tt><tt class="descname">Curve</tt><a class="headerlink" href="#tomcrypt.ecc.Curve" title="Permalink to this definition">¶</a></dt>
+<dd><p>A elliptic curve for use in ECC.</p>
+<p>Due to LibTomCrypt&#8217;s limitations and implementation, we will only use the 8
+recommended curves as provided by LibTomCrypt.</p>
+<p>Passing a bit size to the constructor will yield the smallest curve of at
+least the given size.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="tomcrypt.ecc.Key">
+<em class="property">class </em><tt class="descclassname">tomcrypt.ecc.</tt><tt class="descname">Key</tt><a class="headerlink" href="#tomcrypt.ecc.Key" title="Permalink to this definition">¶</a></dt>
+<dd><p>An ECC key.</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd>curve &#8211; The Curve object used with this key.
+public &#8211; The public component of this key.</dd>
+<dt>Constructor Params:</dt>
+<dd><dl class="first docutils">
+<dt>curve &#8211; int of the minimum bit size of key to use (picks from the</dt>
+<dd>NIST recommended curves), or a Curve to use directly.</dd>
+</dl>
+<p class="last">prng &#8211; The PRNG to use to generate the key; defaults to &#8220;sprng&#8221;.</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="tomcrypt.ecc.Key.as_dict">
+<tt class="descname">as_dict</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.ecc.Key.as_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict of all of the key parts encoded into strings.</p>
+<dl class="docutils">
+<dt>Params:</dt>
+<dd>radix &#8211; The base into which to convert the bignum. From 2-64.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="tomcrypt.ecc.Key.as_string">
+<tt class="descname">as_string</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.ecc.Key.as_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the string representation of a key.</p>
+<dl class="docutils">
+<dt>Params:</dt>
+<dd>type &#8211; None (as is), &#8216;private&#8217; or &#8216;public&#8217;.
+format &#8211; &#8216;pem&#8217; (default), or &#8216;der&#8217;.</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.ecc.Key.is_private">
+<tt class="descname">is_private</tt><a class="headerlink" href="#tomcrypt.ecc.Key.is_private" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this is a private key.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.ecc.Key.is_public">
+<tt class="descname">is_public</tt><a class="headerlink" href="#tomcrypt.ecc.Key.is_public" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this is a public key.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.ecc.Key.public">
+<tt class="descname">public</tt><a class="headerlink" href="#tomcrypt.ecc.Key.public" title="Permalink to this definition">¶</a></dt>
+<dd><p>A view of this key with only the public part.</p>
+<p>If this is already a public key, this will be the same object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tomcrypt.ecc.Key.type">
+<tt class="descname">type</tt><a class="headerlink" href="#tomcrypt.ecc.Key.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;private&#8217; or &#8216;public&#8217;</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="rsa.html"
+                        title="previous chapter">RSA</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pkcs5.html"
+                        title="next chapter">PKCS5</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ecc.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pkcs5.html" title="PKCS5"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rsa.html" title="RSA"
+             >previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Mike Boers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

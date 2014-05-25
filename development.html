@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Development &mdash; PyTomCrypt 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyTomCrypt 0.10.1 documentation" href="index.html" />
+    <link rel="next" title="Symmetric Ciphers" href="cipher.html" />
+    <link rel="prev" title="Completeness" href="completeness.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cipher.html" title="Symmetric Ciphers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="completeness.html" title="Completeness"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="development">
+<h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
+<p>This project has a couple of sticky bits that need to be kept in mind during
+any development.</p>
+<p>Good luck!</p>
+<div class="section" id="mako-and-cython">
+<h2>Mako and Cython<a class="headerlink" href="#mako-and-cython" title="Permalink to this headline">¶</a></h2>
+<p>First, the bulk of the code is written as Mako templates,
+which render to Cython source code. This allows us to deal with massive
+amounts of duplicated code (due to the many different cipher modes, hashes,
+macs, etc., which all have their own functions).</p>
+</div>
+<div class="section" id="bytes-and-unicode">
+<h2>Bytes and Unicode<a class="headerlink" href="#bytes-and-unicode" title="Permalink to this headline">¶</a></h2>
+<p>Second, bytes/unicode. Function which perform cryptographic operations will
+always accept bytes, however due to automatic coersion Python 2 will also
+allow for unicode inputs. This is not a problem. The tricky parts come with
+specifications of algorithm names, as we want the developer to be able to use
+&#8220;native&#8221; strings (bytes in Python 2, unicode in Python 3). Most instances
+should be noted as source comments.</p>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>Third, testing. Doctests are written for Python 3 syntax. Doctests will
+automatically be adjusted to comply with the representation of bytes
+(essentially the removal of the <tt class="docutils literal"><span class="pre">b</span></tt> prefix that is required in some versions
+of Python 3).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Development</a><ul>
+<li><a class="reference internal" href="#mako-and-cython">Mako and Cython</a></li>
+<li><a class="reference internal" href="#bytes-and-unicode">Bytes and Unicode</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="completeness.html"
+                        title="previous chapter">Completeness</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cipher.html"
+                        title="next chapter">Symmetric Ciphers</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/development.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cipher.html" title="Symmetric Ciphers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="completeness.html" title="Completeness"
+             >previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Mike Boers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

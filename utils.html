@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Utilities &mdash; PyTomCrypt 0.10.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyTomCrypt 0.10.1 documentation" href="index.html" />
+    <link rel="prev" title="PKCS5" href="pkcs5.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pkcs5.html" title="PKCS5"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-tomcrypt.utils">
+<span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-tomcrypt.utils" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="tomcrypt.utils.bytes_equal">
+<tt class="descclassname">tomcrypt.utils.</tt><tt class="descname">bytes_equal</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.utils.bytes_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constant-time byte sequence equality.</p>
+<p>Good for removing a huge potential timing attack.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>a</strong> (<em>bytes</em>) &#8211; One sequence of bytes.</li>
+<li><strong>b</strong> (<em>bytes</em>) &#8211; Another sequence of bytes.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return bool:</th><td class="field-body"><p class="first"><tt class="docutils literal"><span class="pre">True</span></tt> if the sequences are the same.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Raises ValueError:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first last">When the byte sequences have different lengths.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">bytes_equal</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">bytes_equal</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;world&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tomcrypt.utils.pem_decode">
+<tt class="descclassname">tomcrypt.utils.</tt><tt class="descname">pem_decode</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.utils.pem_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>PEM decode a key.</p>
+<p>Returns a tuple of:</p>
+<ul class="simple">
+<li>type: E.g. <tt class="docutils literal"><span class="pre">&quot;RSA&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;EC&quot;</span></tt>, or None (likely if public);</li>
+<li>mode: <tt class="docutils literal"><span class="pre">&quot;PRIVATE&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;PUBLIC&quot;</span></tt>;</li>
+<li>content: original content.</li>
+</ul>
+<p>Throws a tomcrypt.Error if content is not PEM encoded.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tomcrypt.utils.pem_encode">
+<tt class="descclassname">tomcrypt.utils.</tt><tt class="descname">pem_encode</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.utils.pem_encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>PEM encode a key.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>type</strong> (<em>str</em>) &#8211; <tt class="docutils literal"><span class="pre">&quot;RSA&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;EC&quot;</span></tt>, etc.</li>
+<li><strong>mode</strong> (<em>str</em>) &#8211; <tt class="docutils literal"><span class="pre">&quot;PUBLIC&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;PRIVATE&quot;</span></tt></li>
+<li><strong>content</strong> (<em>bytes</em>) &#8211; The content to encode.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">pem_encode</span><span class="p">(</span><span class="s">&#39;TEST&#39;</span><span class="p">,</span> <span class="s">&#39;PRIVATE&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;private content&#39;</span><span class="p">))</span>
+<span class="go">-----BEGIN TEST PRIVATE KEY-----</span>
+<span class="go">cHJpdmF0ZSBjb250ZW50</span>
+<span class="go">-----END TEST PRIVATE KEY-----</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">pem_encode</span><span class="p">(</span><span class="s">&#39;TEST&#39;</span><span class="p">,</span> <span class="s">&#39;PUBLIC&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;public content&#39;</span><span class="p">))</span>
+<span class="go">-----BEGIN PUBLIC KEY-----</span>
+<span class="go">cHVibGljIGNvbnRlbnQ=</span>
+<span class="go">-----END PUBLIC KEY-----</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tomcrypt.utils.xor_bytes">
+<tt class="descclassname">tomcrypt.utils.</tt><tt class="descname">xor_bytes</tt><big>(</big><big>)</big><a class="headerlink" href="#tomcrypt.utils.xor_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>XOR two sequences of bytes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>a</strong> (<em>bytes</em>) &#8211; One sequence of bytes.</li>
+<li><strong>b</strong> (<em>bytes</em>) &#8211; Another sequence of bytes.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return bytes:</th><td class="field-body"><p class="first">A sequence of bytes, the same length of <tt class="docutils literal"><span class="pre">a</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt>
+in which each byte is the XOR of the respective bytes from <tt class="docutils literal"><span class="pre">a</span></tt> and
+<tt class="docutils literal"><span class="pre">b</span></tt>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Raises ValueError:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first last">When the byte sequences have different lengths.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">xor_bytes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;world&#39;</span><span class="p">)</span>
+<span class="go">b&#39;\x1f\n\x1e\x00\x0b&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xor_bytes</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">,</span> <span class="n">b</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+<span class="go">b&#39;\x00\x00\x00\x00\x00&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pkcs5.html"
+                        title="previous chapter">PKCS5</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/utils.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pkcs5.html" title="PKCS5"
+             >previous</a> |</li>
+        <li><a href="index.html">PyTomCrypt 0.10.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Mike Boers.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

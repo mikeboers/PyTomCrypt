@@ -1,3 +1,3 @@
 Cython==0.19.1
 MarkupSafe==0.15 # Higher than this fails on 3.2
-Mako==0.7.3
+Mako==1.2.2
